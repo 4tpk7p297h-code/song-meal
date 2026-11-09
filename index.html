@@ -515,29 +515,58 @@
     return parts.length >= 2 ? [parts[0], parts.slice(1).join(" ")] : [term.trim()];
   }
 
-  function bestMatch(list, parts) {
-    if (!list || !list.length) return null;
-    if (parts.length < 2) return list[0];
-    let best = null, bestScore = 0;
-    list.forEach((r) => {
-      const [a, b] = parts;
-      const t = (x) => norm(r.trackName) === norm(x) && !/\(|\[/.test(r.trackName) ? 3 : near(r.trackName, x) ? 2 : 0;
-      const s1 = t(b) + (near(r.artistName, a) ? 1 : 0);
-      const s2 = t(a) + (near(r.artistName, b) ? 1 : 0);
-      const variant = /remix|inst|karaoke|cover|live|ver\.|version|sped|slowed|mr\b/i.test(r.trackName) ? 1 : 0;
-      const sc = Math.max(s1, s2) - variant;
-      if (sc > bestScore) { bestScore = sc; best = r; }
-    });
-    return bestScore >= 2 ? best : null;   // 곡명이 맞는 결과만 인정
+  // 한글 가수명 ↔ 스토어 표기(영문)가 다른 경우
+  const ALIAS = {
+    "아이유": "IU", "방탄소년단": "BTS", "블랙핑크": "BLACKPINK", "뉴진스": "NewJeans", "세븐틴": "SEVENTEEN", "빅뱅": "BIGBANG",
+    "데이식스": "DAY6", "악뮤": "AKMU", "악동뮤지션": "AKMU", "트와이스": "TWICE", "에스파": "aespa", "아이브": "IVE",
+    "르세라핌": "LE SSERAFIM", "레드벨벳": "Red Velvet", "엑소": "EXO", "샤이니": "SHINee", "잔나비": "JANNABI",
+    "성시경": "Sung Si Kyung", "볼빨간사춘기": "BOL4", "태연": "TAEYEON", "지코": "ZICO", "임영웅": "Lim Young Woong",
+    "박효신": "Park Hyo Shin", "아이들": "(G)I-DLE", "여자아이들": "(G)I-DLE", "스트레이키즈": "Stray Kids", "엔시티": "NCT",
+    "투모로우바이투게더": "TOMORROW X TOGETHER", "에이티즈": "ATEEZ", "케이윌": "K.will", "폴킴": "Paul Kim", "멜로망스": "MeloMance",
+    "검정치마": "The Black Skirts", "혁오": "HYUKOH", "새소년": "SE SO NEON", "백예린": "Yerin Baek", "헤이즈": "Heize",
+  };
+  const artistOk = (r, a) => near(r.artistName, a) || (ALIAS[a.replace(/\s/g, "")] && near(r.artistName, ALIAS[a.replace(/\s/g, "")]));
+  const VARIANT = /remix|inst|karaoke|cover|live|ver\.|version|sped|slowed|mr\b|feat\.|piano|acoustic/i;
+  const titleScore = (r, t) => (norm(r.trackName) === norm(t) ? 3 : near(r.trackName, t) ? 2 : 0) - (VARIANT.test(r.trackName) ? 1 : 0);
+
+  // 결과 하나의 점수: 곡명 일치(0~3) + 가수 일치(+4). 가수가 맞아야 확정.
+  function score(r, parts) {
+    if (parts.length < 2) return near(r.trackName, parts[0]) ? 2 : 1;
+    const [a, b] = parts;
+    return Math.max(
+      titleScore(r, b) > 1 ? titleScore(r, b) + (artistOk(r, a) ? 4 : 0) : 0,
+      titleScore(r, a) > 1 ? titleScore(r, a) + (artistOk(r, b) ? 4 : 0) : 0,
+    );
+  }
+  function best(list, parts) {
+    let top = null, topScore = 0;
+    (list || []).forEach((r) => { const sc = score(r, parts); if (sc > topScore) { topScore = sc; top = r; } });
+    return top ? { r: top, sc: topScore } : null;
   }
 
   async function itunes(term, country) {
-    const d = await jsonp(`https://itunes.apple.com/search?entity=song&limit=15&country=${country}&term=${encodeURIComponent(term)}`);
+    const d = await jsonp(`https://itunes.apple.com/search?entity=song&limit=25&country=${country}&term=${encodeURIComponent(term)}`);
     return (d && d.results) || [];
   }
 
+  // 가수로 먼저 찾고 그 가수의 곡 목록에서 곡명 찾기 (가장 정확)
+  async function itunesByArtist(artist, title) {
+    const names = [artist, ALIAS[artist.replace(/\s/g, "")]].filter(Boolean);
+    for (const name of names) {
+      const d = await jsonp(`https://itunes.apple.com/search?entity=musicArtist&limit=3&country=kr&term=${encodeURIComponent(name)}`);
+      for (const ar of (d && d.results) || []) {
+        const l = await jsonp(`https://itunes.apple.com/lookup?id=${ar.artistId}&entity=song&limit=200&country=kr`);
+        const songs = ((l && l.results) || []).filter((x) => x.wrapperType === "track");
+        let top = null, ts = 1;
+        songs.forEach((x) => { const t = titleScore(x, title); if (t > ts) { ts = t; top = x; } });
+        if (top) return top;
+      }
+    }
+    return null;
+  }
+
   async function deezer(term) {
-    const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=15&q=${encodeURIComponent(term)}`);
+    const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=25&q=${encodeURIComponent(term)}`);
     return ((d && d.data) || []).map((x) => ({
       artistName: x.artist && x.artist.name, trackName: x.title, collectionName: x.album && x.album.title,
       artworkUrl100: x.album && x.album.cover_medium, previewUrl: x.preview, primaryGenreName: "", releaseDate: "", source: "Deezer",
@@ -548,19 +577,29 @@
     if (!term || /^https?:\/\//.test(term)) return null;
     const parts = splitSong(term);
     const full = parts.length > 1 ? parts.join(" ") : term.replace(/\s*-\s*/g, " ");
+    let fallback = null;
+    const consider = (list) => {
+      const m = best(list, parts);
+      if (!m) return null;
+      if (parts.length < 2 || m.sc >= 5) return m.r;          // 곡명 + 가수 모두 일치
+      if (!fallback || m.sc > fallback.sc) fallback = m;        // 곡명만 일치: 끝까지 못 찾으면 사용
+      return null;
+    };
+    const alias = parts[1] && (ALIAS[parts[0].replace(/\s/g, "")] || ALIAS[parts[1].replace(/\s/g, "")]);
     const tries = [
       () => itunes(full, "kr"),
-      () => parts[1] ? itunes(parts[1], "kr") : [],
-      () => parts[1] ? itunes(parts[0], "kr") : [],   // "곡명 - 가수" 순서일 때
+      () => alias ? itunes(parts.map((x) => ALIAS[x.replace(/\s/g, "")] || x).join(" "), "kr") : [],
+      () => parts[1] ? itunesByArtist(parts[0], parts[1]).then((x) => (x ? [x] : [])) : [],
+      () => parts[1] ? itunesByArtist(parts[1], parts[0]).then((x) => (x ? [x] : [])) : [],
       () => itunes(full, "us"),
       () => deezer(full),
-      () => parts[1] ? deezer(parts[1]) : [],
+      () => parts[1] ? itunes(parts[1], "kr") : [],
     ];
     for (const t of tries) {
-      const hit = bestMatch(await t(), parts);
+      const hit = consider(await t());
       if (hit) return hit;
     }
-    return null;
+    return fallback ? { ...fallback.r, mismatch: true } : null;
   }
 
   // ---------- 미리듣기 30초로 BPM·소리 크기 변화 측정 (실패하면 null) ----------
@@ -652,6 +691,7 @@
         ${art ? `<img src="${esc(art)}" alt="" onerror="this.remove()">` : ""}
         <div>
           <p class="song">🎧 ${esc(title)}</p>
+          ${info && info.mismatch ? `<div class="songmeta" style="color:var(--danger)">입력한 가수의 곡을 찾지 못해 같은 제목의 다른 곡을 보여 줘요.</div>` : ""}
           <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 입력한 분위기로 해설했어요. '가수 - 곡명' 형식으로 입력하면 더 잘 찾아요."}</div>
         </div>
       </div>
