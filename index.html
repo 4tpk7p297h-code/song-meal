@@ -533,8 +533,17 @@
   <form id="form" class="card hidden" autocomplete="off">
     <h2>추천 조건 입력</h2>
 
-    <label for="song">🎧 노래 <span class="opt">(필수)</span></label>
-    <input type="text" id="song" placeholder="'가수 - 곡명' (예: 아이유 - 밤편지)">
+    <div class="row">
+      <div>
+        <label for="artist">🎤 가수 이름 <span class="opt">(선택)</span></label>
+        <input type="text" id="artist" placeholder="예: 아이유">
+      </div>
+      <div>
+        <label for="song">🎧 노래 제목 <span class="opt">(필수)</span></label>
+        <input type="text" id="song" placeholder="예: 밤편지">
+      </div>
+    </div>
+    <p class="hint" style="margin-top:4px">가수 이름도 함께 쓰면 곡을 더 정확하게 찾아요.</p>
 
     <div class="row">
       <div>
@@ -948,7 +957,7 @@
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
     go("form", 1);
-    $("song").focus();
+    $("artist").focus();
   });
 
   // ---------- 추천 데이터 (유형 A~F) ----------
@@ -1425,7 +1434,7 @@
         <div>
           <p class="song">🎧 ${esc(title)}</p>
           ${info && info.mismatch ? `<div class="songmeta" style="color:var(--danger)">입력한 가수의 곡을 찾지 못해 같은 제목의 다른 곡을 보여 줘요.</div>` : ""}
-          <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 기본 분위기로 해설했어요. '가수 - 곡명' 형식으로 입력하면 더 잘 찾아요."}</div>
+          <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 기본 분위기로 해설했어요. 가수 이름과 노래 제목을 정확히 입력하면 더 잘 찾아요."}</div>
         </div>
       </div>
       ${bpmBlock}
@@ -1850,7 +1859,7 @@
     e.preventDefault();
     $("err").classList.add("hidden");
     const v = {
-      song: $("song").value.trim(),
+      song: [$("artist").value.trim(), $("song").value.trim()].filter(Boolean).join(" - "),
       energy: 2,
       valence: 2,
       ppl: $("ppl").value.trim() || "2",
@@ -1860,8 +1869,8 @@
       kinds: [...document.querySelectorAll("#kind input:checked")].map((x) => x.value),
       cond: parseCond($("flt").value),
     };
-    if (!v.song) {
-      $("err").textContent = "노래를 입력해 주세요. '가수 - 곡명' 형식이면 더 잘 찾아요.";
+    if (!$("song").value.trim()) {
+      $("err").textContent = "노래 제목을 입력해 주세요. 가수 이름도 함께 쓰면 더 잘 찾아요.";
       $("err").classList.remove("hidden");
       $("song").focus();
       return;
@@ -2446,8 +2455,12 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.5";
+  const APP_VERSION = "v1.6";
   const CHANGELOG = [
+    ["v1.6", "2026-11-09", "노래 입력칸 나누기", [
+      "추천 입력 화면의 노래 칸을 '가수 이름'(선택)과 '노래 제목'(필수) 두 칸으로 나눔",
+      "두 칸을 합쳐 '가수 - 곡명'으로 곡을 검색해서 정확도는 그대로 유지",
+    ]],
     ["v1.5", "2026-11-09", "로그아웃 버튼, 스토리 댓글, 전곡 듣기", [
       "헤더의 닉네임 옆에 🚪 로그아웃 버튼 추가",
       "스토리에 💬 댓글 기능 추가 (150자, 한 시간 30개 제한, 내 댓글·내 후기에 달린 댓글은 삭제 가능, 관리자는 모두 삭제 가능)",
