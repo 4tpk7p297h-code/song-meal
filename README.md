@@ -22,11 +22,11 @@
 NCP 콘솔의 Web 서비스 URL에 `https://4tpk7p297h-code.github.io`가 등록돼 있어야 합니다.
 
 ## 식당 검색 연결
-지도에 실제 식당을 찍으려면 **네이버 검색 API(지역)** 가 필요합니다. 이 API는 Client Secret이 필요해서
+지도에 실제 식당을 찍으려면 **NAVER API HUB 검색 API(지역)** 가 필요합니다. 이 API는 Client Secret이 필요해서
 `worker/naver-search.js`를 Cloudflare Workers(무료)에 올려 Secret을 숨깁니다.
 
-1. https://developers.naver.com/apps 에서 애플리케이션 등록 → 사용 API **검색** 선택 → Client ID / Secret 확인
-   (NCP Maps 키와는 다른 키입니다)
+1. [NCP 콘솔](https://console.ncloud.com)의 **NAVER API HUB**에서 애플리케이션 생성 → **검색** API 선택 → Client ID / Secret 발급
+   (네이버 개발자센터의 검색 API는 2026-07-31에 신규 신청이 종료됨. 지도용 Maps 키와는 다른 키입니다)
 2. https://dash.cloudflare.com → Workers & Pages → Create → Worker 만들기 → `worker/naver-search.js` 내용 붙여 넣고 Deploy
 3. Worker → Settings → Variables and Secrets에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`(Secret 타입) 추가
 4. Worker 주소(예: `https://naver-search.이름.workers.dev`)를 `index.html`의 `const SEARCH_PROXY = "";`에 넣기
