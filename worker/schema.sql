@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
   hash TEXT NOT NULL,                  -- 비밀번호 해시 (PBKDF2-SHA256), 원래 비밀번호는 저장하지 않음
   fails INTEGER NOT NULL DEFAULT 0,    -- 로그인 연속 실패 횟수
   locked_until INTEGER NOT NULL DEFAULT 0,
-  created INTEGER NOT NULL
+  created INTEGER NOT NULL,
+  prefs TEXT NOT NULL DEFAULT '{}'      -- 동의 기록 (선택 동의 여부와 시각, JSON)
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -54,3 +55,6 @@ CREATE TABLE IF NOT EXISTS reports (
   created INTEGER NOT NULL,
   PRIMARY KEY (post_id, user_id)
 );
+
+-- 이미 표를 만든 뒤라면 아래 한 줄만 실행 (v1.4): 동의 기록 열 추가
+-- ALTER TABLE users ADD COLUMN prefs TEXT NOT NULL DEFAULT '{}';

@@ -392,7 +392,6 @@
   .skipbtn.hidden { display: none; }
   @media (max-width: 520px) { .skipbtn { right: 12px; bottom: 12px; padding: 8px 12px; font-size: 13px; } #auth { margin-bottom: 64px; } }
 
-  #nav-log { border-color: #7c5cff; color: #7c5cff; }
   .modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
     background: rgba(0,0,0,.35); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
   .modal.hidden { display: none; }
@@ -404,6 +403,34 @@
   .logv ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
   .vtag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 13px; margin-right: 4px; }
   #me .leave input { margin-top: 8px; }
+
+  #nav-admin { border-color: #7c5cff; color: #7c5cff; }
+  #nav-admin.on { background: #7c5cff; color: #fff; }
+  .seg.wrap { flex-wrap: wrap; border-radius: 18px; }
+  .admp { margin-top: 4px; }
+  .admbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .admbar .seg { margin: 0; }
+  .admbar input { flex: 1; min-width: 180px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .tile { border: 2px solid var(--line); border-radius: 16px; padding: 12px; background: var(--field); }
+  .tile b { display: block; font-size: 24px; font-family: "Jua", sans-serif; font-weight: 400; color: var(--accent); }
+  .tile span { font-size: 13px; color: var(--muted); }
+  .tile.warn { border-color: var(--danger); } .tile.warn b { color: var(--danger); }
+  .arow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 2px dashed var(--line); }
+  .athumb { width: 60px; height: 80px; object-fit: cover; border-radius: 10px; cursor: pointer; flex: none; }
+  .atx { flex: 1; min-width: 0; font-size: 14px; }
+  .atx b { display: block; } .atx b small, .atx > small { color: var(--muted); font-weight: 400; }
+  .atx > small { display: block; overflow-wrap: anywhere; }
+  .abody { font-style: italic; }
+  .abadges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; font-size: 12px; }
+  .abadges span { background: var(--chip); border-radius: 999px; padding: 1px 8px; }
+  .abadges .bad { background: var(--danger); color: #fff; }
+  .areports, .atemp { margin-top: 6px; padding: 8px 10px; border-radius: 12px; background: var(--chip); font-size: 13px; }
+  .anick { display: flex; gap: 6px; margin-top: 6px; } .anick input { padding: 8px 12px; font-size: 14px; }
+  .aacts { display: flex; flex-direction: column; gap: 6px; flex: none; }
+  .aacts button.mini { padding: 6px 10px; font-size: 13px; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: 16px; letter-spacing: .05em; }
+  @media (max-width: 520px) { .arow { flex-wrap: wrap; } .aacts { flex-direction: row; flex-wrap: wrap; width: 100%; } }
 </style>
 </head>
 <body>
@@ -415,7 +442,7 @@
       <button type="button" id="nav-feed">📸 스토리</button>
       <button type="button" id="nav-rank">🏆 순위</button>
       <button type="button" id="nav-me">👤 가입·로그인</button>
-      <button type="button" id="nav-log" class="hidden">📋 업데이트 내역</button>
+      <button type="button" id="nav-admin" class="hidden">🛠️ 관리패널</button>
     </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
       <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
@@ -593,7 +620,8 @@
         <p>음식점은 후기 올리기·좋아요에 꼭 필요한 정보만 받아요. <b>이메일, 전화번호, 실명, 생년월일은 받지 않아요.</b></p>
         <table class="ptable">
           <tr><th>받는 정보</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임 / 후기를 올리면 노래, 메뉴, 식당 이름, 음식 사진, 후기 글 / 좋아요·신고 기록</td></tr>
-          <tr><th>쓰는 곳</th><td>로그인, 후기 게시, 좋아요와 코너별 순위, 신고 처리</td></tr>
+          <tr><th>쓰는 곳</th><td>로그인, 후기 게시, 좋아요와 코너별 순위, 신고 처리, 메뉴 추천</td></tr>
+          <tr><th>추천 입력 정보</th><td>메뉴 추천에 입력하는 노래·위치·날씨 등은 저장하지 않고, 추천이 끝나면 바로 지워요</td></tr>
           <tr><th>보관 기간</th><td>회원 탈퇴 시 바로 삭제 (로그인 기록은 30일 뒤 자동 삭제)</td></tr>
           <tr><th>보관 장소</th><td>Cloudflare, Inc.(미국)의 클라우드 데이터베이스 (국외 이전)</td></tr>
           <tr><th>공개 범위</th><td>닉네임과 올린 후기는 모든 방문자에게 공개 / 아이디·비밀번호는 비공개</td></tr>
@@ -611,7 +639,7 @@
       <input type="text" id="su-nick" maxlength="12">
       <p class="hint">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요.</p>
 
-      <label class="check all"><input type="checkbox" id="su-all"> <b>전체 동의</b></label>
+      <label class="check all"><input type="checkbox" id="su-all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></label>
       <div class="agreebox">
         <label class="check"><input type="checkbox" class="su-req" id="su-age"> [필수] 만 14세 이상입니다.</label>
         <label class="check"><input type="checkbox" class="su-req" id="su-collect"> [필수] 회원 개인정보 수집·이용 동의</label>
@@ -634,6 +662,15 @@
           </table>
           <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다.</p>
         </details>
+        <label class="check"><input type="checkbox" class="su-req" id="su-rec"> [필수] 메뉴 추천 서비스 이용 동의</label>
+        <details><summary>내용 보기</summary>
+          <table class="ptable">
+            <tr><th>수집·이용 목적</th><td>노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시</td></tr>
+            <tr><th>수집 항목</th><td>노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</td></tr>
+            <tr><th>보유 및 이용 기간</th><td><b>추천 화면을 닫거나 페이지를 떠날 때 즉시 파기</b> (브라우저 안에서만 처리하며 서버에 저장하지 않음)</td></tr>
+          </table>
+          <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다. (가입 없이 '음식만 추천받기'로 이용할 수 있어요)</p>
+        </details>
         <label class="check"><input type="checkbox" class="su-req" id="su-rules"> [필수] 커뮤니티 이용 규칙 동의</label>
         <details><summary>내용 보기</summary>
           <ol class="rules">
@@ -644,6 +681,27 @@
             <li>노래는 앨범 이미지와 Apple이 공개한 30초 미리듣기만 연결하며, 음원 파일은 올릴 수 없습니다.</li>
             <li>권리 침해 신고나 문의는 개인정보 처리방침의 연락처로 해 주세요.</li>
           </ol>
+        </details>
+        <label class="check"><input type="checkbox" class="su-opt" id="su-xfer"> [선택] 곡·식당 검색을 위한 국외 이전 동의</label>
+        <details><summary>내용 보기</summary>
+          <table class="ptable">
+            <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국)</td></tr>
+            <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명) / Cloudflare: 위치(지역명)와 메뉴 검색어. 공통으로 접속 IP 등 통신 정보</td></tr>
+            <tr><th>이전 목적</th><td>곡 정보·앨범 이미지·미리듣기 조회, 네이버 지역 검색 중계(주변 음식점 표시)</td></tr>
+            <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
+            <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
+          </table>
+          <p class="hint">동의하지 않아도 가입과 메뉴 추천은 되지만, 곡 정보 검색과 주변 음식점 검색이 제공되지 않아요. 가입 후 '내 정보'에서 언제든 바꿀 수 있어요.</p>
+        </details>
+        <label class="check"><input type="checkbox" class="su-opt" id="su-geo"> [선택] 위치정보 이용 동의</label>
+        <details><summary>내용 보기</summary>
+          <table class="ptable">
+            <tr><th>이용 목적</th><td>'현재 위치' 버튼을 누를 때 기기 위치로 동네 이름 자동 입력</td></tr>
+            <tr><th>이용 항목</th><td>기기의 위도·경도 (버튼을 누를 때 1회)</td></tr>
+            <tr><th>보유 및 이용 기간</th><td>동네 이름으로 변환한 즉시 파기, 저장하지 않음</td></tr>
+            <tr><th>처리 위탁</th><td>NAVER Cloud(주): 좌표 → 주소 변환</td></tr>
+          </table>
+          <p class="hint">동의하지 않아도 위치를 직접 입력하거나 지도에서 골라 이용할 수 있어요.</p>
         </details>
       </div>
       <p class="hint">개인정보 처리 위탁: Cloudflare, Inc.(웹사이트 호스팅·데이터 보관), NAVER Cloud(주)(지도·주소 변환·지역 검색)</p>
@@ -661,6 +719,12 @@
     <h3 class="subh">내가 올린 후기</h3>
     <div class="grid" id="me-grid"></div>
     <p class="hint center" id="me-msg"></p>
+    <details class="leave"><summary>선택 동의 관리</summary>
+      <label class="check"><input type="checkbox" id="pf-abroad"> [선택] 곡·식당 검색을 위한 국외 이전 (Apple, Deezer, Cloudflare)</label>
+      <label class="check"><input type="checkbox" id="pf-geo"> [선택] 위치정보 이용 ('현재 위치' 버튼)</label>
+      <p class="hint" id="pf-when"></p>
+      <button type="button" id="pf-btn">저장하기</button>
+    </details>
     <details class="leave"><summary>비밀번호 변경</summary>
       <input type="password" id="pw-old" placeholder="현재 비밀번호" autocomplete="current-password">
       <input type="password" id="pw-new" placeholder="새 비밀번호 (8자 이상)" autocomplete="new-password">
@@ -673,6 +737,41 @@
       <input type="password" id="leave-pw" placeholder="비밀번호를 입력해 확인" autocomplete="current-password">
       <button type="button" class="danger" id="leave-btn">탈퇴하기</button>
     </details>
+  </section>
+
+  <!-- 9. 관리패널 (관리자만) -->
+  <section id="admin" class="card hidden">
+    <div class="chead"><h2>🛠️ 관리패널 <small class="hint" id="adm-ver"></small></h2></div>
+    <div class="seg wrap" id="adm-tab">
+      <button type="button" data-t="stats" class="on">📊 현황</button>
+      <button type="button" data-t="posts">📝 후기</button>
+      <button type="button" data-t="users">👥 회원</button>
+      <button type="button" data-t="log">📋 업데이트 내역</button>
+      <button type="button" data-t="mine">🔑 내 계정</button>
+    </div>
+    <div id="adm-stats" class="admp"></div>
+    <div id="adm-posts" class="admp hidden">
+      <div class="admbar">
+        <div class="seg" id="adm-pf">
+          <button type="button" data-f="all" class="on">전체</button>
+          <button type="button" data-f="reported">🚩 신고됨</button>
+          <button type="button" data-f="hidden">🙈 숨김</button>
+        </div>
+        <input type="text" id="adm-pq" placeholder="닉네임·아이디·노래·메뉴 검색">
+      </div>
+      <div id="adm-plist"></div>
+      <button type="button" class="ghost hidden" id="adm-pmore">더 보기</button>
+    </div>
+    <div id="adm-users" class="admp hidden">
+      <div class="admbar"><input type="text" id="adm-uq" placeholder="아이디·닉네임 검색"></div>
+      <div id="adm-ulist"></div>
+      <button type="button" class="ghost hidden" id="adm-umore">더 보기</button>
+    </div>
+    <div id="adm-log" class="admp hidden"></div>
+    <div id="adm-mine" class="admp hidden">
+      <p>관리자 계정(<b id="adm-login"></b>)의 비밀번호는 '내 정보 → 비밀번호 변경'에서 바꿀 수 있어요. 처음 받은 비밀번호를 쓰고 있다면 꼭 바꿔 주세요.</p>
+      <button type="button" id="adm-gome">내 정보로 가기</button>
+    </div>
   </section>
 
   <!-- 8. 후기 올리기 -->
@@ -732,13 +831,6 @@
     </div>
   </div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <div id="logmodal" class="modal hidden" role="dialog" aria-label="업데이트 내역">
-    <div class="modalbox">
-      <div class="chead"><h2>📋 업데이트 내역 <small id="log-ver"></small></h2><button type="button" class="mini ghost" id="log-close">닫기</button></div>
-      <p class="hint" style="margin:0 0 10px">관리자에게만 보이는 화면이에요.</p>
-      <div id="log-body"></div>
-    </div>
-  </div>
   <button type="button" id="skipbtn" class="skipbtn hidden">🍽️ 가입 없이 음식만 추천받기 →</button>
 
   <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
@@ -765,14 +857,15 @@
   // 화면 전환을 브라우저 기록에 남겨서 뒤로가기가 사이트를 나가지 않고 이전 화면으로 가게 함
   // (동의 = 기록 없음, 입력 = d:1, 결과 = d:2)
   function showScreen(name) {
+    if (AUTH.user && name !== "result") name = "form";   // 회원은 가입할 때 이미 동의함
     $("loading").classList.add("hidden");
-    ["feed", "rank", "auth", "me", "write"].forEach((id) => $(id).classList.add("hidden"));
+    ["feed", "rank", "auth", "me", "write", "admin"].forEach((id) => $(id).classList.add("hidden"));
     $("skipbtn").classList.add("hidden");
     const hasResult = !!$("result").innerHTML;
     if (name === "result" && hasResult) {
       $("consent").classList.add("hidden"); $("form").classList.add("hidden");
       $("result").classList.remove("hidden"); document.body.classList.add("wide");
-    } else if ((name === "form" || name === "result") && reqOk()) {
+    } else if ((name === "form" || name === "result") && (reqOk() || AUTH.user)) {
       document.body.classList.remove("wide");
       $("consent").classList.add("hidden"); $("result").classList.add("hidden");
       $("form").classList.remove("hidden");
@@ -801,7 +894,7 @@
     closeStory(true);
     COMM.forEach((id) => $(id).classList.add("hidden")); markNav("");
     if (!AUTH.user) { showComm("auth"); return; }
-    $("consent").classList.remove("hidden");
+    applyPrefs(); showScreen("form");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
@@ -821,7 +914,7 @@
     if (!reqOk()) return;
     CONSENT.abroad = $("c-abroad").checked;
     CONSENT.geo = $("c-geo").checked;
-    if (!CONSENT.geo) $("here").classList.add("hidden");
+    $("here").classList.toggle("hidden", !CONSENT.geo);
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
     go("form", 1);
@@ -1748,7 +1841,7 @@
   // 서버: worker/song-meal-api.js (Cloudflare Workers + D1)
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "http://localhost:8787" : "https://song-meal-api.fare1451.workers.dev";
   const KIND_EMO = { "한식": "🍚", "중식": "🥟", "일식": "🍣", "양식": "🍝", "분식": "🍢", "아시안": "🍜", "카페·디저트": "🍰" };
-  const COMM = ["feed", "rank", "auth", "me", "write"];
+  const COMM = ["feed", "rank", "auth", "me", "write", "admin"];
   const AUTH = { token: "", user: null };
   try { AUTH.token = localStorage.getItem("food.token") || ""; AUTH.user = JSON.parse(localStorage.getItem("food.user") || "null"); } catch {}
 
@@ -1759,9 +1852,15 @@
       else { localStorage.removeItem("food.token"); localStorage.removeItem("food.user"); }
     } catch {}
     $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 가입·로그인";
-    $("nav-log").classList.toggle("hidden", !(AUTH.user && AUTH.user.admin));
+    $("nav-admin").classList.toggle("hidden", !(AUTH.user && AUTH.user.admin));
     $("leave-box").classList.toggle("hidden", !!(AUTH.user && AUTH.user.admin));
-    if (!(AUTH.user && AUTH.user.admin)) $("logmodal").classList.add("hidden");
+    applyPrefs();
+  }
+  // 회원의 선택 동의(곡·식당 검색, 위치)를 추천 화면에 적용
+  function applyPrefs() {
+    const pf = (AUTH.user && AUTH.user.prefs) || {};
+    if (AUTH.user) { CONSENT.abroad = !!pf.abroad; CONSENT.geo = !!pf.geo; }
+    $("here").classList.toggle("hidden", !CONSENT.geo);
   }
   setAuth(AUTH.token, AUTH.user);
   setTimeout(() => route(history.state), 0);
@@ -1808,10 +1907,12 @@
     $("nav-feed").classList.toggle("on", name === "feed");
     $("nav-rank").classList.toggle("on", name === "rank");
     $("nav-me").classList.toggle("on", name === "me" || name === "auth");
+    $("nav-admin").classList.toggle("on", name === "admin");
   }
   function showComm(name) {
     if (name === "me" && !AUTH.user) name = "auth";
     if (name === "write" && !AUTH.user) name = "auth";
+    if (name === "admin" && !AUTH.user) name = "auth";
     if (name === "auth" && $("auth").classList.contains("hidden")) {
       let member = false; try { member = localStorage.getItem("food.member") === "1"; } catch {}
       pickAuthTab(member ? "login" : "signup"); authErr("");
@@ -1826,6 +1927,7 @@
     if (name === "feed") loadFeed(true);
     if (name === "rank") loadRank();
     if (name === "me") loadMe();
+    if (name === "admin") { if (!(AUTH.user && AUTH.user.admin)) { showComm("feed"); return; } admTab(ADM.tab); }
   }
   function openComm(name) {
     if (history.state && history.state.screen === name) { showComm(name); return; }
@@ -1835,7 +1937,7 @@
     closeStory(true);
     const s = state && state.screen;
     if (COMM.includes(s)) { showComm(s); return; }
-    if (!s && !AUTH.user) { showComm("auth"); return; }   // 첫 화면: 가입 먼저
+    if (!s && !AUTH.user) { showComm("auth"); return; }   // 첫 화면: 가입 먼저 (회원은 showScreen에서 입력 화면으로)
     markNav(""); COMM.forEach((id) => $(id).classList.add("hidden"));
     showScreen(s);
   }
@@ -2039,8 +2141,8 @@
     $("signup-form").classList.toggle("hidden", b.dataset.tab !== "signup");
     authErr("");
   });
-  const suBoxes = [...document.querySelectorAll(".su-req")];
-  const suSync = () => { $("su-btn").disabled = !suBoxes.every((b) => b.checked); $("su-all").checked = suBoxes.every((b) => b.checked); };
+  const suBoxes = [...document.querySelectorAll(".su-req, .su-opt")];
+  const suSync = () => { $("su-btn").disabled = ![...document.querySelectorAll(".su-req")].every((b) => b.checked); $("su-all").checked = suBoxes.every((b) => b.checked); };
   $("su-all").addEventListener("change", (e) => { suBoxes.forEach((b) => (b.checked = e.target.checked)); suSync(); });
   suBoxes.forEach((b) => b.addEventListener("change", suSync));
 
@@ -2074,7 +2176,7 @@
     if (pw !== $("su-pw2").value) return authErr("비밀번호 확인이 일치하지 않아요.");
     if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
     try {
-      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true } }), `${nick}님, 가입을 환영해요! 🎉`);
+      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: $("su-xfer").checked, geo: $("su-geo").checked } } }), `${nick}님, 가입을 환영해요! 🎉`);
     } catch (er) { authErr(er.message); }
   });
 
@@ -2085,7 +2187,7 @@
     $("me-grid").innerHTML = ""; $("me-msg").textContent = "불러오는 중...";
     try {
       const d = await api("/me");
-      setAuth(AUTH.token, d.user);
+      setAuth(AUTH.token, d.user); fillPrefs();
       MINE = d.posts;
       $("me-grid").innerHTML = MINE.map((p, i) => cardHTML(p, i, true)).join("");
       $("me-msg").textContent = MINE.length ? "" : "아직 올린 후기가 없어요.";
@@ -2100,7 +2202,8 @@
   $("me-logout").addEventListener("click", async () => {
     try { await api("/logout", { method: "POST" }); } catch {}
     setAuth("", null); toast("로그아웃했어요.");
-    history.replaceState({ ...(history.state || {}), screen: "feed" }, ""); showComm("feed");
+    CONSENT.abroad = CONSENT.geo = false; applyPrefs();
+    history.replaceState({ ...(history.state || {}), screen: "auth" }, ""); showComm("auth");
   });
   $("leave-btn").addEventListener("click", async () => {
     const pw = $("leave-pw").value;
@@ -2233,8 +2336,16 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.3";
+  const APP_VERSION = "v1.4";
   const CHANGELOG = [
+    ["v1.4", "2026-11-09", "가입 시 서비스 동의 통합, 관리패널", [
+      "회원가입 때 메뉴 추천 이용 동의(필수)와 곡·식당 검색 국외 이전·위치정보(선택)를 함께 받음",
+      "로그인한 회원은 서비스 이용 동의 화면 없이 바로 추천 입력 화면으로 이동",
+      "'가입 없이 음식만 추천받기'를 누른 경우에만 기존 서비스 이용 동의 화면 표시",
+      "내 정보에 '선택 동의 관리' 추가 (언제든 동의·철회), 동의 기록을 서버에 저장",
+      "관리자 전용 🛠️ 관리패널: 현황(회원·후기·좋아요·신고 수), 후기 관리(숨김·해제·삭제·신고 사유), 회원 관리(닉네임 변경·비밀번호 초기화·잠금 해제·계정 삭제), 업데이트 내역",
+      "로그아웃하면 회원가입 화면으로 이동",
+    ]],
     ["v1.3", "2026-11-09", "관리자 기능", [
       "관리자 계정(aiadmin) 추가. 관리자 아이디·'관리자' 닉네임은 일반 회원가입으로 만들 수 없게 막음",
       "관리자에게만 보이는 '📋 업데이트 내역' 버튼과 버전별 변경 기록",
@@ -2312,18 +2423,181 @@
       "노래 분위기 → 오늘의 메뉴 추천, GitHub Pages로 온라인 배포",
     ]],
   ];
-  $("log-ver").textContent = `현재 ${APP_VERSION}`;
-  $("log-body").innerHTML = CHANGELOG.map(([v, d, t, items]) => `
+  $("adm-ver").textContent = `현재 ${APP_VERSION}`;
+  $("adm-log").innerHTML = CHANGELOG.map(([v, d, t, items]) => `
     <section class="logv"><h3><span class="vtag">${esc(v)}</span> ${esc(t)} <small>${esc(d)}</small></h3>
     <ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
-  $("nav-log").addEventListener("click", () => {
-    if (!(AUTH.user && AUTH.user.admin)) return;
-    $("logmodal").classList.remove("hidden"); document.body.style.overflow = "hidden";
+
+  // ---------- 선택 동의 관리 ----------
+  function fillPrefs() {
+    const pf = (AUTH.user && AUTH.user.prefs) || {};
+    $("pf-abroad").checked = !!pf.abroad; $("pf-geo").checked = !!pf.geo;
+    const t = (x) => x ? new Date(x).toLocaleString("ko-KR") : "";
+    $("pf-when").textContent = pf.agreedAt ? `가입 동의 ${t(pf.agreedAt)}${pf.updatedAt && pf.updatedAt !== pf.agreedAt ? ` · 마지막 변경 ${t(pf.updatedAt)}` : ""}` : "";
+  }
+  $("pf-btn").addEventListener("click", async () => {
+    try {
+      const d = await api("/me/prefs", { method: "POST", body: { abroad: $("pf-abroad").checked, geo: $("pf-geo").checked } });
+      setAuth(AUTH.token, { ...AUTH.user, prefs: d.prefs }); fillPrefs();
+      toast("선택 동의를 저장했어요.");
+    } catch (e) { toast(e.message); }
   });
-  const closeLog = () => { $("logmodal").classList.add("hidden"); document.body.style.overflow = ""; };
-  $("log-close").addEventListener("click", closeLog);
-  $("logmodal").addEventListener("click", (e) => { if (e.target === $("logmodal")) closeLog(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("logmodal").classList.contains("hidden")) closeLog(); });
+
+  // ---------- 관리패널 ----------
+  const ADM = { tab: "stats", pf: "all", pq: "", poff: 0, plist: [], uq: "", uoff: 0, ulist: [] };
+  $("nav-admin").addEventListener("click", () => openComm("admin"));
+  $("adm-gome").addEventListener("click", () => openComm("me"));
+  $("adm-tab").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) admTab(b.dataset.t); });
+  function admTab(t) {
+    ADM.tab = t;
+    $("adm-tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.t === t));
+    ["stats", "posts", "users", "log", "mine"].forEach((k) => $("adm-" + k).classList.toggle("hidden", k !== t));
+    $("adm-login").textContent = AUTH.user ? AUTH.user.login : "";
+    if (t === "stats") admStats();
+    if (t === "posts") admPosts(true);
+    if (t === "users") admUsers(true);
+  }
+  // 위험한 버튼은 두 번 눌러야 실행
+  function twice(btn, fn) {
+    if (btn.dataset.sure !== "1") {
+      btn.dataset.sure = "1"; const old = btn.textContent; btn.textContent = "한 번 더 누르면 실행";
+      setTimeout(() => { if (btn.isConnected && btn.dataset.sure === "1") { btn.dataset.sure = ""; btn.textContent = old; } }, 3000);
+      return;
+    }
+    btn.dataset.sure = ""; fn();
+  }
+  const dt = (t) => { const d = new Date(t); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+
+  async function admStats() {
+    $("adm-stats").innerHTML = `<p class="hint">불러오는 중...</p>`;
+    try {
+      const d = await api("/admin/stats");
+      const tile = (n, l, warn) => `<div class="tile${warn ? " warn" : ""}"><b>${n}</b><span>${l}</span></div>`;
+      const byKind = Object.fromEntries((d.byKind || []).map((r) => [r.kind, r]));
+      $("adm-stats").innerHTML = `
+        <div class="tiles">
+          ${tile(d.users, "회원")}${tile(d.posts, "후기")}${tile(d.likes, "좋아요")}
+          ${tile(d.reported, "신고 대기", d.reported > 0)}${tile(d.hidden, "숨긴 후기")}${tile(`+${d.newUsers} / +${d.newPosts}`, "24시간 새 회원 / 후기")}
+        </div>
+        <h3 class="subh">코너별 후기</h3>
+        <table class="ptable">${KINDS.map((k) => `<tr><th>${KIND_EMO[k]} ${esc(k)}</th><td>후기 ${(byKind[k] && byKind[k].n) || 0}개 · 좋아요 ${(byKind[k] && byKind[k].likes) || 0}</td></tr>`).join("")}</table>
+        ${d.reported ? `<button type="button" class="ghost" id="adm-goreport">🚩 신고된 후기 ${d.reported}개 보러 가기</button>` : ""}`;
+      const g = $("adm-goreport");
+      if (g) g.addEventListener("click", () => { ADM.pf = "reported"; markSeg("adm-pf", "f", "reported"); admTab("posts"); });
+    } catch (e) { $("adm-stats").innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  const markSeg = (id, key, val) => $(id).querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset[key] === val));
+
+  // 후기 관리
+  $("adm-pf").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; ADM.pf = b.dataset.f; markSeg("adm-pf", "f", ADM.pf); admPosts(true); });
+  let pqTimer; $("adm-pq").addEventListener("input", () => { clearTimeout(pqTimer); pqTimer = setTimeout(() => { ADM.pq = $("adm-pq").value.trim(); admPosts(true); }, 350); });
+  $("adm-pmore").addEventListener("click", () => admPosts(false));
+  async function admPosts(reset) {
+    if (reset) { ADM.poff = 0; ADM.plist = []; $("adm-plist").innerHTML = `<p class="hint">불러오는 중...</p>`; }
+    try {
+      const q = new URLSearchParams({ filter: ADM.pf, offset: ADM.poff }); if (ADM.pq) q.set("q", ADM.pq);
+      const d = await api("/admin/posts?" + q);
+      if (reset) $("adm-plist").innerHTML = "";
+      const start = ADM.plist.length;
+      ADM.plist.push(...d.posts); ADM.poff += d.posts.length;
+      $("adm-plist").insertAdjacentHTML("beforeend", d.posts.map((p, j) => `
+        <div class="arow" data-i="${start + j}">
+          <img src="${esc(p.thumb)}" alt="" class="athumb" data-act="view">
+          <div class="atx">
+            <b>#${p.id} ${esc(p.nick)} <small>(${esc(p.login)})</small></b>
+            <small>${KIND_EMO[p.kind] || ""} ${esc(p.kind)} · ${esc(p.menu)}${p.place ? " · " + esc(p.place) : ""} · ${esc(p.song)}</small>
+            ${p.body ? `<small class="abody">"${esc(p.body)}"</small>` : ""}
+            <span class="abadges"><span>❤️ ${p.likes}</span>${p.reports ? `<span class="bad">🚩 신고 ${p.reports}</span>` : ""}${p.hidden ? `<span class="bad">🙈 숨김</span>` : ""}<span>${dt(p.created)}</span></span>
+            <div class="areports hidden"></div>
+          </div>
+          <div class="aacts">
+            ${p.reports ? `<button type="button" class="mini ghost" data-act="why">신고 사유</button>` : ""}
+            <button type="button" class="mini ghost" data-act="hide">${p.hidden ? "숨김 해제" : "숨기기"}</button>
+            <button type="button" class="mini danger" data-act="del">삭제</button>
+          </div>
+        </div>`).join(""));
+      if (!ADM.plist.length) $("adm-plist").innerHTML = `<p class="hint">해당하는 후기가 없어요.</p>`;
+      $("adm-pmore").classList.toggle("hidden", !d.more);
+    } catch (e) { $("adm-plist").innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  $("adm-plist").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"), row = e.target.closest(".arow"); if (!b || !row) return;
+    const p = ADM.plist[+row.dataset.i];
+    try {
+      if (b.dataset.act === "view") openStory([{ ...p }], 0);
+      if (b.dataset.act === "why") {
+        const box = row.querySelector(".areports");
+        if (!box.classList.contains("hidden")) { box.classList.add("hidden"); return; }
+        const d = await api(`/admin/posts/${p.id}/reports`);
+        box.innerHTML = d.reports.map((r) => `<div>· ${esc(r.nick || "(탈퇴한 회원)")} : ${esc(r.reason || "사유 없음")} <small>${dt(r.created)}</small></div>`).join("") || "신고 기록이 없어요.";
+        box.classList.remove("hidden");
+      }
+      if (b.dataset.act === "hide") {
+        await api(`/admin/posts/${p.id}/hide`, { method: "POST", body: { hidden: !p.hidden } });
+        toast(p.hidden ? "숨김을 해제하고 신고 기록을 지웠어요." : "후기를 숨겼어요."); admPosts(true);
+      }
+      if (b.dataset.act === "del") twice(b, async () => {
+        try { await api("/posts/" + p.id, { method: "DELETE" }); toast("후기를 삭제했어요."); admPosts(true); } catch (er) { toast(er.message); }
+      });
+    } catch (er) { toast(er.message); }
+  });
+
+  // 회원 관리
+  let uqTimer; $("adm-uq").addEventListener("input", () => { clearTimeout(uqTimer); uqTimer = setTimeout(() => { ADM.uq = $("adm-uq").value.trim(); admUsers(true); }, 350); });
+  $("adm-umore").addEventListener("click", () => admUsers(false));
+  async function admUsers(reset) {
+    if (reset) { ADM.uoff = 0; ADM.ulist = []; $("adm-ulist").innerHTML = `<p class="hint">불러오는 중...</p>`; }
+    try {
+      const q = new URLSearchParams({ offset: ADM.uoff }); if (ADM.uq) q.set("q", ADM.uq);
+      const d = await api("/admin/users?" + q);
+      if (reset) $("adm-ulist").innerHTML = "";
+      const start = ADM.ulist.length;
+      ADM.ulist.push(...d.users); ADM.uoff += d.users.length;
+      $("adm-ulist").insertAdjacentHTML("beforeend", d.users.map((u, j) => `
+        <div class="arow" data-i="${start + j}">
+          <div class="atx">
+            <b>${esc(u.nick)} <small>(${esc(u.login)})</small> ${u.admin ? `<span class="vtag">관리자</span>` : ""}</b>
+            <span class="abadges"><span>가입 ${dt(u.created)}</span><span>후기 ${u.posts}</span><span>❤️ ${u.likes}</span>${u.locked_until > Date.now() ? `<span class="bad">🔒 잠김</span>` : ""}</span>
+            <div class="anick hidden"><input type="text" maxlength="12" value="${esc(u.nick)}"><button type="button" class="mini" data-act="nicksave">저장</button></div>
+            <div class="atemp hidden"></div>
+          </div>
+          <div class="aacts">
+            <button type="button" class="mini ghost" data-act="nick">닉네임 변경</button>
+            ${u.admin ? "" : `
+            <button type="button" class="mini ghost" data-act="reset">비밀번호 초기화</button>
+            ${u.locked_until > Date.now() ? `<button type="button" class="mini ghost" data-act="unlock">잠금 해제</button>` : ""}
+            <button type="button" class="mini danger" data-act="del">계정 삭제</button>`}
+          </div>
+        </div>`).join(""));
+      if (!ADM.ulist.length) $("adm-ulist").innerHTML = `<p class="hint">해당하는 회원이 없어요.</p>`;
+      $("adm-umore").classList.toggle("hidden", !d.more);
+    } catch (e) { $("adm-ulist").innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  $("adm-ulist").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"), row = e.target.closest(".arow"); if (!b || !row) return;
+    const u = ADM.ulist[+row.dataset.i];
+    try {
+      if (b.dataset.act === "nick") row.querySelector(".anick").classList.toggle("hidden");
+      if (b.dataset.act === "nicksave") {
+        const nick = row.querySelector(".anick input").value.trim();
+        await api(`/admin/users/${u.id}/nick`, { method: "POST", body: { nick } });
+        toast("닉네임을 바꿨어요."); admUsers(true);
+        if (AUTH.user && u.id === AUTH.user.id) setAuth(AUTH.token, { ...AUTH.user, nick });
+      }
+      if (b.dataset.act === "reset") twice(b, async () => {
+        try {
+          const d = await api(`/admin/users/${u.id}/reset-password`, { method: "POST" });
+          const box = row.querySelector(".atemp");
+          box.innerHTML = `임시 비밀번호: <b class="mono">${esc(d.temp)}</b><br><small>이 화면을 벗어나면 다시 볼 수 없어요. 회원에게 전달하고, 로그인 후 바로 바꾸라고 안내해 주세요. (기존 로그인은 모두 끊겼어요)</small>`;
+          box.classList.remove("hidden");
+        } catch (er) { toast(er.message); }
+      });
+      if (b.dataset.act === "unlock") { await api(`/admin/users/${u.id}/unlock`, { method: "POST" }); toast("잠금을 풀었어요."); admUsers(true); }
+      if (b.dataset.act === "del") twice(b, async () => {
+        try { await api(`/admin/users/${u.id}`, { method: "DELETE" }); toast(`${u.nick}님의 계정과 후기를 삭제했어요.`); admUsers(true); } catch (er) { toast(er.message); }
+      });
+    } catch (er) { toast(er.message); }
+  });
 })();
 </script>
 </body>

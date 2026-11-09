@@ -54,6 +54,24 @@ const safeUrl = (u) => {
   } catch { return ""; }
 };
 
+// 회원의 동의 기록 (users.prefs 열, JSON). 열이 아직 없으면(ALTER 전) 빈 값으로 동작
+const cleanPrefs = (p, prev = {}) => ({
+  abroad: !!p.abroad, geo: !!p.geo,
+  agreedAt: prev.agreedAt || Date.now(), updatedAt: Date.now(),
+});
+async function getPrefs(DB, id) {
+  try { const r = await DB.prepare("SELECT prefs FROM users WHERE id = ?").bind(id).first(); return JSON.parse((r && r.prefs) || "{}"); }
+  catch { return {}; }
+}
+async function setPrefs(DB, id, prefs) {
+  try { await DB.prepare("UPDATE users SET prefs = ? WHERE id = ?").bind(JSON.stringify(prefs), id).run(); return true; }
+  catch { return false; }
+}
+function tempPassword() {
+  const cs = "abcdefghjkmnpqrstuvwxyzACDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return [...crypto.getRandomValues(new Uint8Array(10))].map((b) => cs[b % cs.length]).join("");
+}
+
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 const fail = (status, msg) => { throw new HttpError(status, msg); };
 
@@ -130,6 +148,106 @@ async function likedSet(env, me, ids) {
   return new Set(results.map((r) => r.post_id));
 }
 
+// 회원과 그 회원의 글·좋아요·신고·세션을 모두 지움 (내가 누른 좋아요 수는 글에서 뺌)
+async function deleteAccount(DB, uid) {
+  await DB.batch([
+    DB.prepare("UPDATE posts SET likes = MAX(likes - 1, 0) WHERE id IN (SELECT post_id FROM likes WHERE user_id = ?)").bind(uid),
+    DB.prepare("UPDATE posts SET reports = MAX(reports - 1, 0) WHERE id IN (SELECT post_id FROM reports WHERE user_id = ?)").bind(uid),
+    DB.prepare("DELETE FROM likes WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(uid, uid),
+    DB.prepare("DELETE FROM reports WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(uid, uid),
+    DB.prepare("DELETE FROM posts WHERE user_id = ?").bind(uid),
+    DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(uid),
+    DB.prepare("DELETE FROM users WHERE id = ?").bind(uid),
+  ]);
+}
+
+async function admin(request, env, me, path, M, url) {
+  const DB = env.DB;
+  let m;
+  const num = (k, d = 0) => Math.max(0, +url.searchParams.get(k) || d);
+
+  if (path === "/admin/stats" && M === "GET") {
+    const one = async (sql) => (await DB.prepare(sql).first()).n;
+    const day = Date.now() - 864e5;
+    const [users, posts, likes, reported, hidden, newUsers, newPosts] = await Promise.all([
+      one("SELECT COUNT(*) AS n FROM users"), one("SELECT COUNT(*) AS n FROM posts"), one("SELECT COUNT(*) AS n FROM likes"),
+      one("SELECT COUNT(*) AS n FROM posts WHERE reports > 0 AND hidden = 0"), one("SELECT COUNT(*) AS n FROM posts WHERE hidden = 1"),
+      one(`SELECT COUNT(*) AS n FROM users WHERE created > ${day}`), one(`SELECT COUNT(*) AS n FROM posts WHERE created > ${day}`),
+    ]);
+    const { results: byKind } = await DB.prepare("SELECT kind, COUNT(*) AS n, SUM(likes) AS likes FROM posts GROUP BY kind").all();
+    return { users, posts, likes, reported, hidden, newUsers, newPosts, byKind };
+  }
+
+  if (path === "/admin/posts" && M === "GET") {
+    const f = url.searchParams.get("filter") || "all";
+    const q = (url.searchParams.get("q") || "").trim().slice(0, 40);
+    const where = [], args = [];
+    if (f === "reported") where.push("p.reports > 0 AND p.hidden = 0");
+    if (f === "hidden") where.push("p.hidden = 1");
+    if (q) { where.push("(u.nick LIKE ? OR u.login LIKE ? OR p.song LIKE ? OR p.menu LIKE ? OR p.place LIKE ?)"); for (let i = 0; i < 5; i++) args.push(`%${q}%`); }
+    const { results } = await DB.prepare(
+      `SELECT p.id, p.song, p.kind, p.menu, p.place, p.body, p.likes, p.reports, p.hidden, p.created, p.thumb, u.nick, u.login
+       FROM posts p JOIN users u ON u.id = p.user_id ${where.length ? "WHERE " + where.join(" AND ") : ""}
+       ORDER BY ${f === "reported" ? "p.reports DESC," : ""} p.created DESC LIMIT 31 OFFSET ?`
+    ).bind(...args, num("offset")).all();
+    return { posts: results.slice(0, 30), more: results.length > 30 };
+  }
+
+  if ((m = /^\/admin\/posts\/(\d+)\/hide$/.exec(path)) && M === "POST") {
+    const id = +m[1];
+    const b = await request.json().catch(() => ({}));
+    if (b.hidden) await DB.prepare("UPDATE posts SET hidden = 1 WHERE id = ?").bind(id).run();
+    else await DB.batch([   // 숨김 해제하면 신고 기록도 초기화
+      DB.prepare("UPDATE posts SET hidden = 0, reports = 0 WHERE id = ?").bind(id),
+      DB.prepare("DELETE FROM reports WHERE post_id = ?").bind(id),
+    ]);
+    return { ok: true };
+  }
+
+  if ((m = /^\/admin\/posts\/(\d+)\/reports$/.exec(path)) && M === "GET") {
+    const { results } = await DB.prepare(
+      "SELECT r.reason, r.created, u.nick, u.login FROM reports r LEFT JOIN users u ON u.id = r.user_id WHERE r.post_id = ? ORDER BY r.created DESC"
+    ).bind(+m[1]).all();
+    return { reports: results };
+  }
+
+  if (path === "/admin/users" && M === "GET") {
+    const q = (url.searchParams.get("q") || "").trim().slice(0, 40);
+    const { results } = await DB.prepare(
+      `SELECT u.id, u.login, u.nick, u.created, u.locked_until,
+        (SELECT COUNT(*) FROM posts WHERE user_id = u.id) AS posts,
+        (SELECT COALESCE(SUM(likes), 0) FROM posts WHERE user_id = u.id) AS likes
+       FROM users u ${q ? "WHERE u.login LIKE ? OR u.nick LIKE ?" : ""} ORDER BY u.created DESC LIMIT 51 OFFSET ?`
+    ).bind(...(q ? [`%${q}%`, `%${q}%`] : []), num("offset")).all();
+    return { users: results.slice(0, 50).map((u) => ({ ...u, admin: isAdmin(u.login) })), more: results.length > 50 };
+  }
+
+  if ((m = /^\/admin\/users\/(\d+)(\/[a-z-]+)?$/.exec(path))) {
+    const uid = +m[1], act = m[2] || "";
+    const u = await DB.prepare("SELECT id, login, nick FROM users WHERE id = ?").bind(uid).first();
+    if (!u) fail(404, "없는 회원이에요.");
+    if (isAdmin(u.login) && act !== "/nick") fail(400, "관리자 계정은 여기서 바꿀 수 없어요. 내 비밀번호 변경을 이용해 주세요.");
+    if (act === "" && M === "DELETE") { await deleteAccount(DB, uid); return { ok: true }; }
+    if (act === "/reset-password" && M === "POST") {
+      const temp = tempPassword(), salt = randHex(16);
+      await DB.batch([
+        DB.prepare("UPDATE users SET salt = ?, hash = ?, fails = 0, locked_until = 0 WHERE id = ?").bind(salt, await pbkdf2(temp, salt), uid),
+        DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(uid),
+      ]);
+      return { temp };
+    }
+    if (act === "/unlock" && M === "POST") { await DB.prepare("UPDATE users SET fails = 0, locked_until = 0 WHERE id = ?").bind(uid).run(); return { ok: true }; }
+    if (act === "/nick" && M === "POST") {
+      const b = await request.json().catch(() => ({}));
+      const nick = str(b.nick, 40);
+      if (nick.length < 2 || nick.length > 12) fail(400, "닉네임은 2~12자로 해 주세요.");
+      await DB.prepare("UPDATE users SET nick = ? WHERE id = ?").bind(nick, uid).run();
+      return { ok: true };
+    }
+  }
+  fail(404, "없는 관리자 기능이에요.");
+}
+
 async function route(request, env) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -143,7 +261,7 @@ async function route(request, env) {
   if (path === "/signup" && M === "POST") {
     const b = await body(request);
     const login = str(b.login, 40).toLowerCase(), nick = str(b.nick, 40), pw = typeof b.pw === "string" ? b.pw : "";
-    if (!b.agreeAge || !b.agreeCollect || !b.agreeAbroad) fail(400, "필수 항목에 모두 동의해 주세요.");
+    if (!b.agreeAge || !b.agreeCollect || !b.agreeAbroad || b.agreeRec === false) fail(400, "필수 항목에 모두 동의해 주세요.");
     if (!/^[a-z0-9_]{4,20}$/.test(login)) fail(400, "아이디는 영문 소문자·숫자·_ 4~20자로 만들어 주세요.");
     if (pw.length < 8 || pw.length > 72) fail(400, "비밀번호는 8자 이상으로 만들어 주세요.");
     if (pw.toLowerCase().includes(login)) fail(400, "비밀번호에 아이디를 넣지 말아 주세요.");
@@ -155,7 +273,9 @@ async function route(request, env) {
     const res = await DB.prepare("INSERT INTO users (login, nick, salt, hash, created) VALUES (?, ?, ?, ?, ?)")
       .bind(login, nick, salt, await pbkdf2(pw, salt), now()).run();
     const id = res.meta.last_row_id;
-    return { token: await newSession(env, id), user: { id, login, nick, admin: false } };
+    const prefs = cleanPrefs(b.prefs || {});
+    await setPrefs(DB, id, prefs);
+    return { token: await newSession(env, id), user: { id, login, nick, admin: false, prefs } };
   }
 
   if (path === "/login" && M === "POST") {
@@ -171,7 +291,7 @@ async function route(request, env) {
       fail(401, "아이디 또는 비밀번호가 맞지 않아요.");
     }
     await DB.prepare("UPDATE users SET fails = 0, locked_until = 0 WHERE id = ?").bind(u.id).run();
-    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: isAdmin(u.login) } };
+    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: isAdmin(u.login), prefs: await getPrefs(DB, u.id) } };
   }
 
   if (path === "/logout" && M === "POST") {
@@ -184,7 +304,15 @@ async function route(request, env) {
     const me = await currentUser(request, env, true);
     const { results } = await DB.prepare(`SELECT ${POST_COLS}, p.thumb, p.hidden FROM posts p JOIN users u ON u.id = p.user_id WHERE p.user_id = ? ORDER BY p.created DESC`)
       .bind(me.id).all();
-    return { user: me, posts: results.map((r) => ({ ...pub(r, me, false), hidden: !!r.hidden })) };
+    return { user: { ...me, prefs: await getPrefs(DB, me.id) }, posts: results.map((r) => ({ ...pub(r, me, false), hidden: !!r.hidden })) };
+  }
+
+  if (path === "/me/prefs" && M === "POST") {
+    const me = await currentUser(request, env, true);
+    const b = await body(request);
+    const prefs = cleanPrefs(b, await getPrefs(DB, me.id));
+    if (!(await setPrefs(DB, me.id, prefs))) fail(500, "동의 설정을 저장하지 못했어요. 관리자에게 DB 업데이트(prefs 열 추가)를 요청해 주세요.");
+    return { prefs };
   }
 
   if (path === "/me/password" && M === "POST") {
@@ -211,16 +339,15 @@ async function route(request, env) {
     const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
     if (!sameHex(await pbkdf2(typeof b.pw === "string" ? b.pw : "", u.salt), u.hash)) fail(401, "비밀번호가 맞지 않아요.");
     if (me.admin) fail(400, "관리자 계정은 탈퇴할 수 없어요.");
-    // 내가 누른 좋아요 수를 글에서 빼고, 내 글·좋아요·신고·세션·계정을 모두 지움
-    await DB.batch([
-      DB.prepare("UPDATE posts SET likes = likes - 1 WHERE id IN (SELECT post_id FROM likes WHERE user_id = ?)").bind(me.id),
-      DB.prepare("DELETE FROM likes WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(me.id, me.id),
-      DB.prepare("DELETE FROM reports WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(me.id, me.id),
-      DB.prepare("DELETE FROM posts WHERE user_id = ?").bind(me.id),
-      DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(me.id),
-      DB.prepare("DELETE FROM users WHERE id = ?").bind(me.id),
-    ]);
+    await deleteAccount(DB, me.id);
     return { ok: true };
+  }
+
+  // ---------- 관리자 ----------
+  if (path.startsWith("/admin/")) {
+    const me = await currentUser(request, env, true);
+    if (!me.admin) fail(403, "관리자만 쓸 수 있어요.");
+    return admin(request, env, me, path, M, url);
   }
 
   // ---------- 후기 ----------
@@ -265,7 +392,7 @@ async function route(request, env) {
     if (M === "GET") {
       const me = await currentUser(request, env, false);
       const r = await DB.prepare(`SELECT ${POST_COLS}, p.photo, p.hidden FROM posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?`).bind(id).first();
-      if (!r || (r.hidden && !(me && me.id === r.user_id))) fail(404, "삭제되었거나 숨겨진 후기예요.");
+      if (!r || (r.hidden && !(me && (me.id === r.user_id || me.admin)))) fail(404, "삭제되었거나 숨겨진 후기예요.");
       const liked = await likedSet(env, me, [id]);
       return { post: pub(r, me, liked.has(id)) };
     }
