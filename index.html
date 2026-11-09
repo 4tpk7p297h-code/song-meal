@@ -281,16 +281,120 @@
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
   @media (prefers-reduced-motion: reduce) { .mascot-hello, .loading img { animation: none; } }
   @media (max-width: 420px) { .mascot-hello { width: 80px; } .bubble { font-size: 14px; } .bubble br { display: none; } }
+
+  /* ===== 커뮤니티 (스토리·순위·회원) ===== */
+  .top { row-gap: 8px; }
+  .topr { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .cnav { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .cnav button { margin: 0; width: auto; padding: 7px 12px; font-size: 14px; border-radius: 999px; background: var(--card); color: var(--text); border: 2px solid var(--line); box-shadow: none; }
+  .cnav button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .chead h2 { margin: 0 !important; }
+  button.mini { width: auto; margin: 0; padding: 8px 14px; font-size: 14px; flex: none; }
+  button.danger { background: var(--danger); }
+  .center { text-align: center; }
+  .subh { font-size: 16px; margin: 16px 0 8px; }
+  .chips.corner { margin: 6px 0 10px; }
+  .chips.corner span { padding: 6px 12px; font-size: 14px; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border: 2px solid var(--line); border-radius: 999px; background: var(--field); margin-bottom: 12px; }
+  .seg button { margin: 0; width: auto; padding: 6px 14px; font-size: 14px; background: transparent; color: var(--muted); box-shadow: none; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .scard { position: relative; aspect-ratio: 3 / 4; border-radius: 18px; overflow: hidden; cursor: pointer; background: var(--chip); border: 0; padding: 0; margin: 0; width: 100%; box-shadow: var(--shadow); text-align: left; font: inherit; color: #fff; }
+  .scard > img.ph { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .scard .ov { position: absolute; inset: auto 0 0 0; padding: 30px 10px 10px; background: linear-gradient(transparent, rgba(0,0,0,.75)); font-size: 13px; line-height: 1.35; }
+  .scard .ov b { display: block; font-size: 15px; font-family: "Jua", sans-serif; font-weight: 400; }
+  .scard .ov .sg { display: flex; align-items: center; gap: 5px; opacity: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .scard .ov .sg img { width: 18px; height: 18px; border-radius: 4px; flex: none; }
+  .scard .lk { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.45); border-radius: 999px; padding: 2px 9px; font-size: 13px; font-weight: 700; }
+  .scard .kd { position: absolute; top: 8px; left: 8px; background: rgba(255,255,255,.9); color: #3a2e2a; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; }
+  .scard .hid { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.55); font-weight: 700; }
+  .rankgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .rankgrid .card { margin: 0; }
+  .rankgrid h3 { margin: 0 0 8px; font-family: "Jua", sans-serif; font-weight: 400; font-size: 19px; }
+  .rrow { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0; padding: 8px; border-radius: 14px; background: transparent; color: var(--text); box-shadow: none; text-align: left; font: inherit; font-size: 14px; }
+  .rrow:hover { background: var(--chip); transform: none; }
+  .rrow .md { font-size: 22px; width: 28px; text-align: center; flex: none; }
+  .rrow img { width: 46px; height: 46px; border-radius: 10px; object-fit: cover; flex: none; }
+  .rrow .tx { min-width: 0; flex: 1; }
+  .rrow .tx b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rrow .tx small { color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rrow .lkn { font-weight: 700; color: var(--accent); flex: none; }
+  .rempty { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+  .rempty img { width: 46px; opacity: .8; }
+  .hello.small .mascot-hello { width: 80px; }
+  input[type=password], textarea {
+    width: 100%; padding: 13px 16px; font-size: 16px; color: var(--text); background: var(--field);
+    border: 2px solid var(--line); border-radius: 16px; font-family: inherit; resize: vertical;
+  }
+  input[type=password]:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-weak); }
+  .photobox { position: relative; display: grid; place-items: center; min-height: 180px; margin: 0; border: 2px dashed var(--accent); border-radius: 18px; background: var(--accent-weak); color: var(--accent); cursor: pointer; overflow: hidden; font-weight: 700; }
+  .photobox input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .photobox img { width: 100%; max-height: 360px; object-fit: contain; display: block; background: #000; }
+  .photobox img:not(.hidden) + span { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.55); color: #fff; padding: 3px 10px; border-radius: 999px; font-size: 13px; }
+  .leave { margin: 22px 0 0; }
+  .leave summary { color: var(--muted); font-size: 14px; }
+  .leave input { margin-top: 8px; }
+  .writebtn { margin-top: 10px; }
+  /* 스토리 보기 */
+  .story { position: fixed; inset: 0; z-index: 900; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; }
+  .story.hidden { display: none; }
+  .story .bgblur { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(28px) brightness(.55); transform: scale(1.1); }
+  .story .frame { position: relative; width: 100%; max-width: 480px; height: 100%; max-height: 900px; overflow: hidden; background: #111; }
+  @media (min-width: 600px) { .story .frame { height: 92vh; border-radius: 22px; box-shadow: 0 10px 40px rgba(0,0,0,.5); } }
+  .story .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .story .shade { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.55), transparent 22%, transparent 55%, rgba(0,0,0,.8)); pointer-events: none; }
+  .story .bars { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; }
+  .story .bars i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.35); }
+  .story .bars i.on { background: #fff; }
+  .story .head { position: absolute; top: 22px; left: 14px; right: 14px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .story .head b { font-size: 16px; }
+  .story .head small { opacity: .8; }
+  .story .x { margin: 0 0 0 auto; width: 40px; height: 40px; padding: 0; font-size: 22px; line-height: 1; background: rgba(0,0,0,.35); color: #fff; box-shadow: none; flex: none; }
+  .story .songpill { position: absolute; top: 72px; left: 14px; right: 14px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 16px; background: rgba(0,0,0,.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .story .songpill img { width: 44px; height: 44px; border-radius: 8px; }
+  .story .songpill .t { flex: 1; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .story .songpill .t small { display: block; font-weight: 400; opacity: .8; }
+  .story .play { margin: 0; width: 40px; height: 40px; padding: 0; font-size: 16px; flex: none; }
+  .story .tapl, .story .tapr { position: absolute; top: 130px; bottom: 150px; width: 35%; z-index: 1; cursor: pointer; }
+  .story .tapl { left: 0; } .story .tapr { right: 0; }
+  .story .foot { position: absolute; left: 14px; right: 14px; bottom: 16px; z-index: 2; }
+  .story .foot .mn { font-family: "Jua", sans-serif; font-size: 24px; }
+  .story .foot .pl { font-size: 14px; opacity: .9; }
+  .story .foot p { margin: 6px 0 10px; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+  .story .acts { display: flex; gap: 8px; align-items: center; }
+  .story .acts button { margin: 0; width: auto; padding: 10px 16px; font-size: 16px; box-shadow: none; }
+  .story .like { background: rgba(255,255,255,.18); color: #fff; }
+  .story .like.on { background: #ff4d6d; }
+  .story .more { background: rgba(255,255,255,.18); color: #fff; margin-left: auto !important; }
+  .story .nav { position: absolute; top: 50%; z-index: 3; margin: 0; width: 44px; height: 44px; padding: 0; font-size: 20px; background: rgba(255,255,255,.2); color: #fff; box-shadow: none; transform: translateY(-50%); }
+  .story .nav.p { left: max(8px, calc(50% - 300px)); } .story .nav.n { right: max(8px, calc(50% - 300px)); }
+  @media (max-width: 599px) { .story .nav { display: none; } }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1100; background: #3a2e2a; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100% - 32px); text-align: center; }
+  .toast.hidden { display: none; }
+  @media (max-width: 520px) {
+    .top h1 { font-size: 26px; }
+    .cnav button { padding: 6px 10px; font-size: 13px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .story .nav:hover, .story .nav:active { transform: translateY(-50%); }
 </style>
 </head>
 <body>
 <main>
   <header class="top">
     <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=2" alt="">음식점</a></h1>
+    <div class="topr">
+    <nav class="cnav" aria-label="커뮤니티">
+      <button type="button" id="nav-feed">📸 스토리</button>
+      <button type="button" id="nav-rank">🏆 순위</button>
+      <button type="button" id="nav-me">👤 로그인</button>
+    </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
       <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
       <button type="button" data-theme="dark" title="다크 모드">🌙 다크</button>
       <button type="button" data-theme="system" title="기기 설정 따르기">🖥️ 시스템</button>
+    </div>
     </div>
   </header>
   <p class="sub">노래 분위기 → 오늘의 메뉴와 주변 식당</p>
@@ -409,12 +513,165 @@
 
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
+
+  <!-- 4. 커뮤니티: 스토리 -->
+  <section id="feed" class="card hidden">
+    <div class="chead">
+      <h2>📸 음식 × 노래 스토리</h2>
+      <button type="button" class="mini" id="feed-write">＋ 후기 올리기</button>
+    </div>
+    <div class="chips corner" id="feed-kind"></div>
+    <div class="seg" id="feed-sort">
+      <button type="button" data-sort="new" class="on">🆕 최신순</button>
+      <button type="button" data-sort="top">❤️ 좋아요순</button>
+    </div>
+    <div class="grid" id="feed-grid"></div>
+    <p class="hint center" id="feed-msg"></p>
+    <button type="button" class="ghost hidden" id="feed-more">더 보기</button>
+  </section>
+
+  <!-- 5. 커뮤니티: 코너별 순위 -->
+  <section id="rank" class="hidden">
+    <div class="card">
+      <div class="chead">
+        <h2>🏆 코너별 순위</h2>
+        <button type="button" class="mini" id="rank-write">＋ 후기 올리기</button>
+      </div>
+      <p class="hint" style="margin:0">좋아요를 많이 받은 음식 × 노래 조합 TOP 3예요. 누르면 스토리로 볼 수 있어요.</p>
+    </div>
+    <div class="rankgrid" id="rank-box"></div>
+  </section>
+
+  <!-- 6. 로그인 / 회원가입 -->
+  <section id="auth" class="card hidden">
+    <div class="hello small">
+      <img src="mascot.png" alt="" class="mascot-hello">
+      <div class="bubble" id="auth-bubble">로그인하면 후기를 올리고 좋아요를 누를 수 있어요!</div>
+    </div>
+    <div class="seg" id="auth-tab">
+      <button type="button" data-tab="login" class="on">로그인</button>
+      <button type="button" data-tab="signup">회원가입</button>
+    </div>
+    <form id="login-form" autocomplete="on">
+      <label for="li-id">아이디</label>
+      <input type="text" id="li-id" autocomplete="username" autocapitalize="off" spellcheck="false">
+      <label for="li-pw">비밀번호</label>
+      <input type="password" id="li-pw" autocomplete="current-password">
+      <button type="submit">로그인</button>
+    </form>
+    <form id="signup-form" class="hidden" autocomplete="on">
+      <label for="su-id">아이디 <span class="opt">(영문 소문자·숫자·_ 4~20자)</span></label>
+      <input type="text" id="su-id" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20">
+      <label for="su-pw">비밀번호 <span class="opt">(8자 이상)</span></label>
+      <input type="password" id="su-pw" autocomplete="new-password" maxlength="72">
+      <label for="su-pw2">비밀번호 확인</label>
+      <input type="password" id="su-pw2" autocomplete="new-password" maxlength="72">
+      <label for="su-nick">닉네임 <span class="opt">(2~12자, 후기에 "○○님의"로 보여요)</span></label>
+      <input type="text" id="su-nick" maxlength="12">
+      <p class="hint">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요.</p>
+
+      <label class="check all"><input type="checkbox" id="su-all"> <b>전체 동의</b></label>
+      <div class="agreebox">
+        <label class="check"><input type="checkbox" class="su-req" id="su-age"> [필수] 만 14세 이상입니다.</label>
+        <label class="check"><input type="checkbox" class="su-req" id="su-collect"> [필수] 회원 개인정보 수집·이용 동의</label>
+        <details><summary>내용 보기</summary>
+          <table class="ptable">
+            <tr><th>수집·이용 목적</th><td>회원 식별과 로그인 유지, 후기 게시·좋아요·코너별 순위 제공, 신고 처리와 부정 이용 방지</td></tr>
+            <tr><th>수집 항목</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임, 작성한 후기(노래, 메뉴, 식당 이름, 음식 사진, 후기 글), 좋아요·신고 기록, 로그인 기록</td></tr>
+            <tr><th>보유 및 이용 기간</th><td><b>회원 탈퇴 시 즉시 파기</b> (내 후기·좋아요 포함). 로그인 기록은 30일 뒤 자동 삭제</td></tr>
+          </table>
+          <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다. 가입하지 않아도 메뉴 추천과 스토리·순위 보기는 이용할 수 있습니다.</p>
+        </details>
+        <label class="check"><input type="checkbox" class="su-req" id="su-abroad"> [필수] 회원 정보 국외 이전(보관) 동의</label>
+        <details><summary>내용 보기</summary>
+          <table class="ptable">
+            <tr><th>이전받는 자 (국가)</th><td>Cloudflare, Inc. (미국) · 연락처 privacyquestions@cloudflare.com</td></tr>
+            <tr><th>이전 항목</th><td>위 회원 개인정보 수집 항목 전체</td></tr>
+            <tr><th>이전 목적</th><td>회원 정보와 후기를 저장하는 클라우드 데이터베이스(Cloudflare D1) 보관</td></tr>
+            <tr><th>이전 일시·방법</th><td>회원가입·후기 작성·좋아요 시 네트워크를 통해 전송</td></tr>
+            <tr><th>보유 및 이용 기간</th><td>회원 탈퇴 시까지</td></tr>
+          </table>
+          <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다.</p>
+        </details>
+      </div>
+      <button type="submit" id="su-btn" disabled>가입하기</button>
+    </form>
+    <div id="auth-err" class="error hidden"></div>
+  </section>
+
+  <!-- 7. 내 정보 -->
+  <section id="me" class="card hidden">
+    <div class="chead">
+      <h2 id="me-title">👤 내 정보</h2>
+      <button type="button" class="mini ghost" id="me-logout">로그아웃</button>
+    </div>
+    <h3 class="subh">내가 올린 후기</h3>
+    <div class="grid" id="me-grid"></div>
+    <p class="hint center" id="me-msg"></p>
+    <details class="leave"><summary>회원 탈퇴</summary>
+      <p class="hint">탈퇴하면 계정과 내가 올린 후기, 누른 좋아요가 모두 바로 지워지고 되돌릴 수 없어요.</p>
+      <input type="password" id="leave-pw" placeholder="비밀번호를 입력해 확인" autocomplete="current-password">
+      <button type="button" class="danger" id="leave-btn">탈퇴하기</button>
+    </details>
+  </section>
+
+  <!-- 8. 후기 올리기 -->
+  <form id="write" class="card hidden" autocomplete="off">
+    <h2>📸 후기 올리기</h2>
+    <label for="w-photo">📷 음식 사진</label>
+    <label class="photobox" id="w-photobox">
+      <input type="file" id="w-photo" accept="image/*">
+      <img id="w-preview" alt="" class="hidden">
+      <span id="w-photo-hint">눌러서 사진 고르기</span>
+    </label>
+    <label for="w-song">🎧 노래 <span class="opt">('가수 - 곡명')</span></label>
+    <input type="text" id="w-song" maxlength="120">
+    <div class="row">
+      <div>
+        <label for="w-kind">🍴 코너</label>
+        <select id="w-kind"></select>
+      </div>
+      <div>
+        <label for="w-menu">🍜 메뉴</label>
+        <input type="text" id="w-menu" list="w-menu-list" maxlength="40" placeholder="예: 우동">
+        <datalist id="w-menu-list"></datalist>
+      </div>
+    </div>
+    <label for="w-place">📍 식당 이름 <span class="opt">(선택)</span></label>
+    <input type="text" id="w-place" list="w-place-list" maxlength="60">
+    <datalist id="w-place-list"></datalist>
+    <label for="w-body">💬 한 줄 후기 <span class="opt">(선택, 200자)</span></label>
+    <textarea id="w-body" maxlength="200" rows="3" placeholder="이 노래랑 이 메뉴, 이렇게 잘 어울렸어요!"></textarea>
+    <p class="hint">사진에 다른 사람 얼굴이나 차량 번호 같은 개인정보가 나오지 않게 해 주세요. 올린 후기는 모든 방문자에게 공개돼요.</p>
+    <div id="w-err" class="error hidden"></div>
+    <button type="submit" id="w-btn">올리기</button>
+  </form>
+
   <div id="loading" class="loading hidden" role="status" aria-live="polite">
     <div class="loadbox">
       <img src="mascot.png" alt="">
       <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
     </div>
   </div>
+
+  <div id="story" class="story hidden" role="dialog" aria-label="후기 스토리">
+    <div class="bgblur"></div>
+    <button type="button" class="nav p" aria-label="이전">‹</button>
+    <button type="button" class="nav n" aria-label="다음">›</button>
+    <div class="frame">
+      <img class="photo" alt="">
+      <div class="shade"></div>
+      <div class="bars"></div>
+      <div class="head"><span class="who"></span><button type="button" class="x" aria-label="닫기">×</button></div>
+      <div class="songpill"></div>
+      <div class="tapl"></div><div class="tapr"></div>
+      <div class="foot">
+        <div class="mn"></div><div class="pl"></div><p></p>
+        <div class="acts"><button type="button" class="like">🤍 0</button><button type="button" class="more">🚩 신고</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
   <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
   <footer>※ 곡 정보는 Apple 음악 검색, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
@@ -441,6 +698,7 @@
   // (동의 = 기록 없음, 입력 = d:1, 결과 = d:2)
   function showScreen(name) {
     $("loading").classList.add("hidden");
+    ["feed", "rank", "auth", "me", "write"].forEach((id) => $(id).classList.add("hidden"));
     const hasResult = !!$("result").innerHTML;
     if (name === "result" && hasResult) {
       $("consent").classList.add("hidden"); $("form").classList.add("hidden");
@@ -456,8 +714,8 @@
     }
     window.scrollTo({ top: 0 });
   }
-  window.addEventListener("popstate", (e) => showScreen(e.state && e.state.screen));
-  const go = (screen, d) => history.pushState({ screen, d }, "");
+  window.addEventListener("popstate", (e) => route(e.state));
+  const go = (screen) => history.pushState({ screen, d: ((history.state && history.state.d) || 0) + 1 }, "");
 
   $("home").addEventListener("click", (e) => {
     e.preventDefault();
@@ -471,6 +729,8 @@
     $("here").classList.remove("hidden");
     boxes.forEach((b) => (b.checked = false)); $("c-all").checked = false; syncConsent();
     CONSENT.abroad = CONSENT.geo = false;
+    closeStory(true);
+    COMM.forEach((id) => $(id).classList.add("hidden")); markNav("");
     $("consent").classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
@@ -1294,10 +1554,12 @@
         <div class="btnrow">
           <button type="button" id="reroll">🔄 다른 메뉴 추천</button>
           <button type="button" class="ghost" id="again">다시 하기</button>
-        </div>`;
+        </div>
+        <button type="button" class="ghost writebtn" id="writebtn">📸 이 조합으로 후기 올리기</button>`;
   }
 
   function bindPicks(v, r, seen) {
+    $("writebtn").addEventListener("click", () => openWrite(seedFromResult()));
     $("result").querySelectorAll(".maps button").forEach((b) => b.addEventListener("click", () => {
       $("result").querySelectorAll(".maps button.on").forEach((x) => x.classList.remove("on"));
       b.classList.add("on");
@@ -1322,12 +1584,14 @@
       }
       const token = (render.token = (render.token || 0) + 1);
       $("pickscard").innerHTML = picksHTML(v, r2);
+      if (render.ctx) render.ctx.r = r2;
       bindPicks(v, r2, seen);
       checkPicks(v, token);
     });
   }
 
   function render(v, r, info) {
+    render.ctx = { v, r, info };
     document.body.classList.add("wide");
     $("result").innerHTML = `
       <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
@@ -1408,6 +1672,455 @@
     render(v, recommend(v), info);
     go("result", 2);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ================= 커뮤니티: 회원·후기·좋아요·코너별 순위 =================
+  // 서버: worker/song-meal-api.js (Cloudflare Workers + D1)
+  const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "http://localhost:8787" : "https://song-meal-api.fare1451.workers.dev";
+  const KIND_EMO = { "한식": "🍚", "중식": "🥟", "일식": "🍣", "양식": "🍝", "분식": "🍢", "아시안": "🍜", "카페·디저트": "🍰" };
+  const COMM = ["feed", "rank", "auth", "me", "write"];
+  const AUTH = { token: "", user: null };
+  try { AUTH.token = localStorage.getItem("food.token") || ""; AUTH.user = JSON.parse(localStorage.getItem("food.user") || "null"); } catch {}
+
+  function setAuth(token, user) {
+    AUTH.token = token || ""; AUTH.user = user || null;
+    try {
+      if (token) { localStorage.setItem("food.token", token); localStorage.setItem("food.user", JSON.stringify(user)); }
+      else { localStorage.removeItem("food.token"); localStorage.removeItem("food.user"); }
+    } catch {}
+    $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 로그인";
+  }
+  setAuth(AUTH.token, AUTH.user);
+
+  async function api(path, { method = "GET", body } = {}) {
+    let res;
+    try {
+      res = await fetch(API + path, {
+        method,
+        headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...(AUTH.token ? { Authorization: "Bearer " + AUTH.token } : {}) },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw new Error("서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.");
+    }
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (res.status === 401 && AUTH.token && path !== "/login") setAuth("", null);
+    if (!res.ok) { const e = new Error(data.error || "요청을 처리하지 못했어요."); e.status = res.status; throw e; }
+    return data;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.classList.remove("hidden");
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), 2600);
+  }
+  const ago = (t) => {
+    const s = (Date.now() - t) / 1000;
+    if (s < 60) return "방금"; if (s < 3600) return `${Math.floor(s / 60)}분 전`;
+    if (s < 86400) return `${Math.floor(s / 3600)}시간 전`; if (s < 86400 * 30) return `${Math.floor(s / 86400)}일 전`;
+    const d = new Date(t); return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  };
+
+  // ---------- 화면 전환 ----------
+  function hideAll() {
+    ["consent", "form", "result", ...COMM].forEach((id) => $(id).classList.add("hidden"));
+    document.body.classList.remove("wide");
+    $("loading").classList.add("hidden");
+  }
+  function markNav(name) {
+    $("nav-feed").classList.toggle("on", name === "feed");
+    $("nav-rank").classList.toggle("on", name === "rank");
+    $("nav-me").classList.toggle("on", name === "me" || name === "auth");
+  }
+  function showComm(name) {
+    if (name === "me" && !AUTH.user) name = "auth";
+    if (name === "write" && !AUTH.user) name = "auth";
+    hideAll(); markNav(name);
+    $(name).classList.remove("hidden");
+    window.scrollTo({ top: 0 });
+    if (name === "feed") loadFeed(true);
+    if (name === "rank") loadRank();
+    if (name === "me") loadMe();
+  }
+  function openComm(name) {
+    if (history.state && history.state.screen === name) { showComm(name); return; }
+    showComm(name); go(name);
+  }
+  function route(state) {
+    closeStory(true);
+    const s = state && state.screen;
+    if (COMM.includes(s)) { showComm(s); return; }
+    markNav(""); COMM.forEach((id) => $(id).classList.add("hidden"));
+    showScreen(s);
+  }
+  $("nav-feed").addEventListener("click", () => openComm("feed"));
+  $("nav-rank").addEventListener("click", () => openComm("rank"));
+  $("nav-me").addEventListener("click", () => openComm(AUTH.user ? "me" : "auth"));
+  $("feed-write").addEventListener("click", () => openWrite(null));
+  $("rank-write").addEventListener("click", () => openWrite(null));
+
+  // ---------- 스토리 목록 ----------
+  const FEED = { kind: "", sort: "new", offset: 0, posts: [] };
+  $("feed-kind").innerHTML = ["", ...KINDS].map((k) =>
+    `<label><input type="radio" name="fk" value="${esc(k)}" ${k ? "" : "checked"}><span>${k ? KIND_EMO[k] + " " + esc(k) : "✨ 전체"}</span></label>`).join("");
+  $("feed-kind").addEventListener("change", (e) => { FEED.kind = e.target.value; loadFeed(true); });
+  $("feed-sort").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    FEED.sort = b.dataset.sort;
+    $("feed-sort").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    loadFeed(true);
+  });
+  $("feed-more").addEventListener("click", () => loadFeed(false));
+
+  const cardHTML = (p, i, mine) => `
+    <button type="button" class="scard" data-i="${i}">
+      <img class="ph" src="${esc(p.thumb)}" alt="${esc(p.menu)} 사진" loading="lazy">
+      <span class="kd">${KIND_EMO[p.kind] || ""} ${esc(p.kind)}</span>
+      <span class="lk">❤️ ${p.likes}</span>
+      ${mine && p.hidden ? `<span class="hid">신고로 숨겨짐</span>` : ""}
+      <span class="ov"><b>${esc(p.menu)}</b>
+        <span class="sg">${p.art ? `<img src="${esc(p.art)}" alt="">` : "🎧"} ${esc(p.song)}</span>
+        <span>${mine ? ago(p.created) : esc(p.nick) + "님"}</span></span>
+    </button>`;
+
+  async function loadFeed(reset) {
+    if (reset) { FEED.offset = 0; FEED.posts = []; $("feed-grid").innerHTML = ""; }
+    $("feed-msg").textContent = "불러오는 중...";
+    $("feed-more").classList.add("hidden");
+    const q = new URLSearchParams({ sort: FEED.sort, offset: FEED.offset, limit: 24 });
+    if (FEED.kind) q.set("kind", FEED.kind);
+    try {
+      const d = await api("/posts?" + q);
+      const start = FEED.posts.length;
+      FEED.posts.push(...d.posts); FEED.offset += d.posts.length;
+      $("feed-grid").insertAdjacentHTML("beforeend", d.posts.map((p, j) => cardHTML(p, start + j, false)).join(""));
+      $("feed-msg").textContent = FEED.posts.length ? "" : "아직 올라온 후기가 없어요. 첫 후기를 올려 보세요!";
+      $("feed-more").classList.toggle("hidden", !d.more);
+    } catch (e) { $("feed-msg").textContent = e.message; }
+  }
+  $("feed-grid").addEventListener("click", (e) => {
+    const c = e.target.closest(".scard"); if (c) openStory(FEED.posts, +c.dataset.i);
+  });
+
+  // ---------- 코너별 순위 ----------
+  let RANK = {};
+  async function loadRank() {
+    $("rank-box").innerHTML = `<div class="card"><p class="hint">불러오는 중...</p></div>`;
+    try {
+      const d = await api("/ranking");
+      RANK = d.corners;
+      const MED = ["🥇", "🥈", "🥉"];
+      $("rank-box").innerHTML = KINDS.map((k) => {
+        const list = RANK[k] || [];
+        const rows = list.length ? list.map((p, i) => `
+          <button type="button" class="rrow" data-k="${esc(k)}" data-i="${i}">
+            <span class="md">${MED[i]}</span><img src="${esc(p.thumb)}" alt="">
+            <span class="tx"><b>${esc(p.nick)}님의 ${esc(p.song)}</b><small>${esc(p.menu)}${p.place ? " · " + esc(p.place) : ""}</small></span>
+            <span class="lkn">❤️ ${p.likes}</span>
+          </button>`).join("")
+          : `<div class="rempty"><img src="icon-192.png?v=2" alt="">아직 후기가 없어요. 첫 1등이 되어 보세요!</div>`;
+        return `<div class="card"><h3>${KIND_EMO[k]} ${esc(k)} 코너</h3>${rows}</div>`;
+      }).join("");
+    } catch (e) { $("rank-box").innerHTML = `<div class="card"><p class="error">${esc(e.message)}</p></div>`; }
+  }
+  $("rank-box").addEventListener("click", (e) => {
+    const r = e.target.closest(".rrow"); if (r) openStory(RANK[r.dataset.k], +r.dataset.i);
+  });
+
+  // ---------- 스토리 보기 ----------
+  const ST = { list: [], i: 0, audio: null, pushed: false };
+  function openStory(list, i) {
+    if (!list || !list[i]) return;
+    ST.list = list; ST.i = i;
+    $("story").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    if (!ST.pushed) { history.pushState({ ...(history.state || {}), story: 1, d: ((history.state && history.state.d) || 0) + 1 }, ""); ST.pushed = true; }
+    drawStory();
+  }
+  function stopAudio() { if (ST.audio) { ST.audio.pause(); ST.audio = null; } }
+  function closeStory(fromHistory) {
+    if ($("story").classList.contains("hidden")) return;
+    stopAudio();
+    $("story").classList.add("hidden");
+    document.body.style.overflow = "";
+    if (ST.pushed && !fromHistory) { ST.pushed = false; history.back(); return; }
+    ST.pushed = false;
+  }
+  async function drawStory() {
+    stopAudio();
+    const p = ST.list[ST.i], s = $("story");
+    s.querySelector(".bars").innerHTML = ST.list.map((_, j) => `<i class="${j <= ST.i ? "on" : ""}"></i>`).join("");
+    s.querySelector(".bgblur").style.backgroundImage = `url("${p.thumb}")`;
+    const img = s.querySelector(".photo"); img.src = p.photo || p.thumb; img.alt = `${p.menu} 사진`;
+    s.querySelector(".who").innerHTML = `<b>${esc(p.nick)}님</b> <small>${KIND_EMO[p.kind] || ""} ${esc(p.kind)} 코너 · ${ago(p.created)}</small>`;
+    s.querySelector(".songpill").innerHTML = `${p.art ? `<img src="${esc(p.art)}" alt="">` : `<span style="font-size:30px">🎧</span>`}
+      <span class="t">${esc(p.song)}<small>${p.preview ? "30초 미리듣기" : "미리듣기 없음"}</small></span>
+      ${p.preview ? `<button type="button" class="play" aria-label="미리듣기">▶</button>` : ""}`;
+    s.querySelector(".foot .mn").textContent = p.menu;
+    s.querySelector(".foot .pl").textContent = p.place ? "📍 " + p.place : "";
+    s.querySelector(".foot p").textContent = p.body || "";
+    const like = s.querySelector(".like");
+    like.classList.toggle("on", !!p.liked); like.textContent = `${p.liked ? "❤️" : "🤍"} ${p.likes}`;
+    s.querySelector(".more").textContent = p.mine ? "🗑️ 삭제" : "🚩 신고";
+    s.querySelector(".nav.p").disabled = ST.i === 0;
+    s.querySelector(".nav.n").disabled = ST.i === ST.list.length - 1;
+    const pb = s.querySelector(".play");
+    if (pb) pb.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (ST.audio) { stopAudio(); pb.textContent = "▶"; return; }
+      ST.audio = new Audio(p.preview); ST.audio.play().catch(() => {}); pb.textContent = "❚❚";
+      ST.audio.addEventListener("ended", () => { pb.textContent = "▶"; ST.audio = null; });
+    });
+    if (!p.photo) {
+      const want = p;
+      try {
+        const d = await api("/posts/" + p.id);
+        Object.assign(want, { photo: d.post.photo, liked: d.post.liked, likes: d.post.likes, mine: d.post.mine });
+        if (ST.list[ST.i] === want && !$("story").classList.contains("hidden")) {
+          img.src = want.photo;
+          like.classList.toggle("on", !!want.liked); like.textContent = `${want.liked ? "❤️" : "🤍"} ${want.likes}`;
+          s.querySelector(".more").textContent = want.mine ? "🗑️ 삭제" : "🚩 신고";
+        }
+      } catch (e) { if (e.status === 404) toast(e.message); }
+    }
+  }
+  const stepStory = (d) => { const j = ST.i + d; if (j < 0) return; if (j >= ST.list.length) { closeStory(); return; } ST.i = j; drawStory(); };
+  $("story").querySelector(".tapl").addEventListener("click", () => stepStory(-1));
+  $("story").querySelector(".tapr").addEventListener("click", () => stepStory(1));
+  $("story").querySelector(".nav.p").addEventListener("click", () => stepStory(-1));
+  $("story").querySelector(".nav.n").addEventListener("click", () => stepStory(1));
+  $("story").querySelector(".x").addEventListener("click", () => closeStory());
+  document.addEventListener("keydown", (e) => {
+    if ($("story").classList.contains("hidden")) return;
+    if (e.key === "Escape") closeStory(); else if (e.key === "ArrowLeft") stepStory(-1); else if (e.key === "ArrowRight") stepStory(1);
+  });
+  let touchX = null;
+  $("story").addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+  $("story").addEventListener("touchend", (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+    if (Math.abs(dx) > 60) stepStory(dx < 0 ? 1 : -1);
+  });
+  $("story").querySelector(".like").addEventListener("click", async () => {
+    const p = ST.list[ST.i];
+    if (!AUTH.user) {
+      toast("로그인하면 좋아요를 누를 수 있어요.");
+      closeStory(true);
+      history.replaceState({ screen: "auth", d: (history.state && history.state.d) || 1 }, "");
+      showComm("auth");
+      return;
+    }
+    try {
+      const d = await api(`/posts/${p.id}/like`, { method: "POST" });
+      p.liked = d.liked; p.likes = d.likes;
+      const like = $("story").querySelector(".like");
+      like.classList.toggle("on", d.liked); like.textContent = `${d.liked ? "❤️" : "🤍"} ${d.likes}`;
+    } catch (e) { toast(e.message); }
+  });
+  $("story").querySelector(".more").addEventListener("click", async () => {
+    const p = ST.list[ST.i];
+    if (!AUTH.user) { toast("로그인하면 신고할 수 있어요."); return; }
+    const btn = $("story").querySelector(".more");
+    if (btn.dataset.confirm !== String(p.id)) {
+      btn.dataset.confirm = p.id;
+      btn.textContent = p.mine ? "정말 삭제할까요? 한 번 더 누르기" : "정말 신고할까요? 한 번 더 누르기";
+      setTimeout(() => { if (btn.dataset.confirm === String(p.id)) { btn.dataset.confirm = ""; btn.textContent = p.mine ? "🗑️ 삭제" : "🚩 신고"; } }, 3000);
+      return;
+    }
+    btn.dataset.confirm = "";
+    try {
+      if (p.mine) {
+        await api("/posts/" + p.id, { method: "DELETE" });
+        toast("후기를 삭제했어요.");
+        ST.list.splice(ST.i, 1);
+        if (!ST.list.length) { closeStory(); } else { ST.i = Math.min(ST.i, ST.list.length - 1); drawStory(); }
+      } else {
+        const d = await api(`/posts/${p.id}/report`, { method: "POST", body: { reason: "부적절한 게시물" } });
+        toast(d.already ? "이미 신고한 후기예요." : "신고를 접수했어요. 신고가 쌓이면 자동으로 숨겨져요.");
+        btn.textContent = "🚩 신고";
+      }
+    } catch (e) { toast(e.message); }
+  });
+
+  // ---------- 로그인 / 회원가입 ----------
+  let afterLogin = null;
+  const authErr = (m) => { $("auth-err").textContent = m; $("auth-err").classList.toggle("hidden", !m); };
+  $("auth-tab").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    $("auth-tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    $("login-form").classList.toggle("hidden", b.dataset.tab !== "login");
+    $("signup-form").classList.toggle("hidden", b.dataset.tab !== "signup");
+    authErr("");
+  });
+  const suBoxes = [...document.querySelectorAll(".su-req")];
+  const suSync = () => { $("su-btn").disabled = !suBoxes.every((b) => b.checked); $("su-all").checked = suBoxes.every((b) => b.checked); };
+  $("su-all").addEventListener("change", (e) => { suBoxes.forEach((b) => (b.checked = e.target.checked)); suSync(); });
+  suBoxes.forEach((b) => b.addEventListener("change", suSync));
+
+  function loggedIn(d, msg) {
+    setAuth(d.token, d.user);
+    $("login-form").reset(); $("signup-form").reset(); suSync(); authErr("");
+    toast(msg);
+    const next = afterLogin; afterLogin = null;
+    history.replaceState({ ...(history.state || {}), screen: next ? "write" : "me" }, "");
+    if (next) { fillWrite(next.seed); showComm("write"); } else showComm("me");
+  }
+  $("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault(); authErr("");
+    const login = $("li-id").value.trim(), pw = $("li-pw").value;
+    if (!login || !pw) return authErr("아이디와 비밀번호를 입력해 주세요.");
+    try { loggedIn(await api("/login", { method: "POST", body: { login, pw } }), "로그인했어요!"); } catch (er) { authErr(er.message); }
+  });
+  $("signup-form").addEventListener("submit", async (e) => {
+    e.preventDefault(); authErr("");
+    const login = $("su-id").value.trim().toLowerCase(), pw = $("su-pw").value, nick = $("su-nick").value.trim();
+    if (!/^[a-z0-9_]{4,20}$/.test(login)) return authErr("아이디는 영문 소문자·숫자·_ 4~20자로 만들어 주세요.");
+    if (pw.length < 8) return authErr("비밀번호는 8자 이상으로 만들어 주세요.");
+    if (pw !== $("su-pw2").value) return authErr("비밀번호 확인이 일치하지 않아요.");
+    if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
+    try {
+      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true } }), `${nick}님, 가입을 환영해요! 🎉`);
+    } catch (er) { authErr(er.message); }
+  });
+
+  // ---------- 내 정보 ----------
+  let MINE = [];
+  async function loadMe() {
+    $("me-title").textContent = `👤 ${AUTH.user.nick}님 (${AUTH.user.login})`;
+    $("me-grid").innerHTML = ""; $("me-msg").textContent = "불러오는 중...";
+    try {
+      const d = await api("/me");
+      MINE = d.posts;
+      $("me-grid").innerHTML = MINE.map((p, i) => cardHTML(p, i, true)).join("");
+      $("me-msg").textContent = MINE.length ? "" : "아직 올린 후기가 없어요.";
+    } catch (e) {
+      if (e.status === 401) { toast("다시 로그인해 주세요."); showComm("auth"); return; }
+      $("me-msg").textContent = e.message;
+    }
+  }
+  $("me-grid").addEventListener("click", (e) => {
+    const c = e.target.closest(".scard"); if (c) openStory(MINE, +c.dataset.i);
+  });
+  $("me-logout").addEventListener("click", async () => {
+    try { await api("/logout", { method: "POST" }); } catch {}
+    setAuth("", null); toast("로그아웃했어요.");
+    history.replaceState({ ...(history.state || {}), screen: "feed" }, ""); showComm("feed");
+  });
+  $("leave-btn").addEventListener("click", async () => {
+    const pw = $("leave-pw").value;
+    if (!pw) { toast("비밀번호를 입력해 주세요."); return; }
+    const b = $("leave-btn");
+    if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "정말 탈퇴할까요? 한 번 더 누르기"; setTimeout(() => { b.dataset.sure = ""; b.textContent = "탈퇴하기"; }, 4000); return; }
+    try {
+      await api("/me", { method: "DELETE", body: { pw } });
+      setAuth("", null); $("leave-pw").value = "";
+      toast("탈퇴했어요. 모든 정보를 지웠어요.");
+      history.replaceState({ ...(history.state || {}), screen: "feed" }, ""); showComm("feed");
+    } catch (e) { toast(e.message); }
+  });
+
+  // ---------- 후기 올리기 ----------
+  $("w-kind").innerHTML = KINDS.map((k) => `<option value="${esc(k)}">${KIND_EMO[k]} ${esc(k)}</option>`).join("");
+  const W = { photo: "", thumb: "", info: null, seed: null };
+  const wErr = (m) => { $("w-err").textContent = m; $("w-err").classList.toggle("hidden", !m); };
+
+  // 추천 결과에서 넘어오면 노래·메뉴·식당을 미리 채움
+  function seedFromResult() {
+    const c = render.ctx;
+    if (!c) return null;
+    const info = c.info;
+    return {
+      song: info ? `${info.artistName} - ${info.trackName}` : c.v.song,
+      info,
+      picks: (c.r && c.r.picks) || [],
+      places: (M.items || []).map((p) => p.name),
+    };
+  }
+  function fillWrite(seed) {
+    $("write").reset(); wErr("");
+    W.photo = W.thumb = ""; W.seed = seed; W.info = seed && seed.info;
+    $("w-preview").classList.add("hidden"); $("w-preview").removeAttribute("src");
+    $("w-photo-hint").textContent = "눌러서 사진 고르기";
+    $("w-menu-list").innerHTML = ""; $("w-place-list").innerHTML = "";
+    if (!seed) return;
+    seed.picks = seed.picks || []; seed.places = seed.places || [];
+    $("w-song").value = seed.song || "";
+    const first = seed.picks[0];
+    if (first) { $("w-menu").value = first.food; if (KINDS.includes(first.kind)) $("w-kind").value = first.kind; }
+    $("w-menu-list").innerHTML = seed.picks.map((p) => `<option value="${esc(p.food)}">`).join("");
+    $("w-place-list").innerHTML = seed.places.map((n) => `<option value="${esc(n)}">`).join("");
+    if (seed.places[0]) $("w-place").value = seed.places[0];
+  }
+  $("w-menu").addEventListener("change", () => {
+    const p = W.seed && W.seed.picks.find((x) => x.food === $("w-menu").value.trim());
+    if (p && KINDS.includes(p.kind)) $("w-kind").value = p.kind;
+  });
+  function openWrite(seed) {
+    if (!AUTH.user) { afterLogin = { seed }; toast("후기를 올리려면 먼저 로그인해 주세요."); openComm("auth"); return; }
+    fillWrite(seed); openComm("write");
+  }
+
+  // 사진을 브라우저에서 줄여서 보냄 (긴 변 1080px JPEG + 정사각 썸네일 320px)
+  async function shrink(file) {
+    let bmp;
+    try { bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+    catch {
+      bmp = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error("사진을 열 수 없어요. JPG나 PNG 사진을 골라 주세요.")); im.src = URL.createObjectURL(file); });
+    }
+    const W0 = bmp.width, H0 = bmp.height;
+    const draw = (w, h, sx = 0, sy = 0, sw = W0, sh = H0) => {
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.drawImage(bmp, sx, sy, sw, sh, 0, 0, w, h); return c;
+    };
+    let side = 1080, photo = "";
+    for (let tries = 0; tries < 6; tries++) {
+      const k = Math.min(1, side / Math.max(W0, H0));
+      const c = draw(Math.round(W0 * k), Math.round(H0 * k));
+      for (let q = 0.82; q >= 0.5; q -= 0.08) { photo = c.toDataURL("image/jpeg", q); if (photo.length < 650000) break; }
+      if (photo.length < 650000) break;
+      side = Math.round(side * 0.8);
+    }
+    const cw = Math.min(W0, H0 * 3 / 4), ch = cw * 4 / 3;
+    const thumb = draw(300, 400, (W0 - cw) / 2, (H0 - ch) / 2, cw, ch).toDataURL("image/jpeg", 0.72);
+    return { photo, thumb };
+  }
+  $("w-photo").addEventListener("change", async () => {
+    const f = $("w-photo").files[0]; if (!f) return;
+    wErr(""); $("w-photo-hint").textContent = "사진 줄이는 중...";
+    try {
+      const r = await shrink(f);
+      W.photo = r.photo; W.thumb = r.thumb;
+      $("w-preview").src = r.photo; $("w-preview").classList.remove("hidden");
+      $("w-photo-hint").textContent = "다른 사진 고르기";
+    } catch (e) { W.photo = W.thumb = ""; $("w-photo-hint").textContent = "눌러서 사진 고르기"; wErr(e.message || "사진을 열 수 없어요."); }
+  });
+
+  $("write").addEventListener("submit", async (e) => {
+    e.preventDefault(); wErr("");
+    const song = $("w-song").value.trim(), menu = $("w-menu").value.trim();
+    if (!W.photo) return wErr("음식 사진을 골라 주세요.");
+    if (!song) return wErr("노래를 입력해 주세요.");
+    if (!menu) return wErr("메뉴 이름을 입력해 주세요.");
+    const btn = $("w-btn"); btn.disabled = true; btn.textContent = "올리는 중...";
+    try {
+      let info = W.info;
+      const same = info && song === `${info.artistName} - ${info.trackName}`;
+      if (!same) info = await lookupSong(song).catch(() => null);
+      await api("/posts", { method: "POST", body: {
+        song, art: info && info.artworkUrl100 ? info.artworkUrl100.replace("100x100", "300x300") : "", preview: (info && info.previewUrl) || "",
+        kind: $("w-kind").value, menu, place: $("w-place").value.trim(), body: $("w-body").value.trim(), photo: W.photo, thumb: W.thumb,
+      } });
+      toast("후기를 올렸어요! 🎉");
+      FEED.kind = ""; FEED.sort = "new";
+      document.querySelector('#feed-kind input[value=""]').checked = true;
+      $("feed-sort").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.sort === "new"));
+      history.replaceState({ ...(history.state || {}), screen: "feed" }, "");
+      showComm("feed");
+    } catch (er) {
+      wErr(er.message);
+      if (er.status === 401) { afterLogin = { seed: W.seed }; showComm("auth"); }
+    } finally { btn.disabled = false; btn.textContent = "올리기"; }
   });
 })();
 </script>
