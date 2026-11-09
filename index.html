@@ -6,10 +6,16 @@
 <title>음식점</title>
 <meta name="description" content="노래 분위기로 오늘의 메뉴와 네이버 지도 검색 키워드를 추천합니다.">
 <!--
-  [네이버 지도 API 자리]
-  나중에 네이버 클라우드 플랫폼에서 Maps Client ID를 발급받은 뒤 아래 주석을 풀고 YOUR_CLIENT_ID를 바꾸세요.
-  <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=YOUR_CLIENT_ID"></script>
+  네이버 지도 API (NCP Maps)
+  - Client ID는 웹에 공개되는 값이며, NCP 콘솔의 Web 서비스 URL에 등록된 주소에서만 동작합니다.
+  - Client Secret은 절대 이 파일에 넣지 마세요.
+  - 사용 API: Dynamic Map, Geocoding(위치 → 좌표), Reverse Geocoding(현재 위치 → 동네 이름)
 -->
+<script>
+  // 인증 실패 시 네이버 지도 스크립트가 호출하는 함수
+  window.navermap_authFailure = function () { window.NAVER_MAP_AUTH_FAILED = true; };
+</script>
+<script defer src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=o8sqmz7fug&submodules=geocoder"></script>
 <style>
   :root {
     --bg: #faf7f2; --card: #ffffff; --text: #1f1d1a; --muted: #6b665e;
@@ -70,6 +76,10 @@
     color: var(--accent); background: var(--accent-weak); border-radius: 999px; text-decoration: none;
   }
   .maps a:hover { text-decoration: underline; }
+  #map { width: 100%; height: 280px; border-radius: 10px; background: var(--chip); }
+  .locrow { display: flex; gap: 8px; }
+  .locrow input { flex: 1; }
+  .locrow button { margin: 0; width: auto; padding: 0 12px; font-size: 14px; white-space: nowrap; }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
 </style>
 </head>
@@ -129,7 +139,10 @@
     </div>
 
     <label for="loc">위치</label>
-    <input type="text" id="loc" placeholder="동네·역·지역명 (예: 성수역)">
+    <div class="locrow">
+      <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
+      <button type="button" class="ghost" id="here">📍 현재 위치</button>
+    </div>
 
     <div class="row">
       <div>
@@ -158,13 +171,6 @@
 
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
-
-  <!--
-    [네이버 지도 API 자리]
-    API를 붙이면 아래 div에 지도를 그리면 됩니다. 예:
-    <div id="map" style="width:100%;height:320px;border-radius:14px"></div>
-    new naver.maps.Map("map", { center: new naver.maps.LatLng(37.5446, 127.0557), zoom: 15 });
-  -->
 
   <footer>※ 선택한 곡 분위기를 바탕으로 한 규칙 기반 추천입니다.</footer>
 </main>
@@ -276,6 +282,47 @@
   const naverUrl = (loc, kw) => "https://map.naver.com/p/search/" + encodeURIComponent(`${loc} ${kw}`);
   const E_LABEL = ["", "잔잔함", "보통", "신남"], V_LABEL = ["", "어둡고 차분", "무난", "밝고 경쾌"];
 
+  // ---------- 네이버 지도 ----------
+  const mapsReady = () => !window.NAVER_MAP_AUTH_FAILED && window.naver && naver.maps && naver.maps.Service;
+  const MAP_FAIL = "지도를 불러오지 못했어요. NCP 콘솔에서 Dynamic Map 사용과 Web 서비스 URL 등록을 확인해 주세요.";
+
+  function drawMap(loc) {
+    const msg = (t) => { const el = $("mapmsg"); if (el) el.textContent = t; };
+    const hideMap = (t) => { const m = $("map"); if (m) m.style.display = "none"; msg(t); };
+    if (!mapsReady()) return hideMap(MAP_FAIL);
+    naver.maps.Service.geocode({ query: loc }, (status, res) => {
+      const a = status === naver.maps.Service.Status.OK && res.v2 && res.v2.addresses && res.v2.addresses[0];
+      if (!a) return hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`);
+      const pos = new naver.maps.LatLng(+a.y, +a.x);
+      const map = new naver.maps.Map("map", { center: pos, zoom: 15 });
+      new naver.maps.Marker({ position: pos, map });
+      msg(a.roadAddress || a.jibunAddress || "");
+      setTimeout(() => { if (window.NAVER_MAP_AUTH_FAILED) hideMap(MAP_FAIL); }, 1500);
+    });
+  }
+
+  // 현재 위치 → 동네 이름 (Reverse Geocoding)
+  $("here").addEventListener("click", () => {
+    const err = (t) => { $("err").textContent = t; $("err").classList.remove("hidden"); };
+    $("err").classList.add("hidden");
+    if (!navigator.geolocation) return err("이 브라우저는 위치 정보를 지원하지 않아요.");
+    if (!mapsReady()) return err(MAP_FAIL);
+    const btn = $("here"); btn.disabled = true; btn.textContent = "찾는 중...";
+    const done = () => { btn.disabled = false; btn.textContent = "📍 현재 위치"; };
+    navigator.geolocation.getCurrentPosition((p) => {
+      naver.maps.Service.reverseGeocode({
+        coords: new naver.maps.LatLng(p.coords.latitude, p.coords.longitude),
+        orders: naver.maps.Service.OrderType.ADDR,
+      }, (status, res) => {
+        done();
+        const r = status === naver.maps.Service.Status.OK && res.v2 && res.v2.results && res.v2.results[0];
+        if (!r) return err("현재 위치의 주소를 찾지 못했어요. 직접 입력해 주세요.");
+        const g = r.region;
+        $("loc").value = [g.area2 && g.area2.name, g.area3 && g.area3.name].filter(Boolean).join(" ");
+      });
+    }, () => { done(); err("위치 권한이 거부됐어요. 직접 입력해 주세요."); }, { timeout: 10000 });
+  });
+
   function render(v, r) {
     const picks = r.picks.map((p, i) => `
       <div class="pick">
@@ -296,12 +343,18 @@
           <span class="stat">${esc(v.ppl)}명 · ${esc(v.meal)}</span>
         </div>
       </div>
+      <div class="card" id="mapcard">
+        <h2>🗺️ ${esc(v.loc)} 주변</h2>
+        <div id="map"></div>
+        <p class="hint" id="mapmsg"></p>
+      </div>
       <div class="card">
         <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(v.loc)}</span></h2>
         ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
       </div>
       <button class="ghost" id="again" type="button">다시 하기</button>`;
     $("result").classList.remove("hidden");
+    drawMap(v.loc);
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
       $("form").classList.remove("hidden");

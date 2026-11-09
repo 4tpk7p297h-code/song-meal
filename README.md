@@ -13,8 +13,11 @@
 메뉴 목록은 `index.html`의 `TYPES`, `WEATHER`에서 고칠 수 있습니다.
 
 ## 네이버 지도 API
-`index.html`에 주석으로 자리를 표시해 두었습니다 (`[네이버 지도 API 자리]` 검색).
-Client ID는 공개 사이트에 노출되므로, 네이버 클라우드 콘솔에서 서비스 URL을 이 사이트 주소로 제한해 두세요.
+NCP Maps Client ID를 `index.html` 상단 스크립트에 연결했습니다 (Dynamic Map, Geocoding, Reverse Geocoding 사용).
+- 결과 화면: 입력한 위치를 Geocoding으로 찾아 지도와 마커 표시
+- 입력 화면: "📍 현재 위치" 버튼으로 현재 위치의 구·동 이름 자동 입력
+- NCP 콘솔의 Web 서비스 URL에 `https://4tpk7p297h-code.github.io`가 등록돼 있어야 합니다.
+- Client Secret은 이 저장소에 절대 넣지 마세요.
 
 ## 배포
 GitHub 저장소 Settings → Pages → Source: `Deploy from a branch`, Branch: `main` / `(root)`.
