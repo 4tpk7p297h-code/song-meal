@@ -10,19 +10,21 @@
 //   NAVER_CLIENT_ID     = NAVER API HUB 애플리케이션의 Client ID
 //   NAVER_CLIENT_SECRET = 같은 애플리케이션의 Client Secret (Secret 타입으로 저장)
 
-const ALLOWED_ORIGIN = "https://4tpk7p297h-code.github.io";
+// 사이트 주소 (GitHub Pages 예비 주소 + Cloudflare Pages 주소와 그 미리보기 주소)
+const ALLOWED = ["https://4tpk7p297h-code.github.io", "https://song-meal.pages.dev"];
+const isAllowed = (o) => !!o && (ALLOWED.includes(o) || /^https:\/\/[a-z0-9-]+\.song-meal\.pages\.dev$/.test(o));
 
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get("Origin");
     const cors = {
-      "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      "Access-Control-Allow-Origin": isAllowed(origin) ? origin : ALLOWED[0],
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Vary": "Origin",
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
-    const origin = request.headers.get("Origin");
-    if (origin !== ALLOWED_ORIGIN) return new Response("forbidden", { status: 403, headers: cors });
+    if (!isAllowed(origin)) return new Response("forbidden", { status: 403, headers: cors });
 
     const query = new URL(request.url).searchParams.get("query") || "";
     if (!query || query.length > 100) return new Response("bad query", { status: 400, headers: cors });
