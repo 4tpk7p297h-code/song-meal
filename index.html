@@ -116,6 +116,32 @@
   .iw { padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #1f1d1a; max-width: 240px; }
   .iw b { font-size: 14px; }
   .iw a { color: #d9480f; }
+  .badge { display: inline-block; margin-left: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--chip); color: var(--muted); vertical-align: middle; }
+  .badge.ok { color: #2f9e44; }
+  .badge.none { color: var(--danger); }
+  .pick.none h3, .pick.none p { opacity: .55; }
+  .btnrow { display: flex; gap: 8px; }
+  .btnrow button { margin-top: 12px; padding: 10px; font-size: 15px; }
+  .nonemsg { font-size: 14px; color: var(--danger); margin: 8px 0 0; }
+  #result .card { padding: 16px; margin-bottom: 12px; }
+  #result .card h2 { font-size: 17px; margin-bottom: 8px; }
+  #result .pick { padding: 10px 0; }
+  #result .pick h3 { font-size: 16px; }
+  #result .pick p { margin-bottom: 6px; }
+  #analysis .synopsis { margin: 8px 0; font-size: 14px; }
+  #analysis .bpm { margin-top: 10px; }
+  #analysis .sects { gap: 4px; font-size: 13px; }
+  #analysis audio { margin-top: 8px; height: 36px; }
+  body.wide main { max-width: 1440px; padding: 12px 16px 16px; }
+  body.wide h1 { font-size: 20px; margin-bottom: 10px; }
+  body.wide .sub, body.wide footer { display: none; }
+  @media (min-width: 960px) {
+    body.wide #result { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 16px; height: calc(100vh - 76px); }
+    body.wide #result > .card { margin: 0; overflow: auto; min-height: 0; }
+    body.wide #mapcard { display: flex; flex-direction: column; }
+    body.wide #map { flex: 1 1 auto; height: auto; min-height: 240px; }
+    body.wide #places { flex: none; max-height: 32%; overflow: auto; }
+  }
 </style>
 </head>
 <body>
@@ -286,6 +312,70 @@
     ]},
   };
 
+  // 메뉴 추가 (유형별로 종류를 고르게)
+  const MORE = {
+    A: [
+      { food: "리조또", kind: "양식", kw: ["리조또 맛집", "트러플 리조또"], reason: "부드럽고 진한 맛이 잔잔한 곡처럼 천천히 스며들어요." },
+      { food: "와인 비스트로", kind: "양식", kw: ["와인 비스트로", "와인바"], reason: "낮은 조명과 와인 한 잔이 감성적인 곡과 어울려요." },
+      { food: "오마카세", kind: "일식", kw: ["스시 오마카세", "초밥 맛집"], reason: "한 점씩 천천히 즐기는 조용한 식사예요." },
+      { food: "솥밥", kind: "한식", kw: ["솥밥 맛집", "한식 솥밥"], reason: "정갈하고 따뜻해서 마음이 차분해져요." },
+      { food: "우육면", kind: "중식", kw: ["우육면 맛집", "대만 우육면"], reason: "진한 국물이 새벽 감성과 잘 맞아요." },
+      { food: "분짜", kind: "아시안", kw: ["분짜 맛집", "베트남 음식"], reason: "은은한 향이 몽환적인 분위기와 어울려요." },
+      { food: "티라미수 카페", kind: "카페·디저트", kw: ["티라미수 맛집", "조용한 카페"], reason: "부드러운 디저트로 여운을 이어 가요." },
+      { food: "어묵탕", kind: "분식", kw: ["어묵탕 맛집", "오뎅바"], reason: "따끈한 국물로 조용히 하루를 마무리해요." },
+    ],
+    B: [
+      { food: "팬케이크", kind: "카페·디저트", kw: ["팬케이크 맛집", "수플레 팬케이크"], reason: "폭신하고 달콤해서 밝은 곡과 잘 어울려요." },
+      { food: "연어덮밥", kind: "일식", kw: ["사케동 맛집", "연어덮밥"], reason: "산뜻하고 깔끔한 한 그릇이에요." },
+      { food: "비빔밥", kind: "한식", kw: ["비빔밥 맛집", "산채비빔밥"], reason: "알록달록 가볍게 즐기기 좋아요." },
+      { food: "월남쌈", kind: "아시안", kw: ["월남쌈 맛집", "라이스페이퍼"], reason: "상큼하고 가벼워서 기분이 맑아져요." },
+      { food: "오므라이스", kind: "일식", kw: ["오므라이스 맛집", "경양식 오므라이스"], reason: "포근하고 귀여운 한 끼예요." },
+      { food: "멘보샤", kind: "중식", kw: ["멘보샤 맛집", "중식 딤섬"], reason: "바삭하고 가볍게 나눠 먹기 좋아요." },
+      { food: "에그 베네딕트", kind: "양식", kw: ["에그베네딕트 맛집", "브런치 레스토랑"], reason: "여유로운 주말 오후 같은 메뉴예요." },
+      { food: "토스트", kind: "분식", kw: ["토스트 맛집", "길거리 토스트"], reason: "가볍고 달콤한 한 끼예요." },
+    ],
+    C: [
+      { food: "스테이크", kind: "양식", kw: ["스테이크 맛집", "스테이크 하우스"], reason: "기분 좋은 리듬처럼 만족스러운 한 끼예요." },
+      { food: "함박스테이크", kind: "양식", kw: ["함박스테이크 맛집", "경양식"], reason: "부드럽고 친근한 맛이에요." },
+      { food: "샌드위치·파니니", kind: "양식", kw: ["파니니 맛집", "샌드위치 맛집"], reason: "가볍게 즐기는 캐주얼한 메뉴예요." },
+      { food: "텐동", kind: "일식", kw: ["텐동 맛집", "튀김덮밥"], reason: "바삭한 튀김이 경쾌한 곡처럼 즐거워요." },
+      { food: "제육볶음", kind: "한식", s: true, kw: ["제육볶음 맛집", "백반 제육"], reason: "누구나 좋아하는 든든한 한식이에요." },
+      { food: "탕수육", kind: "중식", kw: ["탕수육 맛집", "찹쌀탕수육"], reason: "함께 나눠 먹기 좋은 메뉴예요." },
+      { food: "팟타이", kind: "아시안", kw: ["팟타이 맛집", "태국 음식"], reason: "새콤달콤한 맛이 기분을 올려 줘요." },
+      { food: "라볶이", kind: "분식", s: true, kw: ["라볶이 맛집", "분식집"], reason: "가볍고 즐거운 분식이에요." },
+    ],
+    D: [
+      { food: "뉴욕 피자", kind: "양식", kw: ["뉴욕 피자", "조각 피자"], reason: "커다란 피자로 신나게 나눠 먹어요." },
+      { food: "피시 앤 칩스", kind: "양식", kw: ["피시앤칩스", "펍 음식"], reason: "펍 분위기에서 즐기기 좋은 메뉴예요." },
+      { food: "닭갈비", kind: "한식", s: true, kw: ["닭갈비 맛집", "철판 닭갈비"], reason: "철판 위에서 북적이며 즐겨요." },
+      { food: "양꼬치", kind: "중식", kw: ["양꼬치 맛집", "양꼬치"], reason: "왁자지껄한 분위기에 딱이에요." },
+      { food: "야키토리", kind: "일식", kw: ["야키토리 맛집", "꼬치 이자카야"], reason: "한 꼬치씩 신나게 즐겨요." },
+      { food: "나시고랭", kind: "아시안", kw: ["나시고랭 맛집", "인도네시아 음식"], reason: "화려한 맛이 신나는 곡과 어울려요." },
+      { food: "츄러스", kind: "카페·디저트", kw: ["츄러스 맛집", "디저트 맛집"], reason: "달콤하게 흥을 이어 가요." },
+    ],
+    E: [
+      { food: "부리토", kind: "양식", kw: ["부리토 맛집", "멕시칸 음식"], reason: "묵직하고 든든한 한 끼예요." },
+      { food: "립·바비큐 플래터", kind: "양식", kw: ["바베큐 립 맛집", "스모크 하우스"], reason: "강렬한 불맛이 묵직한 사운드와 어울려요." },
+      { food: "감자탕", kind: "한식", s: true, kw: ["감자탕 맛집", "뼈해장국"], reason: "얼큰하고 묵직한 국물이에요." },
+      { food: "마라샹궈", kind: "중식", s: true, kw: ["마라샹궈 맛집", "마라 맛집"], reason: "얼얼하고 강렬한 맛이에요." },
+      { food: "규카츠", kind: "일식", kw: ["규카츠 맛집", "규카츠"], reason: "진한 고기 맛이 강한 곡과 어울려요." },
+      { food: "똠얌꿍", kind: "아시안", s: true, kw: ["똠얌꿍 맛집", "태국 음식"], reason: "맵고 시큼한 강렬한 맛이에요." },
+      { food: "매운 떡볶이", kind: "분식", s: true, kw: ["매운 떡볶이", "떡볶이 맛집"], reason: "화끈하게 스트레스를 날려 줘요." },
+    ],
+    F: [
+      { food: "뇨끼", kind: "양식", kw: ["뇨끼 맛집", "파스타 뇨끼"], reason: "포근하고 부드러워 위로가 돼요." },
+      { food: "그라탕", kind: "양식", kw: ["그라탕 맛집", "오븐 요리"], reason: "따뜻하게 녹아드는 메뉴예요." },
+      { food: "크림 수프와 빵", kind: "양식", kw: ["수프 맛집", "브런치 수프"], reason: "따뜻한 수프 한 그릇이 마음을 녹여요." },
+      { food: "카레라이스", kind: "일식", kw: ["카레 맛집", "일본식 카레"], reason: "익숙하고 편안한 맛이에요." },
+      { food: "완탕면", kind: "중식", kw: ["완탕면 맛집", "홍콩 완탕면"], reason: "맑은 국물이 서정적인 곡과 어울려요." },
+      { food: "카오소이", kind: "아시안", kw: ["카오소이 맛집", "태국 커리 국수"], reason: "따뜻하고 깊은 맛이에요." },
+      { food: "수제비", kind: "한식", kw: ["수제비 맛집", "칼제비"], reason: "비 오는 날처럼 차분한 한 그릇이에요." },
+      { food: "스콘 카페", kind: "카페·디저트", kw: ["스콘 맛집", "조용한 카페"], reason: "따뜻한 차와 함께 쉬어 가요." },
+      { food: "잔치국수", kind: "분식", kw: ["잔치국수 맛집", "국수 맛집"], reason: "소박하고 따뜻한 한 그릇이에요." },
+    ],
+  };
+  Object.keys(MORE).forEach((k) => TYPES[k].foods.push(...MORE[k]));
+
   // 날씨 보정: 해당 날씨면 이 메뉴들을 먼저 고려
   const WEATHER = {
     "비": [
@@ -314,6 +404,18 @@
     "라멘": "면 국물 고기", "우동": "면 국물 밀가루", "스튜": "고기 국물", "짜장면": "면 밀가루", "파전": "밀가루 해산물",
     "칼국수": "면 국물 밀가루 해산물", "냉면": "면", "빙수": "단것", "국밥": "국물 고기", "훠궈": "국물 고기",
   };
+  Object.assign(TAGS, {
+    "리조또": "밀가루", "와인 비스트로": "술", "오마카세": "해산물", "솥밥": "", "우육면": "면 국물 고기", "분짜": "면 고기",
+    "티라미수 카페": "단것", "어묵탕": "국물 해산물", "팬케이크": "밀가루 단것", "연어덮밥": "해산물", "비빔밥": "채소",
+    "월남쌈": "채소 해산물", "오므라이스": "", "멘보샤": "해산물 튀김 밀가루", "에그 베네딕트": "밀가루", "토스트": "밀가루",
+    "스테이크": "고기", "함박스테이크": "고기", "샌드위치·파니니": "밀가루", "텐동": "튀김 해산물", "제육볶음": "고기",
+    "탕수육": "고기 튀김", "팟타이": "면 해산물", "라볶이": "면 밀가루", "뉴욕 피자": "밀가루", "피시 앤 칩스": "해산물 튀김",
+    "닭갈비": "고기", "양꼬치": "고기 술", "야키토리": "고기 술", "나시고랭": "", "츄러스": "밀가루 단것 튀김",
+    "부리토": "고기 밀가루", "립·바비큐 플래터": "고기", "감자탕": "국물 고기", "마라샹궈": "고기", "규카츠": "고기 튀김",
+    "똠얌꿍": "국물 해산물", "매운 떡볶이": "밀가루", "뇨끼": "밀가루", "그라탕": "밀가루", "크림 수프와 빵": "국물 밀가루",
+    "카레라이스": "", "완탕면": "면 국물 고기", "카오소이": "면 국물 고기", "수제비": "국물 밀가루", "스콘 카페": "밀가루 단것",
+    "잔치국수": "면 국물",
+  });
   const SYN = {
     "매운": ["매운", "맵", "매콤", "얼큰", "spicy"], "고기": ["고기", "육류", "돼지", "소고기", "닭", "육식"],
     "해산물": ["해산물", "생선", "회", "해물", "조개", "새우", "갑각류"], "면": ["면", "국수", "누들"],
@@ -335,7 +437,8 @@
       const name = tag || word;
       (neg ? out.exclude : out.prefer).push(target);
       const lbl = name === "매운" ? "매운 음식" : name;
-      out.labels.push(neg ? `${lbl} 제외` : `${lbl} 우선`);
+      const isKind = !tag && kindOf(word);
+      out.labels.push(neg ? `${isKind || lbl} 제외` : isKind ? `${isKind}만` : `${lbl} 우선`);
     });
     return out;
   }
@@ -352,20 +455,41 @@
 
   const ALL_FOODS = [...Object.values(TYPES).flatMap((t) => t.foods), ...WEATHER["비"], ...WEATHER["더움"], ...WEATHER["추움"]];
 
-  function recommend(v) {
+  const KINDS = ["한식", "중식", "일식", "양식", "분식", "아시안", "카페·디저트"];
+  const kindOf = (w) => w ? KINDS.find((k) => k === w || k.startsWith(w) || (w === "디저트" && k === "카페·디저트")) : null;
+  const NEIGHBOR = { A: "FB", B: "AC", C: "BD", D: "CE", E: "DF", F: "AE" };
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // avoid: 이미 보여 준 메뉴 (다른 메뉴 추천 때 겹치지 않게)
+  function recommend(v, avoid = []) {
     const type = pickType(v.energy, v.valence);
     const cond = v.cond;
-    const ok = (f) => (v.kind === "상관없음" || f.kind === v.kind) && !cond.exclude.some((t) => matches(f, t));
-    const picks = [];
-    const add = (f) => { if (picks.length < 3 && ok(f) && !picks.some((p) => p.food === f.food)) picks.push(f); };
-    // 1) "좋아요" 조건에 맞는 메뉴: 이 곡 유형 → 날씨 → 전체 순서
-    cond.prefer.forEach((t) => [...TYPES[type].foods, ...(WEATHER[v.wx] || []), ...ALL_FOODS].filter((f) => matches(f, t)).slice(0, 1).forEach(add));
-    // 2) 날씨 메뉴 1개, 3) 곡 유형 메뉴, 4) 부족하면 다른 유형에서 채움
-    const wxFood = (WEATHER[v.wx] || []).find(ok);
-    if (wxFood) add(wxFood);
-    TYPES[type].foods.forEach(add);
-    ALL_FOODS.forEach(add);
-    return { type, mood: TYPES[type].mood, picks };
+    // 음식 조건에 "양식", "한식 빼고"처럼 종류를 쓰면 음식 종류로 처리
+    const kindPrefs = cond.prefer.filter((t) => t.word && kindOf(t.word));
+    const kindEx = cond.exclude.filter((t) => t.word && kindOf(t.word)).map((t) => kindOf(t.word));
+    const kinds = v.kind !== "상관없음" ? [v.kind] : kindPrefs.map((t) => kindOf(t.word));
+    const prefers = cond.prefer.filter((t) => !kindPrefs.includes(t));
+    const ok = (f) => (!kinds.length || kinds.includes(f.kind)) && !kindEx.includes(f.kind) && !cond.exclude.some((t) => matches(f, t));
+
+    const wx = shuffle(WEATHER[v.wx] || []);
+    const mine = shuffle(TYPES[type].foods);
+    const near = shuffle(NEIGHBOR[type].split("").flatMap((k) => TYPES[k].foods));
+    const rest = shuffle(ALL_FOODS);
+
+    const pick = (allowSeen) => {
+      const picks = [];
+      const add = (f) => {
+        if (picks.length < 3 && ok(f) && (allowSeen || !avoid.includes(f.food)) && !picks.some((p) => p.food === f.food)) picks.push(f);
+      };
+      prefers.forEach((t) => [...mine, ...wx, ...near, ...rest].filter((f) => matches(f, t)).slice(0, 1).forEach(add));
+      const w = wx.find((f) => ok(f) && (allowSeen || !avoid.includes(f.food)));
+      if (w) add(w);
+      mine.forEach(add); near.forEach(add); rest.forEach(add);
+      return picks;
+    };
+    let picks = pick(false);
+    if (picks.length < 3) picks = pick(true);
+    return { type, mood: TYPES[type].mood, picks, kinds };
   }
 
   // ---------- 곡 정보 (Apple 음악 → 안 되면 Deezer, 둘 다 키 필요 없음) ----------
@@ -555,19 +679,34 @@
   const MAP_FAIL = "지도를 불러오지 못했어요. NCP 콘솔에서 Dynamic Map 사용과 Web 서비스 URL 등록을 확인해 주세요.";
   const M = { map: null, center: null, markers: [], info: null };
 
+  const RADIUS = 3000;   // 근처 기준 (m)
+  function distM(a, b) {
+    const R = 6371000, r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  const nearby = (items) => M.ll ? items.filter((p) => distM(M.ll, p) <= RADIUS) : items;
+
   function drawMap(loc) {
-    M.map = null; M.markers = []; M.info = null;
+    return new Promise((resolve) => { M.ready = resolve; drawMapInner(loc); });
+  }
+  function drawMapInner(loc) {
+    M.map = null; M.markers = []; M.info = null; M.ll = null;
+    const finish = () => { if (M.ready) { M.ready(); M.ready = null; } };
     const msg = (t) => { const el = $("mapmsg"); if (el) el.textContent = t; };
     const hideMap = (t) => { const m = $("map"); if (m) m.style.display = "none"; msg(t); };
-    if (!mapsReady()) return hideMap(MAP_FAIL);
+    if (!mapsReady()) { hideMap(MAP_FAIL); return finish(); }
     naver.maps.Service.geocode({ query: loc }, (status, res) => {
       const a = status === naver.maps.Service.Status.OK && res.v2 && res.v2.addresses && res.v2.addresses[0];
-      if (!a) return hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`);
+      if (!a) { hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`); return finish(); }
+      M.ll = { lat: +a.y, lng: +a.x };
       M.center = new naver.maps.LatLng(+a.y, +a.x);
       M.map = new naver.maps.Map("map", { center: M.center, zoom: 15 });
       new naver.maps.Marker({ position: M.center, map: M.map });
       M.info = new naver.maps.InfoWindow({ content: "", borderWidth: 1, anchorSize: new naver.maps.Size(10, 10) });
-      msg((a.roadAddress || a.jibunAddress || "") + " · 아래 추천 키워드를 누르면 이 지도에 식당이 표시돼요.");
+      msg((a.roadAddress || a.jibunAddress || "") + " · 추천 키워드를 누르면 이 지도에 식당이 표시돼요.");
+      finish();
       setTimeout(() => { if (window.NAVER_MAP_AUTH_FAILED) hideMap(MAP_FAIL); }, 1500);
     });
   }
@@ -580,8 +719,24 @@
     return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}</div>`;
   }
 
+  const searchCache = {};
+  async function searchPlaces(loc, kw) {
+    const key = loc + "|" + kw;
+    if (key in searchCache) return searchCache[key];
+    try {
+      const r = await fetch(`${SEARCH_PROXY}?query=${encodeURIComponent(loc + " " + kw)}`);
+      if (!r.ok) return null;
+      const d = await r.json();
+      const items = (d.items || []).map((it) => ({
+        name: stripTags(it.title), category: it.category || "", addr: it.roadAddress || it.address || "",
+        tel: it.telephone || "", lat: +it.mapy / 1e7, lng: +it.mapx / 1e7,
+      })).filter((p) => p.lat > 30 && p.lat < 45 && p.lng > 120 && p.lng < 135);
+      return (searchCache[key] = items);
+    } catch { return null; }
+  }
+
   async function searchOnMap(loc, kw) {
-    $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (window.innerWidth < 960) $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
     $("maptitle").textContent = `🗺️ ${loc} · ${kw}`;
     const list = $("places");
     clearMarkers();
@@ -594,17 +749,15 @@
       return;
     }
     list.innerHTML = `<li style="cursor:default">'${esc(kw)}' 찾는 중...</li>`;
-    let items = [];
-    try {
-      const r = await fetch(`${SEARCH_PROXY}?query=${encodeURIComponent(loc + " " + kw)}`);
-      const d = await r.json();
-      items = (d.items || []).map((it) => ({
-        name: stripTags(it.title), category: it.category || "", addr: it.roadAddress || it.address || "",
-        tel: it.telephone || "", lat: +it.mapy / 1e7, lng: +it.mapx / 1e7,
-      })).filter((p) => p.lat > 30 && p.lat < 45 && p.lng > 120 && p.lng < 135);
-    } catch { items = null; }
-    if (!items) { list.innerHTML = `<li style="cursor:default">식당 검색에 실패했어요. 잠시 후 다시 눌러 주세요.</li>`; return; }
-    if (!items.length) { list.innerHTML = `<li style="cursor:default">'${esc(kw)}'로 찾은 식당이 없어요.</li>`; return; }
+    const all = await searchPlaces(loc, kw);
+    if (!all) { list.innerHTML = `<li style="cursor:default">식당 검색에 실패했어요. 잠시 후 다시 눌러 주세요.</li>`; return; }
+    const items = nearby(all);
+    if (!items.length) {
+      const msg = `${esc(loc)} 근처(${RADIUS / 1000}km 안)에는 '${esc(kw)}'에 맞는 음식점이 없어요. 다른 키워드나 메뉴를 눌러 보세요.`;
+      list.innerHTML = `<li style="cursor:default;color:var(--danger)">${msg}</li>`;
+      if (M.map && M.info) { M.info.setContent(`<div class="iw">${msg}</div>`); M.info.open(M.map, M.center); }
+      return;
+    }
 
     const bounds = M.map ? new naver.maps.LatLngBounds() : null;
     items.forEach((p, i) => {
@@ -621,8 +774,38 @@
       if (!mk) return;
       M.map.panTo(mk.getPosition());
       M.info.setContent(placeInfo(items[i])); M.info.open(M.map, mk);
-      $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
+      if (window.innerWidth < 960) $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
+  }
+
+  // 추천 메뉴마다 근처 음식점이 있는지 미리 확인해서 표시
+  async function checkPicks(v, token) {
+    await M.mapDone;
+    if (!SEARCH_PROXY || token !== render.token) return;
+    const els = [...$("result").querySelectorAll(".pick")];
+    const counts = await Promise.all(els.map(async (el) => {
+      const kws = JSON.parse(el.dataset.kws);
+      let found = null;
+      const names = new Set();
+      for (const kw of kws) {
+        const all = await searchPlaces(v.loc, kw);
+        if (all === null) continue;
+        nearby(all).forEach((p) => names.add(p.name + "|" + p.addr));
+        found = names.size;
+      }
+      if (token !== render.token) return null;
+      const badge = el.querySelector(".badge");
+      if (found === null) { badge.remove(); return null; }
+      badge.className = "badge " + (found ? "ok" : "none");
+      badge.textContent = found ? `근처 ${found}곳` : "근처에 없어요";
+      if (!found) el.classList.add("none");
+      return found;
+    }));
+    const known = counts.filter((c) => c !== null);
+    if (known.length && known.every((c) => c === 0) && token === render.token) {
+      $("nonemsg").textContent = `${v.loc} 근처(${RADIUS / 1000}km 안)에서 추천 메뉴에 맞는 음식점을 찾지 못했어요. '다른 메뉴 추천'을 누르거나 위치를 더 넓게(구 단위) 입력해 보세요.`;
+      $("nonemsg").classList.remove("hidden");
+    }
   }
 
   // ---------- 위치 권한 안내 창 ----------
@@ -750,50 +933,73 @@
     }, (e) => { done(); showLocHelp(e.code, e.message); }, { timeout: 15000, maximumAge: 60000 });
   });
 
-  function render(v, r) {
+  function picksHTML(v, r) {
     const picks = r.picks.map((p, i) => `
-      <div class="pick">
-        <h3>${i + 1}. ${esc(p.food)}</h3>
+      <div class="pick" data-kws='${esc(JSON.stringify(p.kw))}'>
+        <h3>${i + 1}. ${esc(p.food)} <span class="badge">${SEARCH_PROXY ? "근처 확인 중" : esc(p.kind)}</span></h3>
         <p>${esc(p.reason)}</p>
         <div class="maps">${p.kw.map((k) => `<button type="button" data-kw="${esc(k)}">📍 ${esc(k)}</button>`).join("")}</div>
       </div>`).join("");
-
-    $("result").innerHTML = `
-      <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
-      <div class="card">
-        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx ? " · " + esc(v.wx) : ""}</span></h2>
+    const kindLbl = r.kinds.length ? ` · ${r.kinds.map(esc).join("·")}` : "";
+    return `
+        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx ? " · " + esc(v.wx) : ""}${kindLbl}</span></h2>
         ${v.cond.labels.length ? `<p class="conds">적용한 조건: ${v.cond.labels.map(esc).join(", ")}</p>` : ""}
         ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
-      </div>
-      <div class="card" id="mapcard">
-        <h2 id="maptitle">🗺️ ${esc(v.loc)} 주변</h2>
-        <div id="map"></div>
-        <p class="hint" id="mapmsg"></p>
-        <ul class="places" id="places"></ul>
-      </div>
-      <button class="ghost" id="again" type="button">다시 하기</button>`;
-    $("result").classList.remove("hidden");
-    drawMap(v.loc);
+        <p class="nonemsg hidden" id="nonemsg"></p>
+        <div class="btnrow">
+          <button type="button" id="reroll">🔄 다른 메뉴 추천</button>
+          <button type="button" class="ghost" id="again">다시 하기</button>
+        </div>`;
+  }
 
+  function bindPicks(v, r, seen) {
     $("result").querySelectorAll(".maps button").forEach((b) => b.addEventListener("click", () => {
       $("result").querySelectorAll(".maps button.on").forEach((x) => x.classList.remove("on"));
       b.classList.add("on");
       searchOnMap(v.loc, b.dataset.kw);
     }));
     $("again").addEventListener("click", () => {
+      document.body.classList.remove("wide");
       $("result").classList.add("hidden");
       $("form").classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
+    $("reroll").addEventListener("click", () => {
+      r.picks.forEach((p) => seen.includes(p.food) || seen.push(p.food));
+      const r2 = recommend(v, seen);
+      const token = (render.token = (render.token || 0) + 1);
+      $("pickscard").innerHTML = picksHTML(v, r2);
+      bindPicks(v, r2, seen);
+      checkPicks(v, token);
+    });
+  }
+
+  function render(v, r) {
+    document.body.classList.add("wide");
+    $("result").innerHTML = `
+      <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
+      <div class="card" id="pickscard">${picksHTML(v, r)}</div>
+      <div class="card" id="mapcard">
+        <h2 id="maptitle">🗺️ ${esc(v.loc)} 주변</h2>
+        <div id="map"></div>
+        <p class="hint" id="mapmsg"></p>
+        <ul class="places" id="places"></ul>
+      </div>`;
+    $("result").classList.remove("hidden");
+    M.mapDone = drawMap(v.loc);
+    bindPicks(v, r, []);
+
+    const token = (render.token = (render.token || 0) + 1);
+    checkPicks(v, token);
 
     // 곡 분석은 비동기로 채움 (추천은 바로 보여 줌)
-    const token = (render.token = (render.token || 0) + 1);
+    const song = (render.song = (render.song || 0) + 1);
     $("analysis").innerHTML = analysisHTML(v, r.type, null, null);
     lookupSong(v.song).then(async (info) => {
-      if (token !== render.token) return;
+      if (song !== render.song) return;
       if (info) $("analysis").innerHTML = analysisHTML(v, r.type, info, null);
       const audio = info ? await analyzeAudio(info.previewUrl) : null;
-      if (token !== render.token || !audio) return;
+      if (song !== render.song || !audio) return;
       $("analysis").innerHTML = analysisHTML(v, r.type, info, audio);
     });
   }
