@@ -216,7 +216,7 @@
   // ---------- 설정 ----------
   // 식당 검색 프록시 주소. worker/naver-search.js를 Cloudflare Workers에 배포한 뒤 주소를 넣으세요.
   // 비워 두면 키워드를 눌렀을 때 지도 안에 안내만 표시합니다.
-  const SEARCH_PROXY = "";
+  const SEARCH_PROXY = "https://naver-search.fare1451.workers.dev";
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
