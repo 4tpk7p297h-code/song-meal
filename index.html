@@ -29,6 +29,14 @@
       --chip: #2d2924;
     }
   }
+  :root[data-theme="dark"] {
+      --bg: #171512; --card: #211e1a; --text: #f1ece4; --muted: #a8a196;
+      --line: #36312b; --accent: #ff8a4c; --accent-weak: #3a2418; --danger: #ff6b6b;
+      --chip: #2d2924;
+  }
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
@@ -127,6 +135,23 @@
   #consent a { color: var(--accent); }
   .footlinks { text-align: center; font-size: 12px; margin-top: 8px; }
   .footlinks a { color: var(--muted); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .top h1 a { color: inherit; text-decoration: none; }
+  .top h1 a:hover { opacity: .8; }
+  .theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--card); }
+  .theme button { margin: 0; width: auto; padding: 5px 10px; font-size: 13px; font-weight: 600; color: var(--muted); background: transparent; border-radius: 999px; }
+  .theme button.on { color: #fff; background: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips label { margin: 0; font-weight: 500; }
+  .chips input { position: absolute; opacity: 0; pointer-events: none; }
+  .chips span { display: inline-block; padding: 7px 12px; font-size: 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); cursor: pointer; user-select: none; }
+  .chips input:checked + span { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pickbtn { margin-top: 8px; padding: 10px; font-size: 14px; }
+  .places .go { display: flex; gap: 6px; margin-top: 6px; }
+  .places .go a { font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; text-decoration: none; color: #fff; background: #03c75a; }
+  .places .go a.sub2 { color: var(--accent); background: var(--accent-weak); }
+  .iw .go a { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; background: #03c75a; color: #fff !important; text-decoration: none; font-weight: 600; }
   .badge { display: inline-block; margin-left: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--chip); color: var(--muted); vertical-align: middle; }
   .badge.ok { color: #2f9e44; }
   .badge.none { color: var(--danger); }
@@ -157,7 +182,14 @@
 </head>
 <body>
 <main>
-  <h1>🍽️ 음식점</h1>
+  <header class="top">
+    <h1><a href="#" id="home" title="처음 화면으로">🍽️ 음식점</a></h1>
+    <div class="theme" role="radiogroup" aria-label="화면 테마">
+      <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
+      <button type="button" data-theme="dark" title="다크 모드">🌙 다크</button>
+      <button type="button" data-theme="system" title="기기 설정 따르기">🖥️ 시스템</button>
+    </div>
+  </header>
   <p class="sub">노래 분위기 → 오늘의 메뉴와 주변 식당</p>
 
   <!-- 1. 개인정보 동의 -->
@@ -216,9 +248,9 @@
 
     <div class="row">
       <div>
-        <label for="energy">곡 에너지</label>
-        <select id="energy">
-          <option value="1">잔잔함</option><option value="2" selected>보통</option><option value="3">신남</option>
+        <label for="meal">식사 시간</label>
+        <select id="meal">
+          <option>아침</option><option selected>점심</option><option>저녁</option><option>야식</option>
         </select>
       </div>
       <div>
@@ -234,14 +266,17 @@
         <label for="ppl">인원</label>
         <input type="number" id="ppl" min="1" max="50" value="2">
       </div>
-      <div>
-        <label for="wx">날씨 <span class="opt">(선택)</span></label>
-        <select id="wx">
-          <option value="">선택 안 함</option>
-          <option>맑음</option><option>흐림</option><option>비</option>
-          <option>눈</option><option>더움</option><option>추움</option>
-        </select>
-      </div>
+      <div></div>
+    </div>
+
+    <label>날씨 <span class="opt">(선택, 여러 개 가능)</span></label>
+    <div class="chips" id="wx">
+      <label><input type="checkbox" value="맑음"><span>맑음</span></label>
+      <label><input type="checkbox" value="흐림"><span>흐림</span></label>
+      <label><input type="checkbox" value="비"><span>비</span></label>
+      <label><input type="checkbox" value="눈"><span>눈</span></label>
+      <label><input type="checkbox" value="더움"><span>더움</span></label>
+      <label><input type="checkbox" value="추움"><span>추움</span></label>
     </div>
 
     <label for="loc">위치</label>
@@ -249,28 +284,22 @@
       <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
     </div>
-    <p class="hint"><a href="#" id="pickmap">🗺️ 위치 권한 없이 지도에서 직접 고르기</a></p>
+    <button type="button" class="ghost pickbtn" id="pickmap">🗺️ 위치 권한 없이 지도에서 직접 고르기</button>
     <div id="pickwrap" class="hidden">
       <div id="pickmapdiv" style="width:100%;height:260px;border-radius:10px;background:var(--chip);margin-top:8px"></div>
       <p class="hint" id="pickmsg">지도를 눌러 위치를 고르세요. 확대·이동도 돼요.</p>
     </div>
     <div id="lochelp" class="lochelp hidden" role="alert"></div>
 
-    <div class="row">
-      <div>
-        <label for="meal">식사 시간</label>
-        <select id="meal">
-          <option>아침</option><option selected>점심</option><option>저녁</option><option>야식</option>
-        </select>
-      </div>
-      <div>
-        <label for="kind">음식 종류</label>
-        <select id="kind">
-          <option selected>상관없음</option>
-          <option>한식</option><option>중식</option><option>일식</option><option>양식</option>
-          <option>분식</option><option>아시안</option><option>카페·디저트</option>
-        </select>
-      </div>
+    <label>음식 종류 <span class="opt">(여러 개 가능, 안 고르면 상관없음)</span></label>
+    <div class="chips" id="kind">
+      <label><input type="checkbox" value="한식"><span>한식</span></label>
+      <label><input type="checkbox" value="중식"><span>중식</span></label>
+      <label><input type="checkbox" value="일식"><span>일식</span></label>
+      <label><input type="checkbox" value="양식"><span>양식</span></label>
+      <label><input type="checkbox" value="분식"><span>분식</span></label>
+      <label><input type="checkbox" value="아시안"><span>아시안</span></label>
+      <label><input type="checkbox" value="카페·디저트"><span>카페·디저트</span></label>
     </div>
 
     <label for="flt">음식 조건 <span class="opt">(선택)</span></label>
@@ -305,6 +334,32 @@
   const syncConsent = () => { $("enter").disabled = !reqOk(); $("c-all").checked = boxes.every((b) => b.checked); };
   $("c-all").addEventListener("change", (e) => { boxes.forEach((b) => (b.checked = e.target.checked)); syncConsent(); });
   boxes.forEach((b) => b.addEventListener("change", syncConsent));
+  $("home").addEventListener("click", (e) => {
+    e.preventDefault();
+    render.token = (render.token || 0) + 1; render.song = (render.song || 0) + 1;
+    document.body.classList.remove("wide");
+    $("result").classList.add("hidden"); $("result").innerHTML = "";
+    $("form").classList.add("hidden"); $("form").reset();
+    $("pickwrap").classList.add("hidden"); $("lochelp").classList.add("hidden"); $("err").classList.add("hidden");
+    $("here").classList.remove("hidden");
+    boxes.forEach((b) => (b.checked = false)); $("c-all").checked = false; syncConsent();
+    CONSENT.abroad = CONSENT.geo = false;
+    $("consent").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ---------- 테마: 라이트 / 다크 / 시스템 ----------
+  function applyTheme(t) {
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    document.querySelectorAll(".theme button").forEach((b) => b.classList.toggle("on", b.dataset.theme === (t || "system")));
+    try { localStorage.setItem("food.theme", t || "system"); } catch {}
+  }
+  let savedTheme = "system";
+  try { savedTheme = localStorage.getItem("food.theme") || "system"; } catch {}
+  applyTheme(savedTheme);
+  document.querySelectorAll(".theme button").forEach((b) => b.addEventListener("click", () => applyTheme(b.dataset.theme)));
+
   $("enter").addEventListener("click", () => {
     if (!reqOk()) return;
     CONSENT.abroad = $("c-abroad").checked;
@@ -534,11 +589,11 @@
     // 음식 조건에 "양식", "한식 빼고"처럼 종류를 쓰면 음식 종류로 처리
     const kindPrefs = cond.prefer.filter((t) => t.word && kindOf(t.word));
     const kindEx = cond.exclude.filter((t) => t.word && kindOf(t.word)).map((t) => kindOf(t.word));
-    const kinds = v.kind !== "상관없음" ? [v.kind] : kindPrefs.map((t) => kindOf(t.word));
+    const kinds = v.kinds.length ? v.kinds : kindPrefs.map((t) => kindOf(t.word));
     const prefers = cond.prefer.filter((t) => !kindPrefs.includes(t));
     const ok = (f) => (!kinds.length || kinds.includes(f.kind)) && !kindEx.includes(f.kind) && !cond.exclude.some((t) => matches(f, t));
 
-    const wx = shuffle(WEATHER[v.wx] || []);
+    const wx = shuffle([...new Set(v.wx.flatMap((w) => WEATHER[w] || []))]);
     const mine = shuffle(TYPES[type].foods);
     const near = shuffle(NEIGHBOR[type].split("").flatMap((k) => TYPES[k].foods));
     const rest = shuffle(ALL_FOODS);
@@ -761,7 +816,7 @@
       ${bpmBlock}
       <p class="synopsis">${esc(SYNOPSIS[type])}</p>
       <div class="stats">
-        <span class="stat">에너지 ${E_LABEL[v.energy]}</span>
+        <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyGuessed ? " (장르 추정)" : ""}</span>
         <span class="stat">${V_LABEL[v.valence]}</span>
         <span class="stat">${esc(tex)}</span>
       </div>
@@ -804,6 +859,7 @@
       const a = status === naver.maps.Service.Status.OK && res.v2 && res.v2.addresses && res.v2.addresses[0];
       if (!a) { hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`); return finish(); }
       M.ll = { lat: +a.y, lng: +a.x };
+      M.locName = loc;
       M.center = new naver.maps.LatLng(+a.y, +a.x);
       M.map = new naver.maps.Map("map", { center: M.center, zoom: 15 });
       new naver.maps.Marker({ position: M.center, map: M.map });
@@ -818,8 +874,39 @@
 
   function clearMarkers() { M.markers.forEach((m) => m.setMap(null)); M.markers = []; if (M.info) M.info.close(); }
 
-  function placeInfo(p) {
-    return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}</div>`;
+  // 네이버 지도 길찾기: 휴대폰은 네이버 지도 앱(현재 위치 출발), 컴퓨터는 네이버 지도 웹 길찾기
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const placeUrl = (p) => "https://map.naver.com/p/search/" + encodeURIComponent(`${p.name} ${p.addr}`);
+  function routeWebUrl(p, start) {
+    const q = new URLSearchParams({ elng: p.lng, elat: p.lat, etext: p.name, menu: "route", pathType: "1" });
+    if (start) { q.set("slng", start.lng); q.set("slat", start.lat); q.set("stext", start.name); }
+    return "https://map.naver.com/index.nhn?" + q.toString();
+  }
+  function getStart() {
+    const fallback = M.ll ? { ...M.ll, name: M.locName || "출발지" } : null;
+    if (!CONSENT.geo || !navigator.geolocation) return Promise.resolve(fallback);
+    return new Promise((res) => navigator.geolocation.getCurrentPosition(
+      (pos) => res({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: "내 위치" }),
+      () => res(fallback), { timeout: 5000, maximumAge: 60000 }));
+  }
+  async function openRoute(p) {
+    if (isMobile) {
+      const app = "nmap://route/public?" + new URLSearchParams({ dlat: p.lat, dlng: p.lng, dname: p.name, appname: location.origin }).toString();
+      const t = setTimeout(() => { if (!document.hidden) location.href = placeUrl(p); }, 1500);
+      window.addEventListener("pagehide", () => clearTimeout(t), { once: true });
+      location.href = app;   // 앱이 있으면 현재 위치에서 길찾기, 없으면 1.5초 뒤 웹 지도로
+      return;
+    }
+    const w = window.open("about:blank", "_blank");
+    const start = await getStart();
+    const url = routeWebUrl(p, start);
+    if (w) w.location.href = url; else location.href = url;
+  }
+  window.__route = (i) => M.items && M.items[i] && openRoute(M.items[i]);
+
+  function placeInfo(p, i) {
+    return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}
+      <div class="go"><a href="#" onclick="window.__route(${i});return false;">🧭 길찾기</a></div></div>`;
   }
 
   const searchCache = {};
@@ -870,16 +957,20 @@
       if (!M.map) return;
       const pos = new naver.maps.LatLng(p.lat, p.lng);
       const mk = new naver.maps.Marker({ position: pos, map: M.map, title: p.name });
-      naver.maps.Event.addListener(mk, "click", () => { M.info.setContent(placeInfo(p)); M.info.open(M.map, mk); });
+      naver.maps.Event.addListener(mk, "click", () => { M.info.setContent(placeInfo(p, i)); M.info.open(M.map, mk); });
       M.markers.push(mk); bounds.extend(pos);
     });
     if (M.map) { bounds.extend(M.center); M.map.fitBounds(bounds); }
-    list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${esc(p.name)}</b><small>${esc(p.category)} · ${esc(p.addr)}</small></li>`).join("");
+    M.items = items;
+    list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${esc(p.name)}</b><small>${esc(p.category)} · ${esc(p.addr)}</small>
+      <div class="go"><a href="#" data-route="${i}">🧭 길찾기</a><a class="sub2" href="${esc(placeUrl(p))}" target="_blank" rel="noopener">네이버 지도에서 보기</a></div></li>`).join("");
+    list.querySelectorAll("a[data-route]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openRoute(items[+a.dataset.route]); }));
+    list.querySelectorAll("a.sub2").forEach((a) => a.addEventListener("click", (e) => e.stopPropagation()));
     list.querySelectorAll("li[data-i]").forEach((li) => li.addEventListener("click", () => {
       const i = +li.dataset.i, mk = M.markers[i];
       if (!mk) return;
       M.map.panTo(mk.getPosition());
-      M.info.setContent(placeInfo(items[i])); M.info.open(M.map, mk);
+      M.info.setContent(placeInfo(items[i], i)); M.info.open(M.map, mk);
       if (window.innerWidth < 960) $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
   }
@@ -1051,7 +1142,7 @@
       </div>`).join("");
     const kindLbl = r.kinds.length ? ` · ${r.kinds.map(esc).join("·")}` : "";
     return `
-        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx ? " · " + esc(v.wx) : ""}${kindLbl}</span></h2>
+        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx.length ? " · " + esc(v.wx.join("·")) : ""}${kindLbl}</span></h2>
         ${v.cond.labels.length ? `<p class="conds">적용한 조건: ${v.cond.labels.map(esc).join(", ")}</p>` : ""}
         ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
         ${r.note ? `<p class="conds">${esc(r.note)}</p>` : ""}
@@ -1091,7 +1182,7 @@
     });
   }
 
-  function render(v, r) {
+  function render(v, r, info) {
     document.body.classList.add("wide");
     $("result").innerHTML = `
       <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
@@ -1111,28 +1202,33 @@
 
     // 곡 분석은 비동기로 채움 (추천은 바로 보여 줌)
     const song = (render.song = (render.song || 0) + 1);
-    $("analysis").innerHTML = analysisHTML(v, r.type, null, null);
-    lookupSong(v.song).then(async (info) => {
-      if (song !== render.song) return;
-      if (info) $("analysis").innerHTML = analysisHTML(v, r.type, info, null);
-      const audio = info ? await analyzeAudio(info.previewUrl) : null;
+    $("analysis").innerHTML = analysisHTML(v, r.type, info, null);
+    if (info) analyzeAudio(info.previewUrl).then((audio) => {
       if (song !== render.song || !audio) return;
       $("analysis").innerHTML = analysisHTML(v, r.type, info, audio);
     });
   }
 
-  $("form").addEventListener("submit", (e) => {
+  // 장르로 곡 에너지 추정 (1 잔잔 ~ 3 신남)
+  function energyFromGenre(g) {
+    if (!g) return 2;
+    if (/발라드|ballad|OST|soundtrack|재즈|jazz|보사노바|bossa|R&B|알앤비|soul|소울|new age|뉴에이지|classical|클래식|acoustic|어쿠스틱|folk|포크|lo-?fi/i.test(g)) return 1;
+    if (/댄스|dance|EDM|electronic|일렉|house|힙합|hip.?hop|rap|랩|록|rock|metal|메탈|punk|펑크/i.test(g)) return 3;
+    return 2;
+  }
+
+  $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("err").classList.add("hidden");
     const v = {
       song: $("song").value.trim(),
-      energy: +$("energy").value,
+      energy: 2,
       valence: +$("valence").value,
       ppl: $("ppl").value.trim() || "2",
-      wx: $("wx").value,
+      wx: [...document.querySelectorAll("#wx input:checked")].map((x) => x.value),
       loc: $("loc").value.trim(),
       meal: $("meal").value,
-      kind: $("kind").value,
+      kinds: [...document.querySelectorAll("#kind input:checked")].map((x) => x.value),
       cond: parseCond($("flt").value),
     };
     if (!v.loc) {
@@ -1140,8 +1236,14 @@
       $("err").classList.remove("hidden");
       return;
     }
+    const btn = $("form").querySelector("button[type=submit]");
+    btn.disabled = true; btn.textContent = "곡을 분석하는 중...";
+    const info = await lookupSong(v.song);
+    btn.disabled = false; btn.textContent = "추천받기";
+    v.energy = energyFromGenre(info && info.primaryGenreName);
+    v.energyGuessed = !!(info && info.primaryGenreName);
     $("form").classList.add("hidden");
-    render(v, recommend(v));
+    render(v, recommend(v), info);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 })();

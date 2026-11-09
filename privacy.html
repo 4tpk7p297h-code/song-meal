@@ -9,6 +9,7 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --bg: #171512; --card: #211e1a; --text: #f1ece4; --muted: #a8a196; --line: #36312b; --chip: #2d2924; --accent: #ff8a4c; }
   }
+  :root[data-theme="dark"] { --bg: #171512; --card: #211e1a; --text: #f1ece4; --muted: #a8a196; --line: #36312b; --chip: #2d2924; --accent: #ff8a4c; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.7;
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; }
@@ -23,6 +24,7 @@
   .wrap { overflow-x: auto; }
   a { color: var(--accent); }
 </style>
+<script>try { const t = localStorage.getItem("food.theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch {}</script>
 </head>
 <body>
 <main>
