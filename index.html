@@ -4,7 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>음식점</title>
-<meta name="description" content="노래 분위기로 오늘의 메뉴와 네이버 지도 검색 키워드를 추천합니다.">
+<meta name="description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
+<meta name="application-name" content="음식점">
+<meta name="apple-mobile-web-app-title" content="음식점">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="음식점">
+<meta property="og:title" content="음식점">
+<meta property="og:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
+<meta property="og:url" content="https://4tpk7p297h-code.github.io/song-meal/">
+<meta property="og:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="음식점">
+<meta name="twitter:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
+<meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <!--
   네이버 지도 API (NCP Maps)
   - Client ID는 웹에 공개되는 값이며, NCP 콘솔의 Web 서비스 URL에 등록된 주소에서만 동작합니다.
@@ -178,6 +197,64 @@
     body.wide #map { flex: 1 1 auto; height: auto; min-height: 240px; }
     body.wide #places { flex: none; max-height: 32%; overflow: auto; }
   }
+
+  /* ===== 귀여운 테마 ===== */
+  :root {
+    --bg: #fff8f1; --card: #ffffff; --text: #3a2e2a; --muted: #8a7a72;
+    --line: #f1dfd2; --accent: #ff7a59; --accent-weak: #ffe9e1; --danger: #e5484d;
+    --chip: #fff1e8; --field: #fffcf9; --mint: #2fb58a; --shadow: 0 6px 20px rgba(255, 122, 89, .12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1715; --card: #26201d; --text: #f7ece6; --muted: #b9a89f;
+      --line: #3d332e; --accent: #ff906f; --accent-weak: #3d2820; --danger: #ff7b7f;
+      --chip: #332a26; --field: #201a18; --mint: #4fd3a6; --shadow: 0 6px 20px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1715; --card: #26201d; --text: #f7ece6; --muted: #b9a89f;
+    --line: #3d332e; --accent: #ff906f; --accent-weak: #3d2820; --danger: #ff7b7f;
+    --chip: #332a26; --field: #201a18; --mint: #4fd3a6; --shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  }
+  body { font-size: 16px; letter-spacing: -0.01em; }
+  h1, .card h2, .song, .pick h3, .theme button, button { font-family: "Jua", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; font-weight: 400; }
+  h1 { font-size: 32px; color: var(--accent); }
+  .card { border: 2px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+  .card h2 { font-size: 21px; }
+  label { font-size: 15px; font-weight: 700; margin: 18px 0 8px; }
+  input[type=text], input[type=number], select {
+    padding: 13px 16px; font-size: 16px; background: var(--field); border: 2px solid var(--line); border-radius: 16px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:hover, input[type=number]:hover, select:hover { border-color: var(--accent); }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-weak); }
+  input::placeholder { color: var(--muted); opacity: .8; }
+  select {
+    appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ff7a59' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  button { border-radius: 999px; font-size: 18px; padding: 14px; box-shadow: 0 4px 0 rgba(0, 0, 0, .08); transition: transform .1s, box-shadow .1s, filter .15s; }
+  button:not(:disabled):hover { filter: brightness(1.05); transform: translateY(-1px); }
+  button:not(:disabled):active { transform: translateY(2px); box-shadow: none; }
+  button.ghost { border-width: 2px; box-shadow: none; }
+  .chips { gap: 8px; }
+  .chips span { padding: 9px 14px; font-size: 15px; font-weight: 600; border: 2px solid var(--line); background: var(--field); transition: transform .15s, border-color .15s; }
+  .chips span:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .chips input:checked + span { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 3px 0 rgba(0, 0, 0, .1); }
+  .check input { accent-color: var(--accent); width: 20px; height: 20px; }
+  .agreebox { border: 2px dashed var(--line); border-radius: 18px; }
+  .hint { font-size: 14px; }
+  .pickbtn { font-size: 16px; padding: 12px; background: var(--accent-weak); border: 2px dashed var(--accent); color: var(--accent); }
+  .locrow button { font-size: 15px; padding: 0 16px; }
+  .theme { border-width: 2px; }
+  .theme button { font-size: 15px; box-shadow: none; padding: 6px 12px; }
+  .stat { background: var(--chip); font-weight: 600; }
+  .maps button { font-size: 15px; box-shadow: none; }
+  .badge.ok { color: var(--mint); }
+  .places li { border-radius: 14px; padding: 10px 10px; }
+  .places li:hover { background: var(--chip); }
+  .places .go a { border-radius: 999px; }
 </style>
 </head>
 <body>
@@ -243,18 +320,18 @@
   <form id="form" class="card hidden" autocomplete="off">
     <h2>추천 조건 입력</h2>
 
-    <label for="song">노래</label>
+    <label for="song">🎧 노래</label>
     <input type="text" id="song" placeholder="'가수 - 곡명' (예: 아이유 - 밤편지)">
 
     <div class="row">
       <div>
-        <label for="meal">식사 시간</label>
+        <label for="meal">🕒 식사 시간</label>
         <select id="meal">
           <option>아침</option><option selected>점심</option><option>저녁</option><option>야식</option>
         </select>
       </div>
       <div>
-        <label for="valence">곡 분위기</label>
+        <label for="valence">🎨 곡 분위기</label>
         <select id="valence">
           <option value="1">어둡고 차분</option><option value="2" selected>무난</option><option value="3">밝고 경쾌</option>
         </select>
@@ -263,23 +340,23 @@
 
     <div class="row">
       <div>
-        <label for="ppl">인원</label>
+        <label for="ppl">👥 인원</label>
         <input type="number" id="ppl" min="1" max="50" value="2">
       </div>
       <div></div>
     </div>
 
-    <label>날씨 <span class="opt">(선택, 여러 개 가능)</span></label>
+    <label>🌤️ 날씨 <span class="opt">(선택, 여러 개 가능)</span></label>
     <div class="chips" id="wx">
-      <label><input type="checkbox" value="맑음"><span>맑음</span></label>
-      <label><input type="checkbox" value="흐림"><span>흐림</span></label>
-      <label><input type="checkbox" value="비"><span>비</span></label>
-      <label><input type="checkbox" value="눈"><span>눈</span></label>
-      <label><input type="checkbox" value="더움"><span>더움</span></label>
-      <label><input type="checkbox" value="추움"><span>추움</span></label>
+      <label><input type="checkbox" value="맑음"><span>☀️ 맑음</span></label>
+      <label><input type="checkbox" value="흐림"><span>☁️ 흐림</span></label>
+      <label><input type="checkbox" value="비"><span>🌧️ 비</span></label>
+      <label><input type="checkbox" value="눈"><span>❄️ 눈</span></label>
+      <label><input type="checkbox" value="더움"><span>🥵 더움</span></label>
+      <label><input type="checkbox" value="추움"><span>🥶 추움</span></label>
     </div>
 
-    <label for="loc">위치</label>
+    <label for="loc">📍 위치</label>
     <div class="locrow">
       <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
@@ -291,18 +368,18 @@
     </div>
     <div id="lochelp" class="lochelp hidden" role="alert"></div>
 
-    <label>음식 종류 <span class="opt">(여러 개 가능, 안 고르면 상관없음)</span></label>
+    <label>🍴 음식 종류 <span class="opt">(여러 개 가능, 안 고르면 상관없음)</span></label>
     <div class="chips" id="kind">
-      <label><input type="checkbox" value="한식"><span>한식</span></label>
-      <label><input type="checkbox" value="중식"><span>중식</span></label>
-      <label><input type="checkbox" value="일식"><span>일식</span></label>
-      <label><input type="checkbox" value="양식"><span>양식</span></label>
-      <label><input type="checkbox" value="분식"><span>분식</span></label>
-      <label><input type="checkbox" value="아시안"><span>아시안</span></label>
-      <label><input type="checkbox" value="카페·디저트"><span>카페·디저트</span></label>
+      <label><input type="checkbox" value="한식"><span>🍚 한식</span></label>
+      <label><input type="checkbox" value="중식"><span>🥟 중식</span></label>
+      <label><input type="checkbox" value="일식"><span>🍣 일식</span></label>
+      <label><input type="checkbox" value="양식"><span>🍝 양식</span></label>
+      <label><input type="checkbox" value="분식"><span>🍢 분식</span></label>
+      <label><input type="checkbox" value="아시안"><span>🍜 아시안</span></label>
+      <label><input type="checkbox" value="카페·디저트"><span>🍰 카페·디저트</span></label>
     </div>
 
-    <label for="flt">음식 조건 <span class="opt">(선택)</span></label>
+    <label for="flt">📝 음식 조건 <span class="opt">(선택)</span></label>
     <input type="text" id="flt" placeholder="예: 매운 음식 제외, 해산물 빼고, 국물 좋아요">
     <p class="hint">"○○ 제외·빼고·싫어"는 빼고, 그 밖의 말은 먼저 추천해요. 쉼표로 여러 개 쓸 수 있어요.</p>
 
@@ -432,6 +509,7 @@
       { food: "분짜", kind: "아시안", kw: ["분짜 맛집", "베트남 음식"], reason: "은은한 향이 몽환적인 분위기와 어울려요." },
       { food: "티라미수 카페", kind: "카페·디저트", kw: ["티라미수 맛집", "조용한 카페"], reason: "부드러운 디저트로 여운을 이어 가요." },
       { food: "어묵탕", kind: "분식", kw: ["어묵탕 맛집", "오뎅바"], reason: "따끈한 국물로 조용히 하루를 마무리해요." },
+      { food: "갈비탕", kind: "한식", kw: ["갈비탕 맛집", "왕갈비탕"], reason: "맑고 깊은 국물이 잔잔한 곡처럼 편안해요." },
     ],
     B: [
       { food: "팬케이크", kind: "카페·디저트", kw: ["팬케이크 맛집", "수플레 팬케이크"], reason: "폭신하고 달콤해서 밝은 곡과 잘 어울려요." },
@@ -470,6 +548,9 @@
       { food: "규카츠", kind: "일식", kw: ["규카츠 맛집", "규카츠"], reason: "진한 고기 맛이 강한 곡과 어울려요." },
       { food: "똠얌꿍", kind: "아시안", s: true, kw: ["똠얌꿍 맛집", "태국 음식"], reason: "맵고 시큼한 강렬한 맛이에요." },
       { food: "매운 떡볶이", kind: "분식", s: true, kw: ["매운 떡볶이", "떡볶이 맛집"], reason: "화끈하게 스트레스를 날려 줘요." },
+      { food: "김치찌개", kind: "한식", s: true, kw: ["김치찌개 맛집", "돼지김치찌개"], reason: "얼큰하고 진한 국물이 강한 곡과 어울려요." },
+      { food: "부대찌개", kind: "한식", s: true, kw: ["부대찌개 맛집", "부대찌개"], reason: "푸짐하고 묵직한 국물 요리예요." },
+      { food: "육개장", kind: "한식", s: true, kw: ["육개장 맛집", "육개장"], reason: "화끈하고 진한 국물로 힘을 내요." },
     ],
     F: [
       { food: "뇨끼", kind: "양식", kw: ["뇨끼 맛집", "파스타 뇨끼"], reason: "포근하고 부드러워 위로가 돼요." },
@@ -481,6 +562,9 @@
       { food: "수제비", kind: "한식", kw: ["수제비 맛집", "칼제비"], reason: "비 오는 날처럼 차분한 한 그릇이에요." },
       { food: "스콘 카페", kind: "카페·디저트", kw: ["스콘 맛집", "조용한 카페"], reason: "따뜻한 차와 함께 쉬어 가요." },
       { food: "잔치국수", kind: "분식", kw: ["잔치국수 맛집", "국수 맛집"], reason: "소박하고 따뜻한 한 그릇이에요." },
+      { food: "된장찌개", kind: "한식", kw: ["된장찌개 맛집", "차돌된장찌개"], reason: "구수하고 익숙한 맛이 마음을 달래 줘요." },
+      { food: "설렁탕", kind: "한식", kw: ["설렁탕 맛집", "곰탕 맛집"], reason: "뽀얀 국물 한 그릇으로 차분하게 채워요." },
+      { food: "삼계탕", kind: "한식", kw: ["삼계탕 맛집", "한방 삼계탕"], reason: "몸까지 따뜻해지는 보양 한 그릇이에요." },
     ],
   };
   Object.keys(MORE).forEach((k) => TYPES[k].foods.push(...MORE[k]));
@@ -524,6 +608,8 @@
     "똠얌꿍": "국물 해산물", "매운 떡볶이": "밀가루", "뇨끼": "밀가루", "그라탕": "밀가루", "크림 수프와 빵": "국물 밀가루",
     "카레라이스": "", "완탕면": "면 국물 고기", "카오소이": "면 국물 고기", "수제비": "국물 밀가루", "스콘 카페": "밀가루 단것",
     "잔치국수": "면 국물",
+    "갈비탕": "국물 고기", "된장찌개": "국물", "설렁탕": "국물 고기", "삼계탕": "국물 고기",
+    "김치찌개": "국물 고기", "부대찌개": "국물 고기 면", "육개장": "국물 고기",
   });
   const SYN = {
     "매운": ["매운", "맵", "매콤", "얼큰", "spicy"], "고기": ["고기", "육류", "돼지", "소고기", "닭", "육식"],
@@ -603,11 +689,18 @@
     const add = (f) => {
       if (picks.length < 3 && ok(f) && fresh(f) && !picks.some((p) => groupOf(p) === groupOf(f))) picks.push(f);
     };
-    prefers.forEach((t) => [...mine, ...wx, ...near, ...rest].filter((f) => matches(f, t) && ok(f) && fresh(f)).slice(0, 1).forEach(add));
-    const w = wx.find((f) => ok(f) && fresh(f));
-    if (w) add(w);
-    mine.forEach(add); near.forEach(add); rest.forEach(add);
-    return { type, mood: TYPES[type].mood, picks, kinds };
+    // "국물 좋아요" 같은 우선 조건은 세 메뉴 모두에 적용 (모자랄 때만 다른 메뉴로 채움)
+    const prefOk = (f) => prefers.every((t) => matches(f, t));
+    const order = [...wx.slice(0, 1), ...mine, ...wx, ...near, ...rest];
+    if (prefers.length) order.filter(prefOk).forEach(add);
+    else { const w = wx.find((f) => ok(f) && fresh(f)); if (w) add(w); }
+    const prefCount = picks.length;
+    order.forEach(add);
+    const labels = prefers.map((t) => t.tag || t.word).join("·");
+    const note = prefers.length && prefCount < picks.length
+      ? (prefCount ? `'${labels}' 조건에 맞는 메뉴가 ${prefCount}개뿐이라 나머지는 비슷한 분위기의 메뉴로 채웠어요.` : `'${labels}' 조건에 맞는 메뉴를 찾지 못해 분위기에 맞는 메뉴로 추천했어요.`)
+      : "";
+    return { type, mood: TYPES[type].mood, picks, kinds, note };
   }
 
   // ---------- 곡 정보 (Apple 음악 → 안 되면 Deezer, 둘 다 키 필요 없음) ----------
@@ -1172,7 +1265,7 @@
         seen.length = 0;
         r2 = recommend(v, seen);
         r2.note = "조건에 맞는 메뉴를 모두 보여 드려서 처음부터 다시 추천해요.";
-      } else if (r2.picks.length < 3) {
+      } else if (r2.picks.length < 3 && !r2.note) {
         r2.note = `조건에 맞는 새 메뉴가 ${r2.picks.length}개만 남았어요. 한 번 더 누르면 처음부터 다시 추천해요.`;
       }
       const token = (render.token = (render.token || 0) + 1);
