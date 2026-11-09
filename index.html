@@ -378,6 +378,14 @@
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .story .nav:hover, .story .nav:active { transform: translateY(-50%); }
+
+  .pnotice { border: 2px solid var(--line); border-radius: 18px; padding: 14px; margin: 4px 0 6px; background: var(--field); }
+  .pnotice h3 { margin: 0 0 6px; font-size: 16px; }
+  .pnotice p { margin: 0 0 8px; font-size: 14px; }
+  .pnotice .ptable { margin: 6px 0 4px; }
+  .pnotice a, #auth details a { color: var(--accent); }
+  .rules { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
+  .rules li { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -388,7 +396,7 @@
     <nav class="cnav" aria-label="커뮤니티">
       <button type="button" id="nav-feed">📸 스토리</button>
       <button type="button" id="nav-rank">🏆 순위</button>
-      <button type="button" id="nav-me">👤 로그인</button>
+      <button type="button" id="nav-me">👤 가입·로그인</button>
     </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
       <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
@@ -406,7 +414,7 @@
       <div class="bubble">안녕하세요! 좋아하는 노래를 알려 주시면<br>그 분위기에 딱 맞는 메뉴를 골라 드릴게요 🎶</div>
     </div>
     <h2>서비스 이용 동의</h2>
-    <p class="hint" style="margin:0 0 12px">음식점은 회원가입 없이 이용하며, 입력하신 정보는 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리합니다.</p>
+    <p class="hint" style="margin:0 0 12px">메뉴 추천은 회원가입 없이 이용하며, 추천에 입력하신 정보는 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리합니다. 후기 올리기·좋아요는 선택 사항이며, 원할 때 회원가입 화면에서 따로 동의를 받습니다.</p>
 
     <label class="check all"><input type="checkbox" id="c-all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></label>
     <div class="agreebox">
@@ -546,20 +554,34 @@
   <section id="auth" class="card hidden">
     <div class="hello small">
       <img src="mascot.png" alt="" class="mascot-hello">
-      <div class="bubble" id="auth-bubble">로그인하면 후기를 올리고 좋아요를 누를 수 있어요!</div>
+      <div class="bubble" id="auth-bubble">가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!</div>
     </div>
     <div class="seg" id="auth-tab">
-      <button type="button" data-tab="login" class="on">로그인</button>
-      <button type="button" data-tab="signup">회원가입</button>
+      <button type="button" data-tab="signup" class="on">회원가입</button>
+      <button type="button" data-tab="login">로그인</button>
     </div>
-    <form id="login-form" autocomplete="on">
+    <form id="login-form" class="hidden" autocomplete="on">
       <label for="li-id">아이디</label>
       <input type="text" id="li-id" autocomplete="username" autocapitalize="off" spellcheck="false">
       <label for="li-pw">비밀번호</label>
       <input type="password" id="li-pw" autocomplete="current-password">
       <button type="submit">로그인</button>
+      <p class="hint center">아직 회원이 아니라면 위의 <b>회원가입</b> 탭을 눌러 주세요.</p>
     </form>
-    <form id="signup-form" class="hidden" autocomplete="on">
+    <form id="signup-form" autocomplete="on">
+      <div class="pnotice">
+        <h3>🔒 회원가입 개인정보 안내</h3>
+        <p>음식점은 후기 올리기·좋아요에 꼭 필요한 정보만 받아요. <b>이메일, 전화번호, 실명, 생년월일은 받지 않아요.</b></p>
+        <table class="ptable">
+          <tr><th>받는 정보</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임 / 후기를 올리면 노래, 메뉴, 식당 이름, 음식 사진, 후기 글 / 좋아요·신고 기록</td></tr>
+          <tr><th>쓰는 곳</th><td>로그인, 후기 게시, 좋아요와 코너별 순위, 신고 처리</td></tr>
+          <tr><th>보관 기간</th><td>회원 탈퇴 시 바로 삭제 (로그인 기록은 30일 뒤 자동 삭제)</td></tr>
+          <tr><th>보관 장소</th><td>Cloudflare, Inc.(미국)의 클라우드 데이터베이스 (국외 이전)</td></tr>
+          <tr><th>공개 범위</th><td>닉네임과 올린 후기는 모든 방문자에게 공개 / 아이디·비밀번호는 비공개</td></tr>
+          <tr><th>내 권리</th><td>언제든 '내 정보'에서 후기 삭제·회원 탈퇴 가능. 동의를 거부할 수 있지만, 그러면 가입할 수 없어요 (메뉴 추천과 스토리·순위 보기는 가입 없이 이용 가능)</td></tr>
+        </table>
+        <p class="hint">만 14세 미만은 가입할 수 없어요. 자세한 내용은 <a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인해 주세요.</p>
+      </div>
       <label for="su-id">아이디 <span class="opt">(영문 소문자·숫자·_ 4~20자)</span></label>
       <input type="text" id="su-id" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20">
       <label for="su-pw">비밀번호 <span class="opt">(8자 이상)</span></label>
@@ -593,8 +615,20 @@
           </table>
           <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다.</p>
         </details>
+        <label class="check"><input type="checkbox" class="su-req" id="su-rules"> [필수] 커뮤니티 이용 규칙 동의</label>
+        <details><summary>내용 보기</summary>
+          <ol class="rules">
+            <li>올린 후기(사진·글)의 권리와 책임은 작성자에게 있으며, 서비스 화면에 공개 게시하는 데 필요한 범위에서만 이용됩니다.</li>
+            <li>직접 찍은 사진이나 사용 권한이 있는 사진만 올려 주세요. 다른 사람의 얼굴, 차량 번호, 연락처 같은 개인정보가 보이지 않게 해 주세요.</li>
+            <li>욕설·혐오·음란·광고·도배, 다른 사람의 권리를 침해하는 게시물은 금지됩니다.</li>
+            <li>신고가 3건 이상 쌓인 후기는 자동으로 숨겨지고, 운영자는 규칙을 어긴 후기를 삭제할 수 있습니다.</li>
+            <li>노래는 앨범 이미지와 Apple이 공개한 30초 미리듣기만 연결하며, 음원 파일은 올릴 수 없습니다.</li>
+            <li>권리 침해 신고나 문의는 개인정보 처리방침의 연락처로 해 주세요.</li>
+          </ol>
+        </details>
       </div>
-      <button type="submit" id="su-btn" disabled>가입하기</button>
+      <p class="hint">개인정보 처리 위탁: Cloudflare, Inc.(웹사이트 호스팅·데이터 보관), NAVER Cloud(주)(지도·주소 변환·지역 검색)</p>
+      <button type="submit" id="su-btn" disabled>동의하고 가입하기</button>
     </form>
     <div id="auth-err" class="error hidden"></div>
   </section>
@@ -1688,7 +1722,7 @@
       if (token) { localStorage.setItem("food.token", token); localStorage.setItem("food.user", JSON.stringify(user)); }
       else { localStorage.removeItem("food.token"); localStorage.removeItem("food.user"); }
     } catch {}
-    $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 로그인";
+    $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 가입·로그인";
   }
   setAuth(AUTH.token, AUTH.user);
 
@@ -1736,6 +1770,10 @@
   function showComm(name) {
     if (name === "me" && !AUTH.user) name = "auth";
     if (name === "write" && !AUTH.user) name = "auth";
+    if (name === "auth" && $("auth").classList.contains("hidden")) {
+      let member = false; try { member = localStorage.getItem("food.member") === "1"; } catch {}
+      pickAuthTab(member ? "login" : "signup"); authErr("");
+    }
     hideAll(); markNav(name);
     $(name).classList.remove("hidden");
     window.scrollTo({ top: 0 });
@@ -1958,7 +1996,13 @@
   $("su-all").addEventListener("change", (e) => { suBoxes.forEach((b) => (b.checked = e.target.checked)); suSync(); });
   suBoxes.forEach((b) => b.addEventListener("change", suSync));
 
+  function pickAuthTab(tab) {
+    $("auth-tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.tab === tab));
+    $("login-form").classList.toggle("hidden", tab !== "login");
+    $("signup-form").classList.toggle("hidden", tab !== "signup");
+  }
   function loggedIn(d, msg) {
+    try { localStorage.setItem("food.member", "1"); } catch {}
     setAuth(d.token, d.user);
     $("login-form").reset(); $("signup-form").reset(); suSync(); authErr("");
     toast(msg);
@@ -1980,7 +2024,7 @@
     if (pw !== $("su-pw2").value) return authErr("비밀번호 확인이 일치하지 않아요.");
     if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
     try {
-      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true } }), `${nick}님, 가입을 환영해요! 🎉`);
+      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true } }), `${nick}님, 가입을 환영해요! 🎉`);
     } catch (er) { authErr(er.message); }
   });
 
@@ -2015,6 +2059,7 @@
     try {
       await api("/me", { method: "DELETE", body: { pw } });
       setAuth("", null); $("leave-pw").value = "";
+      try { localStorage.removeItem("food.member"); } catch {}
       toast("탈퇴했어요. 모든 정보를 지웠어요.");
       history.replaceState({ ...(history.state || {}), screen: "feed" }, ""); showComm("feed");
     } catch (e) { toast(e.message); }
