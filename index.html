@@ -266,9 +266,17 @@
   .mascot-hello { width: 104px; height: auto; flex: none; animation: bob 2.4s ease-in-out infinite; }
   .bubble { position: relative; background: var(--accent-weak); color: var(--text); border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.5; font-weight: 600; }
   .bubble::before { content: ""; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: var(--accent-weak); }
-  .loading { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0 4px; }
-  .loading img { width: 92px; animation: bob .8s ease-in-out infinite; }
-  .loading p { margin: 0; color: var(--muted); font-weight: 600; }
+  .loading {
+    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(255, 248, 241, .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    animation: fadein .2s ease-out;
+  }
+  :root[data-theme="dark"] .loading { background: rgba(28, 23, 21, .5); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .loading { background: rgba(28, 23, 21, .5); } }
+  .loadbox { display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--line); border-radius: 28px; padding: 26px 30px 22px; box-shadow: var(--shadow); text-align: center; }
+  .loading img { width: 140px; animation: bob .8s ease-in-out infinite; }
+  .loading p { margin: 0; color: var(--text); font-weight: 700; font-size: 16px; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
   .loading.hidden { display: none; }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
   @media (prefers-reduced-motion: reduce) { .mascot-hello, .loading img { animation: none; } }
@@ -342,7 +350,7 @@
   <form id="form" class="card hidden" autocomplete="off">
     <h2>추천 조건 입력</h2>
 
-    <label for="song">🎧 노래</label>
+    <label for="song">🎧 노래 <span class="opt">(필수)</span></label>
     <input type="text" id="song" placeholder="'가수 - 곡명' (예: 아이유 - 밤편지)">
 
     <div class="row">
@@ -397,14 +405,16 @@
 
     <button type="submit">추천받기</button>
     <div id="err" class="error hidden"></div>
-    <div id="loading" class="loading hidden" role="status" aria-live="polite">
-      <img src="mascot.png" alt="">
-      <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
-    </div>
   </form>
 
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
+  <div id="loading" class="loading hidden" role="status" aria-live="polite">
+    <div class="loadbox">
+      <img src="mascot.png" alt="">
+      <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
+    </div>
+  </div>
 
   <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
   <footer>※ 곡 정보는 Apple 음악 검색, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
@@ -427,8 +437,32 @@
   const syncConsent = () => { $("enter").disabled = !reqOk(); $("c-all").checked = boxes.every((b) => b.checked); };
   $("c-all").addEventListener("change", (e) => { boxes.forEach((b) => (b.checked = e.target.checked)); syncConsent(); });
   boxes.forEach((b) => b.addEventListener("change", syncConsent));
+  // 화면 전환을 브라우저 기록에 남겨서 뒤로가기가 사이트를 나가지 않고 이전 화면으로 가게 함
+  // (동의 = 기록 없음, 입력 = d:1, 결과 = d:2)
+  function showScreen(name) {
+    $("loading").classList.add("hidden");
+    const hasResult = !!$("result").innerHTML;
+    if (name === "result" && hasResult) {
+      $("consent").classList.add("hidden"); $("form").classList.add("hidden");
+      $("result").classList.remove("hidden"); document.body.classList.add("wide");
+    } else if ((name === "form" || name === "result") && reqOk()) {
+      document.body.classList.remove("wide");
+      $("consent").classList.add("hidden"); $("result").classList.add("hidden");
+      $("form").classList.remove("hidden");
+    } else {
+      document.body.classList.remove("wide");
+      $("form").classList.add("hidden"); $("result").classList.add("hidden");
+      $("consent").classList.remove("hidden");
+    }
+    window.scrollTo({ top: 0 });
+  }
+  window.addEventListener("popstate", (e) => showScreen(e.state && e.state.screen));
+  const go = (screen, d) => history.pushState({ screen, d }, "");
+
   $("home").addEventListener("click", (e) => {
     e.preventDefault();
+    const depth = (history.state && history.state.d) || 0;
+    if (depth) history.go(-depth);
     render.token = (render.token || 0) + 1; render.song = (render.song || 0) + 1;
     document.body.classList.remove("wide");
     $("result").classList.add("hidden"); $("result").innerHTML = "";
@@ -460,6 +494,7 @@
     if (!CONSENT.geo) $("here").classList.add("hidden");
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
+    go("form", 1);
     $("song").focus();
   });
 
@@ -1269,6 +1304,7 @@
       searchOnMap(v.loc, b.dataset.kw);
     }));
     $("again").addEventListener("click", () => {
+      if (history.state && history.state.screen === "result") { history.back(); return; }
       document.body.classList.remove("wide");
       $("result").classList.add("hidden");
       $("form").classList.remove("hidden");
@@ -1348,6 +1384,12 @@
       kinds: [...document.querySelectorAll("#kind input:checked")].map((x) => x.value),
       cond: parseCond($("flt").value),
     };
+    if (!v.song) {
+      $("err").textContent = "노래를 입력해 주세요. '가수 - 곡명' 형식이면 더 잘 찾아요.";
+      $("err").classList.remove("hidden");
+      $("song").focus();
+      return;
+    }
     if (!v.loc) {
       $("err").textContent = "위치를 입력해 주세요.";
       $("err").classList.remove("hidden");
@@ -1364,6 +1406,7 @@
     v.energyGuessed = !!(info && info.primaryGenreName);
     $("form").classList.add("hidden");
     render(v, recommend(v), info);
+    go("result", 2);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 })();
