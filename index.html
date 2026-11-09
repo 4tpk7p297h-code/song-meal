@@ -87,20 +87,49 @@
   .lochelp .btns { display: flex; gap: 8px; margin-top: 10px; }
   .lochelp .btns button { margin: 0; padding: 8px 12px; font-size: 14px; }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+  .maps button {
+    margin: 0; width: auto; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px;
+    font-size: 14px; font-weight: 600; color: var(--accent); background: var(--accent-weak);
+    border: 1px solid transparent; border-radius: 999px;
+  }
+  .maps button:hover, .maps button.on { border-color: var(--accent); }
+  .songhead { display: flex; gap: 14px; align-items: center; }
+  .songhead img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex: none; background: var(--chip); }
+  .songmeta { font-size: 13px; color: var(--muted); }
+  .bpm { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 4px; }
+  .bpm b { font-size: 30px; line-height: 1; }
+  .synopsis { margin: 12px 0; font-size: 15px; }
+  .sects { display: grid; gap: 8px; margin-top: 10px; }
+  .sect { display: grid; grid-template-columns: 56px 1fr; gap: 10px; font-size: 14px; }
+  .sect span:first-child { font-weight: 700; color: var(--accent); }
+  .dyn { display: flex; gap: 6px; align-items: flex-end; height: 34px; margin-top: 6px; }
+  .dyn i { flex: 1; background: var(--accent); opacity: .75; border-radius: 4px 4px 0 0; }
+  .dynlbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  audio { width: 100%; margin-top: 12px; }
+  .conds { font-size: 13px; color: var(--muted); margin: -4px 0 12px; }
+  .places { list-style: none; margin: 10px 0 0; padding: 0; }
+  .places li { padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; font-size: 14px; }
+  .places li:first-child { border-top: 0; }
+  .places li b { font-size: 15px; }
+  .places li small { display: block; color: var(--muted); }
+  .iw { padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #1f1d1a; max-width: 240px; }
+  .iw b { font-size: 14px; }
+  .iw a { color: #d9480f; }
 </style>
 </head>
 <body>
 <main>
   <h1>🍽️ 음식점</h1>
-  <p class="sub">노래 분위기 → 오늘의 메뉴와 네이버 지도 검색 키워드</p>
+  <p class="sub">노래 분위기 → 오늘의 메뉴와 주변 식당</p>
 
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
     <h2>개인정보 수집·이용 동의</h2>
     <dl>
       <dt>수집 항목</dt><dd>노래, 곡 분위기, 인원, 날씨, 위치, 식사 시간, 음식 종류, 음식 조건</dd>
-      <dt>이용 목적</dt><dd>음식 및 식당 검색 키워드 추천</dd>
-      <dt>처리</dt><dd>입력 정보는 이 브라우저 안에서만 처리되며 서버로 전송하거나 저장하지 않습니다. 지도 버튼을 누르면 위치와 검색어가 네이버 지도로 전달됩니다.</dd>
+      <dt>이용 목적</dt><dd>곡 분석, 음식 추천, 주변 식당 검색</dd>
+      <dt>처리</dt><dd>노래 제목은 곡 정보 확인을 위해 Apple 음악 검색으로, 위치와 검색어는 네이버 지도·검색으로 전송됩니다. 입력 정보는 별도로 저장하지 않습니다.</dd>
     </dl>
     <label class="check"><input type="checkbox" id="agree"> 위 내용에 동의합니다.</label>
     <button id="enter" disabled>동의하고 시작하기</button>
@@ -168,9 +197,9 @@
       </div>
     </div>
 
-    <label class="check" style="font-weight:400;font-size:14px">
-      <input type="checkbox" id="nospicy"> 매운 음식 제외
-    </label>
+    <label for="flt">음식 조건 <span class="opt">(선택)</span></label>
+    <input type="text" id="flt" placeholder="예: 매운 음식 제외, 해산물 빼고, 국물 좋아요">
+    <p class="hint">"○○ 제외·빼고·싫어"는 빼고, 그 밖의 말은 먼저 추천해요. 쉼표로 여러 개 쓸 수 있어요.</p>
 
     <button type="submit">추천받기</button>
     <div id="err" class="error hidden"></div>
@@ -179,12 +208,18 @@
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
 
-  <footer>※ 선택한 곡 분위기를 바탕으로 한 규칙 기반 추천입니다.</footer>
+  <footer>※ 곡 정보는 Apple 음악 검색, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
 <script>
 (() => {
+  // ---------- 설정 ----------
+  // 식당 검색 프록시 주소. worker/naver-search.js를 Cloudflare Workers에 배포한 뒤 주소를 넣으세요.
+  // 비워 두면 키워드를 눌렀을 때 지도 안에 안내만 표시합니다.
+  const SEARCH_PROXY = "";
+
   const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // ---------- 동의 ----------
   $("agree").addEventListener("change", (e) => { $("enter").disabled = !e.target.checked; });
@@ -263,6 +298,46 @@
   };
   WEATHER["눈"] = WEATHER["추움"];
 
+  // 메뉴별 특징 (음식 조건 해석용)
+  const TAGS = {
+    "전골": "국물 고기", "수제 파스타": "면 밀가루", "이자카야": "술 해산물", "샤브샤브": "국물 고기", "딤섬": "밀가루",
+    "브런치": "밀가루", "샌드위치": "밀가루", "디저트 카페": "단것", "쌀국수": "면 국물 고기", "베이커리 카페": "밀가루 단것",
+    "포케·샐러드": "해산물 채소", "파스타·피자": "면 밀가루", "수제버거": "고기 밀가루", "돈카츠": "고기 튀김", "꿔바로우": "고기 튀김",
+    "와플·크로플": "밀가루 단것", "김밥·분식": "", "치킨": "고기 튀김 술", "떡볶이": "밀가루", "튀김·순대": "튀김",
+    "곱창": "고기 술", "바비큐": "고기", "타코": "고기 밀가루", "마라탕": "국물 면", "삼겹살 구이": "고기 술",
+    "매운 갈비찜": "고기", "짬뽕": "면 국물 해산물", "인도 커리": "", "화덕 피자": "밀가루", "한식 정식": "",
+    "라멘": "면 국물 고기", "우동": "면 국물 밀가루", "스튜": "고기 국물", "짜장면": "면 밀가루", "파전": "밀가루 해산물",
+    "칼국수": "면 국물 밀가루 해산물", "냉면": "면", "빙수": "단것", "국밥": "국물 고기", "훠궈": "국물 고기",
+  };
+  const SYN = {
+    "매운": ["매운", "맵", "매콤", "얼큰", "spicy"], "고기": ["고기", "육류", "돼지", "소고기", "닭", "육식"],
+    "해산물": ["해산물", "생선", "회", "해물", "조개", "새우", "갑각류"], "면": ["면", "국수", "누들"],
+    "밀가루": ["밀가루", "빵", "글루텐"], "국물": ["국물", "탕", "찌개", "따뜻한", "뜨끈"], "튀김": ["튀김", "기름", "튀긴", "느끼"],
+    "술": ["술", "주류", "알코올"], "단것": ["단것", "단 음식", "디저트", "달달", "달콤"], "채소": ["채소", "야채", "샐러드", "가벼운", "건강"],
+  };
+  const NEG = /(제외|빼고|빼줘|빼|말고|싫어|싫음|싫|없이|못\s*먹|안\s*먹|금지|NO|노)/i;
+
+  // "매운 음식 제외, 국물 좋아요" → { exclude:[...], prefer:[...], unknown:[...] }
+  function parseCond(text) {
+    const out = { exclude: [], prefer: [], unknown: [], labels: [] };
+    text.split(/[,，\/\n]|그리고/).map((c) => c.trim()).filter(Boolean).forEach((c) => {
+      const neg = NEG.test(c);
+      const word = c.replace(NEG, " ").replace(/(음식|요리|종류|좋아요|좋아|좋음|원해요|원함|먹고\s*싶어요?|위주)/g, " ")
+        .replace(/(으로|로|은|는|이|가|을|를|도)(?=\s|$)/g, " ").replace(/\s+/g, " ").trim();
+      let tag = Object.keys(SYN).find((t) => SYN[t].some((w) => c.includes(w)));
+      const target = tag ? { tag } : word ? { word } : null;
+      if (!target) return;
+      const name = tag || word;
+      (neg ? out.exclude : out.prefer).push(target);
+      const lbl = name === "매운" ? "매운 음식" : name;
+      out.labels.push(neg ? `${lbl} 제외` : `${lbl} 우선`);
+    });
+    return out;
+  }
+
+  const hasTag = (f, tag) => tag === "매운" ? !!f.s : (TAGS[f.food] || "").split(" ").includes(tag);
+  const matches = (f, t) => t.tag ? hasTag(f, t.tag) : (f.food.includes(t.word) || f.kind.includes(t.word) || t.word.includes(f.food));
+
   // 에너지(1~3) × 분위기(1~3) → 유형
   function pickType(energy, valence) {
     if (energy === 1) return valence === 3 ? "B" : "A";
@@ -274,38 +349,221 @@
 
   function recommend(v) {
     const type = pickType(v.energy, v.valence);
-    const ok = (f) => (v.kind === "상관없음" || f.kind === v.kind) && !(v.nospicy && f.s);
+    const cond = v.cond;
+    const ok = (f) => (v.kind === "상관없음" || f.kind === v.kind) && !cond.exclude.some((t) => matches(f, t));
     const picks = [];
     const add = (f) => { if (picks.length < 3 && ok(f) && !picks.some((p) => p.food === f.food)) picks.push(f); };
-    const wxFood = (WEATHER[v.wx] || []).find(ok);   // 날씨 메뉴는 조건에 맞는 것 1개까지
+    // 1) "좋아요" 조건에 맞는 메뉴: 이 곡 유형 → 날씨 → 전체 순서
+    cond.prefer.forEach((t) => [...TYPES[type].foods, ...(WEATHER[v.wx] || []), ...ALL_FOODS].filter((f) => matches(f, t)).slice(0, 1).forEach(add));
+    // 2) 날씨 메뉴 1개, 3) 곡 유형 메뉴, 4) 부족하면 다른 유형에서 채움
+    const wxFood = (WEATHER[v.wx] || []).find(ok);
     if (wxFood) add(wxFood);
     TYPES[type].foods.forEach(add);
-    ALL_FOODS.forEach(add);                          // 음식 종류 조건으로 부족하면 다른 유형에서 채움
+    ALL_FOODS.forEach(add);
     return { type, mood: TYPES[type].mood, picks };
   }
 
-  // ---------- 결과 ----------
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const naverUrl = (loc, kw) => "https://map.naver.com/p/search/" + encodeURIComponent(`${loc} ${kw}`);
+  // ---------- 곡 정보 (Apple 음악 검색, 키 필요 없음) ----------
+  function lookupSong(term) {
+    return new Promise((resolve) => {
+      if (!term || /^https?:\/\//.test(term)) return resolve(null);
+      const cb = "__song" + Date.now();
+      const s = document.createElement("script");
+      const finish = (x) => { clearTimeout(timer); window[cb] = () => {}; s.remove(); resolve(x); };
+      const timer = setTimeout(() => finish(null), 7000);
+      window[cb] = (d) => finish((d && d.results && d.results[0]) || null);
+      s.onerror = () => finish(null);
+      s.src = "https://itunes.apple.com/search?entity=song&country=kr&limit=1&callback=" + cb +
+        "&term=" + encodeURIComponent(term.replace(/\s*[-–]\s*/g, " "));
+      document.head.appendChild(s);
+    });
+  }
+
+  // ---------- 미리듣기 30초로 BPM·소리 크기 변화 측정 (실패하면 null) ----------
+  async function analyzeAudio(url) {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || !url) return null;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const ctx = new AC();
+      const audio = await ctx.decodeAudioData(await res.arrayBuffer());
+      if (ctx.close) ctx.close();
+      const x = audio.getChannelData(0), sr = audio.sampleRate, hop = 512;
+      const n = Math.floor(x.length / hop), env = new Float32Array(n);
+      for (let i = 0; i < n; i++) { let e = 0; for (let j = 0; j < hop; j++) { const v = x[i * hop + j]; e += v * v; } env[i] = Math.sqrt(e / hop); }
+      const on = new Float32Array(n);
+      for (let i = 1; i < n; i++) on[i] = Math.max(0, env[i] - env[i - 1]);
+      const fps = sr / hop;
+      let best = 0, bestLag = 0;
+      for (let lag = Math.round(fps * 60 / 180); lag <= Math.round(fps * 60 / 60); lag++) {
+        let c = 0; for (let i = lag; i < n; i++) c += on[i] * on[i - lag];
+        c /= (n - lag);
+        if (c > best) { best = c; bestLag = lag; }
+      }
+      if (!bestLag) return null;
+      let bpm = 60 * fps / bestLag;
+      while (bpm < 70) bpm *= 2;
+      while (bpm > 170) bpm /= 2;
+      const parts = [0, 1, 2, 3, 4].map((k) => {
+        const a = Math.floor(n * k / 5), b = Math.floor(n * (k + 1) / 5);
+        let m = 0; for (let i = a; i < b; i++) m += env[i]; return m / Math.max(1, b - a);
+      });
+      const mx = Math.max(...parts) || 1;
+      return { bpm: Math.round(bpm), parts: parts.map((p) => p / mx) };
+    } catch { return null; }
+  }
+
+  // ---------- 곡 분석 해설 ----------
+  const GENRES = [
+    { re: /발라드|ballad/i, bpm: [60, 80], tex: "피아노와 스트링" },
+    { re: /힙합|hip.?hop|랩|rap/i, bpm: [80, 100], tex: "묵직한 드럼 비트와 베이스" },
+    { re: /R&B|알앤비|soul|소울/i, bpm: [70, 95], tex: "부드러운 보컬과 신스 패드" },
+    { re: /댄스|dance|EDM|electronic|일렉|house/i, bpm: [118, 130], tex: "신스와 강한 킥 드럼" },
+    { re: /록|rock|metal|메탈|punk|펑크/i, bpm: [110, 150], tex: "일렉 기타와 드럼" },
+    { re: /재즈|jazz|보사노바|bossa/i, bpm: [80, 120], tex: "피아노와 관악기" },
+    { re: /인디|indie|포크|folk|어쿠스틱|acoustic|singer/i, bpm: [75, 110], tex: "어쿠스틱 기타" },
+    { re: /OST|soundtrack|사운드트랙/i, bpm: [65, 95], tex: "오케스트라와 피아노" },
+    { re: /K-?Pop|가요|pop|팝/i, bpm: [95, 125], tex: "보컬 중심의 팝 사운드" },
+  ];
+  const E_BPM = [null, [65, 85], [85, 110], [115, 135]];
+  const E_TEX = [null, "잔잔한 피아노와 보컬", "기타와 드럼이 어우러진 밴드 사운드", "신나는 비트와 신스"];
+  const tempoName = (b) => b < 80 ? "느림" : b < 110 ? "보통" : b < 140 ? "빠름" : "매우 빠름";
+
+  const SYNOPSIS = {
+    A: "늦은 밤 혼자 창밖을 보는 듯한 곡이에요. 조용히 감정을 꺼내 놓으며 듣는 사람을 차분하게 가라앉혀요.",
+    B: "햇살 드는 주말 오후처럼 여유로운 곡이에요. 힘을 빼고 가볍게 흘러가며 기분 좋은 산뜻함을 남겨요.",
+    C: "친구들과 가볍게 나서는 길에 어울리는 곡이에요. 부담 없는 리듬으로 기분을 한 단계 끌어올려요.",
+    D: "파티가 막 시작되는 순간 같은 곡이에요. 처음부터 끝까지 흥을 몰아붙이며 몸이 먼저 반응하게 만들어요.",
+    E: "어두운 무대 위 조명이 확 켜지는 듯한 곡이에요. 거칠고 묵직한 에너지로 감정을 세게 밀어붙여요.",
+    F: "비 오는 날 오래된 기억을 꺼내 보는 듯한 곡이에요. 담담하게 흘러가지만 마음 한구석을 오래 건드려요.",
+  };
+  const INTRO = [null, "작은 소리로 조용히 문을 열며 공간을 비워 둬요.", "가볍게 리듬을 깔며 자연스럽게 시작해요.", "첫 마디부터 강한 비트로 바로 치고 들어와요."];
+  const VERSE = [null, "낮은 톤으로 담담하게 이야기를 풀어 가는, 분위기가 가장 짙은 구간이에요.", "편안하게 흘러가며 조금씩 감정을 쌓아 가요.", "밝고 통통 튀는 멜로디로 기분을 끌어올려요."];
+  function chorusText(e, v) {
+    if (e === 1) return "크게 터뜨리기보다 여운을 남기며 감정을 머금어요.";
+    if (e === 2) return v === 1 ? "멜로디가 넓어지며 쌓아 둔 감정이 조용히 넘쳐흘러요." : "멜로디가 한층 넓어지며 따라 부르기 좋은 후렴이 나와요.";
+    return v === 3 ? "곡에서 가장 신나는 구간으로 에너지가 폭발해요." : "묵직하고 강렬하게 몰아치며 긴장감을 최고로 끌어올려요.";
+  }
+
+  function analysisHTML(v, type, info, audio) {
+    const genreStr = info ? info.primaryGenreName || "" : "";
+    const g = GENRES.find((x) => x.re.test(genreStr));
+    const range = g ? g.bpm : E_BPM[v.energy];
+    const tex = g ? g.tex : E_TEX[v.energy];
+    const title = info ? `${info.artistName} – ${info.trackName}` : (v.song || "선택한 곡");
+    const year = info && info.releaseDate ? info.releaseDate.slice(0, 4) : "";
+    const art = info && info.artworkUrl100 ? info.artworkUrl100.replace("100x100", "300x300") : "";
+    const bpmBlock = audio
+      ? `<div class="bpm"><b>${audio.bpm}</b><span>BPM · ${tempoName(audio.bpm)}</span></div>
+         <div class="songmeta">미리듣기 30초를 직접 분석한 값이에요.</div>`
+      : `<div class="bpm"><b>${range[0]}~${range[1]}</b><span>BPM · ${tempoName((range[0] + range[1]) / 2)}</span></div>
+         <div class="songmeta">${g ? "장르" : "선택한 에너지"}로 추정한 범위예요.</div>`;
+    const dyn = audio ? `
+        <div style="margin-top:14px;font-size:14px;font-weight:600">소리 크기 흐름 (미리듣기 구간)</div>
+        <div class="dyn">${audio.parts.map((p) => `<i style="height:${Math.max(8, p * 100)}%"></i>`).join("")}</div>
+        <div class="dynlbl"><span>처음</span><span>끝</span></div>` : "";
+    return `
+      <div class="songhead">
+        ${art ? `<img src="${esc(art)}" alt="" onerror="this.remove()">` : ""}
+        <div>
+          <p class="song">🎧 ${esc(title)}</p>
+          <div class="songmeta">${[genreStr, year && year + "년", info && info.collectionName].filter(Boolean).map(esc).join(" · ") || "곡 정보를 찾지 못해 입력한 분위기로 해설했어요."}</div>
+        </div>
+      </div>
+      ${bpmBlock}
+      <p class="synopsis">${esc(SYNOPSIS[type])}</p>
+      <div class="stats">
+        <span class="stat">에너지 ${E_LABEL[v.energy]}</span>
+        <span class="stat">${V_LABEL[v.valence]}</span>
+        <span class="stat">${esc(tex)}</span>
+        <span class="stat">유형 ${type}</span>
+      </div>
+      <div class="sects">
+        <div class="sect"><span>인트로</span><span>${INTRO[v.energy]}</span></div>
+        <div class="sect"><span>벌스</span><span>${VERSE[v.valence]}</span></div>
+        <div class="sect"><span>후렴</span><span>${chorusText(v.energy, v.valence)}</span></div>
+      </div>
+      ${dyn}
+      ${info && info.previewUrl ? `<audio controls preload="none" src="${esc(info.previewUrl)}"></audio>` : ""}
+      <div class="songmeta" style="margin-top:10px">※ 시놉시스와 구간 해설은 선택한 에너지·분위기와 장르로 만든 추정이에요.</div>`;
+  }
+
   const E_LABEL = ["", "잔잔함", "보통", "신남"], V_LABEL = ["", "어둡고 차분", "무난", "밝고 경쾌"];
 
   // ---------- 네이버 지도 ----------
   const mapsReady = () => !window.NAVER_MAP_AUTH_FAILED && window.naver && naver.maps && naver.maps.Service;
   const MAP_FAIL = "지도를 불러오지 못했어요. NCP 콘솔에서 Dynamic Map 사용과 Web 서비스 URL 등록을 확인해 주세요.";
+  const M = { map: null, center: null, markers: [], info: null };
 
   function drawMap(loc) {
+    M.map = null; M.markers = []; M.info = null;
     const msg = (t) => { const el = $("mapmsg"); if (el) el.textContent = t; };
     const hideMap = (t) => { const m = $("map"); if (m) m.style.display = "none"; msg(t); };
     if (!mapsReady()) return hideMap(MAP_FAIL);
     naver.maps.Service.geocode({ query: loc }, (status, res) => {
       const a = status === naver.maps.Service.Status.OK && res.v2 && res.v2.addresses && res.v2.addresses[0];
       if (!a) return hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`);
-      const pos = new naver.maps.LatLng(+a.y, +a.x);
-      const map = new naver.maps.Map("map", { center: pos, zoom: 15 });
-      new naver.maps.Marker({ position: pos, map });
-      msg(a.roadAddress || a.jibunAddress || "");
+      M.center = new naver.maps.LatLng(+a.y, +a.x);
+      M.map = new naver.maps.Map("map", { center: M.center, zoom: 15 });
+      new naver.maps.Marker({ position: M.center, map: M.map });
+      M.info = new naver.maps.InfoWindow({ content: "", borderWidth: 1, anchorSize: new naver.maps.Size(10, 10) });
+      msg((a.roadAddress || a.jibunAddress || "") + " · 아래 추천 키워드를 누르면 이 지도에 식당이 표시돼요.");
       setTimeout(() => { if (window.NAVER_MAP_AUTH_FAILED) hideMap(MAP_FAIL); }, 1500);
     });
+  }
+
+  const stripTags = (s) => String(s || "").replace(/<[^>]*>/g, "");
+
+  function clearMarkers() { M.markers.forEach((m) => m.setMap(null)); M.markers = []; if (M.info) M.info.close(); }
+
+  function placeInfo(p) {
+    return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}</div>`;
+  }
+
+  async function searchOnMap(loc, kw) {
+    $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("maptitle").textContent = `🗺️ ${loc} · ${kw}`;
+    const list = $("places");
+    clearMarkers();
+    if (!SEARCH_PROXY) {
+      if (M.map && M.info) {
+        M.info.setContent(`<div class="iw"><b>${esc(kw)}</b><br>식당 검색이 아직 연결되지 않았어요.<br>검색 프록시를 설정하면 이 지도에 식당이 표시돼요.</div>`);
+        M.info.open(M.map, M.center);
+      }
+      list.innerHTML = `<li style="cursor:default">식당 검색이 아직 연결되지 않았어요. (설정: README의 "식당 검색 연결")</li>`;
+      return;
+    }
+    list.innerHTML = `<li style="cursor:default">'${esc(kw)}' 찾는 중...</li>`;
+    let items = [];
+    try {
+      const r = await fetch(`${SEARCH_PROXY}?query=${encodeURIComponent(loc + " " + kw)}`);
+      const d = await r.json();
+      items = (d.items || []).map((it) => ({
+        name: stripTags(it.title), category: it.category || "", addr: it.roadAddress || it.address || "",
+        tel: it.telephone || "", lat: +it.mapy / 1e7, lng: +it.mapx / 1e7,
+      })).filter((p) => p.lat > 30 && p.lat < 45 && p.lng > 120 && p.lng < 135);
+    } catch { items = null; }
+    if (!items) { list.innerHTML = `<li style="cursor:default">식당 검색에 실패했어요. 잠시 후 다시 눌러 주세요.</li>`; return; }
+    if (!items.length) { list.innerHTML = `<li style="cursor:default">'${esc(kw)}'로 찾은 식당이 없어요.</li>`; return; }
+
+    const bounds = M.map ? new naver.maps.LatLngBounds() : null;
+    items.forEach((p, i) => {
+      if (!M.map) return;
+      const pos = new naver.maps.LatLng(p.lat, p.lng);
+      const mk = new naver.maps.Marker({ position: pos, map: M.map, title: p.name });
+      naver.maps.Event.addListener(mk, "click", () => { M.info.setContent(placeInfo(p)); M.info.open(M.map, mk); });
+      M.markers.push(mk); bounds.extend(pos);
+    });
+    if (M.map) { bounds.extend(M.center); M.map.fitBounds(bounds); }
+    list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${esc(p.name)}</b><small>${esc(p.category)} · ${esc(p.addr)}</small></li>`).join("");
+    list.querySelectorAll("li[data-i]").forEach((li) => li.addEventListener("click", () => {
+      const i = +li.dataset.i, mk = M.markers[i];
+      if (!mk) return;
+      M.map.panTo(mk.getPosition());
+      M.info.setContent(placeInfo(items[i])); M.info.open(M.map, mk);
+      $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
   }
 
   // ---------- 위치 권한 안내 창 ----------
@@ -390,37 +648,46 @@
       <div class="pick">
         <h3>${i + 1}. ${esc(p.food)}</h3>
         <p>${esc(p.reason)}</p>
-        <div class="maps">${p.kw.map((k) => `<a href="${naverUrl(v.loc, k)}" target="_blank" rel="noopener">📍 ${esc(k)}</a>`).join("")}</div>
+        <div class="maps">${p.kw.map((k) => `<button type="button" data-kw="${esc(k)}">📍 ${esc(k)}</button>`).join("")}</div>
       </div>`).join("");
 
     $("result").innerHTML = `
+      <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
       <div class="card">
-        <p class="song">🎧 ${esc(v.song || "선택한 곡")}</p>
-        <p class="mood">${esc(r.mood)}</p>
-        <div class="stats">
-          <span class="stat">에너지 ${E_LABEL[v.energy]}</span>
-          <span class="stat">${V_LABEL[v.valence]}</span>
-          <span class="stat">유형 ${r.type}</span>
-          ${v.wx ? `<span class="stat">${esc(v.wx)}</span>` : ""}
-          <span class="stat">${esc(v.ppl)}명 · ${esc(v.meal)}</span>
-        </div>
+        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx ? " · " + esc(v.wx) : ""}</span></h2>
+        ${v.cond.labels.length ? `<p class="conds">적용한 조건: ${v.cond.labels.map(esc).join(", ")}</p>` : ""}
+        ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
       </div>
       <div class="card" id="mapcard">
-        <h2>🗺️ ${esc(v.loc)} 주변</h2>
+        <h2 id="maptitle">🗺️ ${esc(v.loc)} 주변</h2>
         <div id="map"></div>
         <p class="hint" id="mapmsg"></p>
-      </div>
-      <div class="card">
-        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(v.loc)}</span></h2>
-        ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
+        <ul class="places" id="places"></ul>
       </div>
       <button class="ghost" id="again" type="button">다시 하기</button>`;
     $("result").classList.remove("hidden");
     drawMap(v.loc);
+
+    $("result").querySelectorAll(".maps button").forEach((b) => b.addEventListener("click", () => {
+      $("result").querySelectorAll(".maps button.on").forEach((x) => x.classList.remove("on"));
+      b.classList.add("on");
+      searchOnMap(v.loc, b.dataset.kw);
+    }));
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
       $("form").classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // 곡 분석은 비동기로 채움 (추천은 바로 보여 줌)
+    const token = (render.token = (render.token || 0) + 1);
+    $("analysis").innerHTML = analysisHTML(v, r.type, null, null);
+    lookupSong(v.song).then(async (info) => {
+      if (token !== render.token) return;
+      if (info) $("analysis").innerHTML = analysisHTML(v, r.type, info, null);
+      const audio = info ? await analyzeAudio(info.previewUrl) : null;
+      if (token !== render.token || !audio) return;
+      $("analysis").innerHTML = analysisHTML(v, r.type, info, audio);
     });
   }
 
@@ -436,7 +703,7 @@
       loc: $("loc").value.trim(),
       meal: $("meal").value,
       kind: $("kind").value,
-      nospicy: $("nospicy").checked,
+      cond: parseCond($("flt").value),
     };
     if (!v.loc) {
       $("err").textContent = "위치를 입력해 주세요.";

@@ -1,23 +1,37 @@
 # 🍽️ 음식점 (song-meal)
 
-노래 분위기 → 오늘의 메뉴 + 네이버 지도 검색 키워드 추천 웹앱 (HTML5, 단일 파일 `index.html`).
+노래 분위기 → 곡 분석 → 오늘의 메뉴 + 주변 식당을 사이트 안 지도에 보여 주는 웹앱 (HTML5, `index.html` 한 파일).
 
-## 사용법
-1. 개인정보 수집·이용 동의 (미동의 시 이용 불가)
-2. 노래, 곡 에너지·분위기, 인원, 날씨, 위치, 식사 시간, 음식 종류, 매운 음식 제외 여부 입력
-3. 추천받기 → 추천 음식별 📍 버튼을 누르면 네이버 지도 검색으로 이동
+사이트: https://4tpk7p297h-code.github.io/song-meal/
 
-## 추천 방식
-외부 AI API 없이 브라우저 안에서 규칙으로 추천합니다.
-곡 에너지 × 분위기로 유형 A~F를 정하고, 날씨(비·더움·추움·눈) 메뉴를 하나 먼저 넣은 뒤, 음식 종류와 매운 음식 제외 조건으로 3개를 고릅니다.
-메뉴 목록은 `index.html`의 `TYPES`, `WEATHER`에서 고칠 수 있습니다.
+## 기능
+- 개인정보 수집·이용 동의 (미동의 시 이용 불가)
+- **곡 분석**: Apple 음악 검색(키 필요 없음)으로 가수·곡명·장르·발매 연도·앨범 아트·미리듣기를 가져오고,
+  미리듣기 30초를 브라우저에서 분석해 BPM과 소리 크기 흐름을 보여 줍니다. 분석이 안 되면 장르·에너지로 BPM 범위를 추정합니다.
+  시놉시스와 인트로·벌스·후렴 해설은 선택한 에너지·분위기와 장르로 만든 추정입니다.
+- **음식 조건 직접 입력**: "매운 음식 제외, 해산물 빼고, 국물 좋아요"처럼 쉼표로 입력.
+  "제외·빼고·싫어·말고·없이"가 붙으면 빼고, 그 밖의 말은 먼저 추천합니다.
+  인식하는 특징: 매운, 고기, 해산물, 면, 밀가루, 국물, 튀김, 술, 단것, 채소 (그 밖의 말은 메뉴 이름으로 찾음).
+- **사이트 안 지도**: 결과 화면에 입력 위치 지도, 추천 키워드를 누르면 주변 식당을 같은 지도에 마커와 목록으로 표시.
+- **현재 위치** 버튼, 위치 권한 거부 시 브라우저별 해결 안내.
 
-## 네이버 지도 API
-NCP Maps Client ID를 `index.html` 상단 스크립트에 연결했습니다 (Dynamic Map, Geocoding, Reverse Geocoding 사용).
-- 결과 화면: 입력한 위치를 Geocoding으로 찾아 지도와 마커 표시
-- 입력 화면: "📍 현재 위치" 버튼으로 현재 위치의 구·동 이름 자동 입력
-- NCP 콘솔의 Web 서비스 URL에 `https://4tpk7p297h-code.github.io`가 등록돼 있어야 합니다.
-- Client Secret은 이 저장소에 절대 넣지 마세요.
+메뉴 데이터는 `index.html`의 `TYPES`, `WEATHER`, `TAGS`에서 고칠 수 있습니다.
+
+## 네이버 지도 (NCP Maps)
+`index.html` 상단 스크립트에 Client ID가 연결돼 있습니다 (Dynamic Map, Geocoding, Reverse Geocoding).
+NCP 콘솔의 Web 서비스 URL에 `https://4tpk7p297h-code.github.io`가 등록돼 있어야 합니다.
+
+## 식당 검색 연결
+지도에 실제 식당을 찍으려면 **네이버 검색 API(지역)** 가 필요합니다. 이 API는 Client Secret이 필요해서
+`worker/naver-search.js`를 Cloudflare Workers(무료)에 올려 Secret을 숨깁니다.
+
+1. https://developers.naver.com/apps 에서 애플리케이션 등록 → 사용 API **검색** 선택 → Client ID / Secret 확인
+   (NCP Maps 키와는 다른 키입니다)
+2. https://dash.cloudflare.com → Workers & Pages → Create → Worker 만들기 → `worker/naver-search.js` 내용 붙여 넣고 Deploy
+3. Worker → Settings → Variables and Secrets에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`(Secret 타입) 추가
+4. Worker 주소(예: `https://naver-search.이름.workers.dev`)를 `index.html`의 `const SEARCH_PROXY = "";`에 넣기
+
+Secret은 이 저장소에 절대 넣지 마세요.
 
 ## 배포
 GitHub 저장소 Settings → Pages → Source: `Deploy from a branch`, Branch: `main` / `(root)`.
