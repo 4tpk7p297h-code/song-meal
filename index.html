@@ -178,6 +178,11 @@
       <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
     </div>
+    <p class="hint"><a href="#" id="pickmap">🗺️ 위치 권한 없이 지도에서 직접 고르기</a></p>
+    <div id="pickwrap" class="hidden">
+      <div id="pickmapdiv" style="width:100%;height:260px;border-radius:10px;background:var(--chip);margin-top:8px"></div>
+      <p class="hint" id="pickmsg">지도를 눌러 위치를 고르세요. 확대·이동도 돼요.</p>
+    </div>
     <div id="lochelp" class="lochelp hidden" role="alert"></div>
 
     <div class="row">
@@ -363,20 +368,75 @@
     return { type, mood: TYPES[type].mood, picks };
   }
 
-  // ---------- 곡 정보 (Apple 음악 검색, 키 필요 없음) ----------
-  function lookupSong(term) {
+  // ---------- 곡 정보 (Apple 음악 → 안 되면 Deezer, 둘 다 키 필요 없음) ----------
+  function jsonp(url, timeoutMs = 7000) {
     return new Promise((resolve) => {
-      if (!term || /^https?:\/\//.test(term)) return resolve(null);
-      const cb = "__song" + Date.now();
+      const cb = "__jp" + Date.now() + Math.floor(Math.random() * 1e6);
       const s = document.createElement("script");
       const finish = (x) => { clearTimeout(timer); window[cb] = () => {}; s.remove(); resolve(x); };
-      const timer = setTimeout(() => finish(null), 7000);
-      window[cb] = (d) => finish((d && d.results && d.results[0]) || null);
+      const timer = setTimeout(() => finish(null), timeoutMs);
+      window[cb] = (d) => finish(d || null);
       s.onerror = () => finish(null);
-      s.src = "https://itunes.apple.com/search?entity=song&country=kr&limit=1&callback=" + cb +
-        "&term=" + encodeURIComponent(term.replace(/\s*[-–]\s*/g, " "));
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
       document.head.appendChild(s);
     });
+  }
+
+  const norm = (t) => String(t || "").toLowerCase().replace(/\(.*?\)|\[.*?\]|feat\..*$/g, "").replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]/g, "");
+  const near = (a, b) => { a = norm(a); b = norm(b); return !!a && !!b && (a.includes(b) || b.includes(a)); };
+
+  // "가수 - 곡명" 또는 "곡명 - 가수" 모두 허용
+  function splitSong(term) {
+    const parts = term.split(/\s+[-–—]\s+|\s*[–—]\s*/).map((x) => x.trim()).filter(Boolean);
+    return parts.length >= 2 ? [parts[0], parts.slice(1).join(" ")] : [term.trim()];
+  }
+
+  function bestMatch(list, parts) {
+    if (!list || !list.length) return null;
+    if (parts.length < 2) return list[0];
+    let best = null, bestScore = 0;
+    list.forEach((r) => {
+      const [a, b] = parts;
+      const t = (x) => norm(r.trackName) === norm(x) && !/\(|\[/.test(r.trackName) ? 3 : near(r.trackName, x) ? 2 : 0;
+      const s1 = t(b) + (near(r.artistName, a) ? 1 : 0);
+      const s2 = t(a) + (near(r.artistName, b) ? 1 : 0);
+      const variant = /remix|inst|karaoke|cover|live|ver\.|version|sped|slowed|mr\b/i.test(r.trackName) ? 1 : 0;
+      const sc = Math.max(s1, s2) - variant;
+      if (sc > bestScore) { bestScore = sc; best = r; }
+    });
+    return bestScore >= 2 ? best : null;   // 곡명이 맞는 결과만 인정
+  }
+
+  async function itunes(term, country) {
+    const d = await jsonp(`https://itunes.apple.com/search?entity=song&limit=15&country=${country}&term=${encodeURIComponent(term)}`);
+    return (d && d.results) || [];
+  }
+
+  async function deezer(term) {
+    const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=15&q=${encodeURIComponent(term)}`);
+    return ((d && d.data) || []).map((x) => ({
+      artistName: x.artist && x.artist.name, trackName: x.title, collectionName: x.album && x.album.title,
+      artworkUrl100: x.album && x.album.cover_medium, previewUrl: x.preview, primaryGenreName: "", releaseDate: "", source: "Deezer",
+    }));
+  }
+
+  async function lookupSong(term) {
+    if (!term || /^https?:\/\//.test(term)) return null;
+    const parts = splitSong(term);
+    const full = parts.length > 1 ? parts.join(" ") : term.replace(/\s*-\s*/g, " ");
+    const tries = [
+      () => itunes(full, "kr"),
+      () => parts[1] ? itunes(parts[1], "kr") : [],
+      () => parts[1] ? itunes(parts[0], "kr") : [],   // "곡명 - 가수" 순서일 때
+      () => itunes(full, "us"),
+      () => deezer(full),
+      () => parts[1] ? deezer(parts[1]) : [],
+    ];
+    for (const t of tries) {
+      const hit = bestMatch(await t(), parts);
+      if (hit) return hit;
+    }
+    return null;
   }
 
   // ---------- 미리듣기 30초로 BPM·소리 크기 변화 측정 (실패하면 null) ----------
@@ -468,7 +528,7 @@
         ${art ? `<img src="${esc(art)}" alt="" onerror="this.remove()">` : ""}
         <div>
           <p class="song">🎧 ${esc(title)}</p>
-          <div class="songmeta">${[genreStr, year && year + "년", info && info.collectionName].filter(Boolean).map(esc).join(" · ") || "곡 정보를 찾지 못해 입력한 분위기로 해설했어요."}</div>
+          <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 입력한 분위기로 해설했어요. '가수 - 곡명' 형식으로 입력하면 더 잘 찾아요."}</div>
         </div>
       </div>
       ${bpmBlock}
@@ -477,7 +537,6 @@
         <span class="stat">에너지 ${E_LABEL[v.energy]}</span>
         <span class="stat">${V_LABEL[v.valence]}</span>
         <span class="stat">${esc(tex)}</span>
-        <span class="stat">유형 ${type}</span>
       </div>
       <div class="sects">
         <div class="sect"><span>인트로</span><span>${INTRO[v.energy]}</span></div>
@@ -597,28 +656,77 @@
     ];
   }
 
-  function showLocHelp(code) {
+  function systemSteps() {
+    const ua = navigator.userAgent;
+    if (/Mac/.test(ua) && !/iPhone|iPad/.test(ua)) return [
+      "Mac <b>시스템 설정</b> → <b>개인정보 보호 및 보안</b> → <b>위치 서비스</b>를 켜기",
+      "같은 화면 목록에서 <b>Safari</b>와 <b>Google Chrome</b> 스위치를 켜기",
+      "브라우저를 완전히 종료(Cmd + Q)했다가 다시 열기",
+    ];
+    if (/Windows/.test(ua)) return [
+      "Windows <b>설정</b> → <b>개인 정보 및 보안</b> → <b>위치</b> → <b>위치 서비스</b> 켜기",
+      "같은 화면의 <b>데스크톱 앱이 위치에 액세스하도록 허용</b> 켜기",
+      "브라우저를 완전히 껐다가 다시 열기",
+    ];
+    return ["기기 설정에서 위치 서비스(GPS)를 켜고, 이 브라우저에 위치 권한 허용"];
+  }
+
+  async function showLocHelp(code, detail) {
     const box = $("lochelp");
+    let state = "";
+    try { state = (await navigator.permissions.query({ name: "geolocation" })).state; } catch {}
     let title, steps;
-    if (code === 1) {
-      title = "위치 권한이 꺼져 있어요. 아래 순서로 켠 뒤 다시 시도해 주세요.";
-      steps = permissionSteps();
+    if (code === 1 && state !== "granted") {
+      title = "이 사이트의 위치 권한이 꺼져 있어요.";
+      steps = [...permissionSteps(), "설정을 바꾼 뒤 이 페이지를 <b>새로고침</b>하고 다시 시도 (새로고침해야 반영돼요)"];
     } else if (code === 3) {
       title = "위치를 찾는 데 시간이 너무 오래 걸렸어요.";
-      steps = ["실내라면 창가에서 다시 시도", "Wi-Fi를 켜면 더 빨리 찾을 수 있어요"];
+      steps = ["Wi-Fi를 켜면 더 빨리 찾을 수 있어요", "그래도 안 되면 아래 '지도에서 고르기'를 써 주세요"];
     } else {
-      title = "기기에서 위치를 확인할 수 없어요.";
-      steps = ["기기의 위치 서비스(GPS)가 켜져 있는지 확인", "그래도 안 되면 위치를 직접 입력해 주세요"];
+      title = "사이트 권한은 허용됐는데, 컴퓨터(기기)의 위치 서비스가 막혀 있어요.";
+      steps = systemSteps();
     }
-    box.innerHTML = `<b>📍 ${title}</b><ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol>
+    box.innerHTML = `<b>📍 ${title}</b><ol>${steps.map((x) => `<li>${x}</li>`).join("")}</ol>
+      <div class="hint">권한 설정이 어렵다면 위치 권한 없이 지도에서 바로 고를 수 있어요.${detail ? ` (오류: ${esc(detail)})` : ""}</div>
       <div class="btns">
         <button type="button" id="lh-retry">다시 시도</button>
-        <button type="button" class="ghost" id="lh-close">직접 입력할게요</button>
+        <button type="button" class="ghost" id="lh-map">지도에서 고르기</button>
       </div>`;
     box.classList.remove("hidden");
     $("lh-retry").onclick = () => { box.classList.add("hidden"); $("here").click(); };
-    $("lh-close").onclick = () => { box.classList.add("hidden"); $("loc").focus(); };
+    $("lh-map").onclick = () => { box.classList.add("hidden"); openPicker(); };
   }
+
+  // 위치 권한 없이 지도를 눌러 위치 고르기 (Reverse Geocoding)
+  const P = { map: null, marker: null };
+  function regionName(r) {
+    const g = r.region;
+    return [g.area2 && g.area2.name, g.area3 && g.area3.name].filter(Boolean).join(" ");
+  }
+  function openPicker() {
+    const err = (t) => { $("err").textContent = t; $("err").classList.remove("hidden"); };
+    if (!mapsReady()) return err(MAP_FAIL);
+    $("pickwrap").classList.remove("hidden");
+    if (!P.map) {
+      P.map = new naver.maps.Map("pickmapdiv", { center: new naver.maps.LatLng(37.5666, 126.9784), zoom: 12 });
+      naver.maps.Event.addListener(P.map, "click", (e) => {
+        const pos = e.coord;
+        if (P.marker) P.marker.setPosition(pos); else P.marker = new naver.maps.Marker({ position: pos, map: P.map });
+        $("pickmsg").textContent = "주소를 찾는 중...";
+        naver.maps.Service.reverseGeocode({ coords: pos, orders: naver.maps.Service.OrderType.ADDR }, (status, res) => {
+          const r = status === naver.maps.Service.Status.OK && res.v2 && res.v2.results && res.v2.results[0];
+          if (!r) { $("pickmsg").textContent = "이 지점의 주소를 찾지 못했어요. 다른 곳을 눌러 주세요."; return; }
+          $("loc").value = regionName(r);
+          $("pickmsg").textContent = `'${regionName(r)}'로 정했어요. 다른 곳을 누르면 바뀌어요.`;
+        });
+      });
+    }
+    $("pickwrap").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  $("pickmap").addEventListener("click", (e) => {
+    e.preventDefault();
+    if ($("pickwrap").classList.contains("hidden")) openPicker(); else $("pickwrap").classList.add("hidden");
+  });
 
   // 현재 위치 → 동네 이름 (Reverse Geocoding)
   $("here").addEventListener("click", () => {
@@ -637,10 +745,9 @@
         done();
         const r = status === naver.maps.Service.Status.OK && res.v2 && res.v2.results && res.v2.results[0];
         if (!r) return err("현재 위치의 주소를 찾지 못했어요. 직접 입력해 주세요.");
-        const g = r.region;
-        $("loc").value = [g.area2 && g.area2.name, g.area3 && g.area3.name].filter(Boolean).join(" ");
+        $("loc").value = regionName(r);
       });
-    }, (e) => { done(); showLocHelp(e.code); }, { timeout: 10000 });
+    }, (e) => { done(); showLocHelp(e.code, e.message); }, { timeout: 15000, maximumAge: 60000 });
   });
 
   function render(v, r) {
