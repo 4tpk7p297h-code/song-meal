@@ -20,7 +20,9 @@
 <meta name="twitter:title" content="음식점">
 <meta name="twitter:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
 <meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -255,12 +257,28 @@
   .places li { border-radius: 14px; padding: 10px 10px; }
   .places li:hover { background: var(--chip); }
   .places .go a { border-radius: 999px; }
+  /* ===== 캐릭터 ===== */
+  .top h1 a { display: inline-flex; align-items: center; gap: 8px; }
+  .logo { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.12)); transition: transform .2s; }
+  .top h1 a:hover .logo { transform: rotate(-8deg) scale(1.06); }
+  body.wide .logo { width: 32px; height: 32px; }
+  .hello { display: flex; align-items: center; gap: 12px; margin: -4px 0 14px; }
+  .mascot-hello { width: 104px; height: auto; flex: none; animation: bob 2.4s ease-in-out infinite; }
+  .bubble { position: relative; background: var(--accent-weak); color: var(--text); border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.5; font-weight: 600; }
+  .bubble::before { content: ""; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: var(--accent-weak); }
+  .loading { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0 4px; }
+  .loading img { width: 92px; animation: bob .8s ease-in-out infinite; }
+  .loading p { margin: 0; color: var(--muted); font-weight: 600; }
+  .loading.hidden { display: none; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
+  @media (prefers-reduced-motion: reduce) { .mascot-hello, .loading img { animation: none; } }
+  @media (max-width: 420px) { .mascot-hello { width: 80px; } .bubble { font-size: 14px; } .bubble br { display: none; } }
 </style>
 </head>
 <body>
 <main>
   <header class="top">
-    <h1><a href="#" id="home" title="처음 화면으로">🍽️ 음식점</a></h1>
+    <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=2" alt="">음식점</a></h1>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
       <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
       <button type="button" data-theme="dark" title="다크 모드">🌙 다크</button>
@@ -271,6 +289,10 @@
 
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
+    <div class="hello">
+      <img src="mascot.png" alt="음식점 캐릭터" class="mascot-hello">
+      <div class="bubble">안녕하세요! 좋아하는 노래를 알려 주시면<br>그 분위기에 딱 맞는 메뉴를 골라 드릴게요 🎶</div>
+    </div>
     <h2>서비스 이용 동의</h2>
     <p class="hint" style="margin:0 0 12px">음식점은 회원가입 없이 이용하며, 입력하신 정보는 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리합니다.</p>
 
@@ -282,7 +304,7 @@
       <details><summary>내용 보기</summary>
         <table class="ptable">
           <tr><th>수집·이용 목적</th><td>노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시</td></tr>
-          <tr><th>수집 항목</th><td>노래(가수·곡명), 곡 에너지·분위기, 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</td></tr>
+          <tr><th>수집 항목</th><td>노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</td></tr>
           <tr><th>보유 및 이용 기간</th><td><b>추천 화면을 닫거나 페이지를 떠날 때 즉시 파기</b> (브라우저 안에서만 처리하며 운영자 서버에 저장하지 않음)</td></tr>
         </table>
         <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.</p>
@@ -331,19 +353,9 @@
         </select>
       </div>
       <div>
-        <label for="valence">🎨 곡 분위기</label>
-        <select id="valence">
-          <option value="1">어둡고 차분</option><option value="2" selected>무난</option><option value="3">밝고 경쾌</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
         <label for="ppl">👥 인원</label>
         <input type="number" id="ppl" min="1" max="50" value="2">
       </div>
-      <div></div>
     </div>
 
     <label>🌤️ 날씨 <span class="opt">(선택, 여러 개 가능)</span></label>
@@ -385,6 +397,10 @@
 
     <button type="submit">추천받기</button>
     <div id="err" class="error hidden"></div>
+    <div id="loading" class="loading hidden" role="status" aria-live="polite">
+      <img src="mascot.png" alt="">
+      <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
+    </div>
   </form>
 
   <!-- 3. 결과 -->
@@ -903,14 +919,14 @@
         <div>
           <p class="song">🎧 ${esc(title)}</p>
           ${info && info.mismatch ? `<div class="songmeta" style="color:var(--danger)">입력한 가수의 곡을 찾지 못해 같은 제목의 다른 곡을 보여 줘요.</div>` : ""}
-          <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 입력한 분위기로 해설했어요. '가수 - 곡명' 형식으로 입력하면 더 잘 찾아요."}</div>
+          <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 기본 분위기로 해설했어요. '가수 - 곡명' 형식으로 입력하면 더 잘 찾아요."}</div>
         </div>
       </div>
       ${bpmBlock}
       <p class="synopsis">${esc(SYNOPSIS[type])}</p>
       <div class="stats">
         <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyGuessed ? " (장르 추정)" : ""}</span>
-        <span class="stat">${V_LABEL[v.valence]}</span>
+        <span class="stat">분위기 ${V_LABEL[v.valence]}${v.energyGuessed ? " (장르 추정)" : ""}</span>
         <span class="stat">${esc(tex)}</span>
       </div>
       <div class="sects">
@@ -920,7 +936,7 @@
       </div>
       ${dyn}
       ${info && info.previewUrl ? `<audio controls preload="none" src="${esc(info.previewUrl)}"></audio>` : ""}
-      <div class="songmeta" style="margin-top:10px">※ 시놉시스와 구간 해설은 선택한 에너지·분위기와 장르로 만든 추정이에요.</div>`;
+      <div class="songmeta" style="margin-top:10px">※ 시놉시스와 구간 해설은 곡 장르로 에너지·분위기를 추정해 만든 해설이에요.</div>`;
   }
 
   const E_LABEL = ["", "잔잔함", "보통", "신남"], V_LABEL = ["", "어둡고 차분", "무난", "밝고 경쾌"];
@@ -1302,6 +1318,14 @@
     });
   }
 
+  // 장르로 곡 분위기 추정 (1 어둡고 차분 ~ 3 밝고 경쾌)
+  function valenceFromGenre(g) {
+    if (!g) return 2;
+    if (/발라드|ballad|blues|블루스|soundtrack|OST|classical|클래식|ambient|앰비언트|emo|goth|metal|메탈|lo-?fi|인디|indie/i.test(g)) return 1;
+    if (/댄스|dance|pop|팝|disco|디스코|funk|펑크|reggae|레게|latin|라틴|children|동요|house|EDM|trot|트로트|ska/i.test(g)) return 3;
+    return 2;
+  }
+
   // 장르로 곡 에너지 추정 (1 잔잔 ~ 3 신남)
   function energyFromGenre(g) {
     if (!g) return 2;
@@ -1316,7 +1340,7 @@
     const v = {
       song: $("song").value.trim(),
       energy: 2,
-      valence: +$("valence").value,
+      valence: 2,
       ppl: $("ppl").value.trim() || "2",
       wx: [...document.querySelectorAll("#wx input:checked")].map((x) => x.value),
       loc: $("loc").value.trim(),
@@ -1331,9 +1355,12 @@
     }
     const btn = $("form").querySelector("button[type=submit]");
     btn.disabled = true; btn.textContent = "곡을 분석하는 중...";
+    $("loading").classList.remove("hidden");
     const info = await lookupSong(v.song);
+    $("loading").classList.add("hidden");
     btn.disabled = false; btn.textContent = "추천받기";
     v.energy = energyFromGenre(info && info.primaryGenreName);
+    v.valence = valenceFromGenre(info && info.primaryGenreName);
     v.energyGuessed = !!(info && info.primaryGenreName);
     $("form").classList.add("hidden");
     render(v, recommend(v), info);
