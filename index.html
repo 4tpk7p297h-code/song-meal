@@ -116,6 +116,17 @@
   .iw { padding: 10px 12px; font-size: 13px; line-height: 1.5; color: #1f1d1a; max-width: 240px; }
   .iw b { font-size: 14px; }
   .iw a { color: #d9480f; }
+  .agreebox { border: 1px solid var(--line); border-radius: 10px; padding: 4px 14px 12px; margin-top: 10px; }
+  .agreebox .check { margin-top: 12px; font-size: 14px; }
+  .check.all { font-size: 16px; }
+  details { margin: 4px 0 0 26px; font-size: 13px; }
+  details summary { color: var(--muted); cursor: pointer; }
+  .ptable { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+  .ptable th, .ptable td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  .ptable th { width: 32%; background: var(--chip); font-weight: 600; }
+  #consent a { color: var(--accent); }
+  .footlinks { text-align: center; font-size: 12px; margin-top: 8px; }
+  .footlinks a { color: var(--muted); }
   .badge { display: inline-block; margin-left: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--chip); color: var(--muted); vertical-align: middle; }
   .badge.ok { color: #2f9e44; }
   .badge.none { color: var(--danger); }
@@ -151,15 +162,49 @@
 
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
-    <h2>개인정보 수집·이용 동의</h2>
-    <dl>
-      <dt>수집 항목</dt><dd>노래, 곡 분위기, 인원, 날씨, 위치, 식사 시간, 음식 종류, 음식 조건</dd>
-      <dt>이용 목적</dt><dd>곡 분석, 음식 추천, 주변 식당 검색</dd>
-      <dt>처리</dt><dd>노래 제목은 곡 정보 확인을 위해 Apple 음악 검색으로, 위치와 검색어는 네이버 지도·검색으로 전송됩니다. 입력 정보는 별도로 저장하지 않습니다.</dd>
-    </dl>
-    <label class="check"><input type="checkbox" id="agree"> 위 내용에 동의합니다.</label>
+    <h2>서비스 이용 동의</h2>
+    <p class="hint" style="margin:0 0 12px">음식점은 회원가입 없이 이용하며, 입력하신 정보는 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리합니다.</p>
+
+    <label class="check all"><input type="checkbox" id="c-all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></label>
+    <div class="agreebox">
+      <label class="check"><input type="checkbox" class="c-req" id="c-age"> [필수] 만 14세 이상입니다.</label>
+
+      <label class="check"><input type="checkbox" class="c-req" id="c-collect"> [필수] 개인정보 수집·이용 동의</label>
+      <details><summary>내용 보기</summary>
+        <table class="ptable">
+          <tr><th>수집·이용 목적</th><td>노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시</td></tr>
+          <tr><th>수집 항목</th><td>노래(가수·곡명), 곡 에너지·분위기, 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</td></tr>
+          <tr><th>보유 및 이용 기간</th><td><b>추천 화면을 닫거나 페이지를 떠날 때 즉시 파기</b> (브라우저 안에서만 처리하며 운영자 서버에 저장하지 않음)</td></tr>
+        </table>
+        <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.</p>
+      </details>
+
+      <label class="check"><input type="checkbox" class="c-opt" id="c-abroad"> [선택] 개인정보 국외 이전 동의</label>
+      <details><summary>내용 보기</summary>
+        <table class="ptable">
+          <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국)</td></tr>
+          <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명) / Cloudflare: 위치(지역명)와 메뉴 검색어. 공통으로 접속 IP 등 통신 정보</td></tr>
+          <tr><th>이전 목적</th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / Cloudflare: 네이버 지역 검색 중계(주변 음식점 표시)</td></tr>
+          <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
+          <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
+        </table>
+        <p class="hint">동의하지 않아도 메뉴 추천은 이용할 수 있으나, 곡 정보 검색과 주변 음식점 검색이 제공되지 않습니다.</p>
+      </details>
+
+      <label class="check"><input type="checkbox" class="c-opt" id="c-geo"> [선택] 위치정보 이용 동의</label>
+      <details><summary>내용 보기</summary>
+        <table class="ptable">
+          <tr><th>이용 목적</th><td>'현재 위치' 버튼을 누를 때 기기 위치로 동네 이름 자동 입력</td></tr>
+          <tr><th>이용 항목</th><td>기기의 위도·경도 (버튼을 누를 때 1회)</td></tr>
+          <tr><th>보유 및 이용 기간</th><td>동네 이름으로 변환한 즉시 파기, 저장하지 않음</td></tr>
+          <tr><th>처리 위탁</th><td>NAVER Cloud(주): 좌표 → 주소 변환</td></tr>
+        </table>
+        <p class="hint">동의하지 않아도 위치를 직접 입력하거나 지도에서 골라 이용할 수 있습니다.</p>
+      </details>
+    </div>
+
     <button id="enter" disabled>동의하고 시작하기</button>
-    <p class="hint">동의하지 않으면 이용할 수 없습니다.</p>
+    <p class="hint">필수 항목에 동의해야 이용할 수 있습니다. 동의는 이 페이지를 떠나면 저장되지 않습니다. 자세한 내용은 <a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인해 주세요.</p>
   </section>
 
   <!-- 2. 입력 -->
@@ -239,6 +284,7 @@
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
 
+  <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
   <footer>※ 곡 정보는 Apple 음악 검색, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
@@ -253,9 +299,17 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // ---------- 동의 ----------
-  $("agree").addEventListener("change", (e) => { $("enter").disabled = !e.target.checked; });
+  const CONSENT = { abroad: false, geo: false };
+  const boxes = [...document.querySelectorAll(".c-req, .c-opt")];
+  const reqOk = () => [...document.querySelectorAll(".c-req")].every((b) => b.checked);
+  const syncConsent = () => { $("enter").disabled = !reqOk(); $("c-all").checked = boxes.every((b) => b.checked); };
+  $("c-all").addEventListener("change", (e) => { boxes.forEach((b) => (b.checked = e.target.checked)); syncConsent(); });
+  boxes.forEach((b) => b.addEventListener("change", syncConsent));
   $("enter").addEventListener("click", () => {
-    if (!$("agree").checked) return;
+    if (!reqOk()) return;
+    CONSENT.abroad = $("c-abroad").checked;
+    CONSENT.geo = $("c-geo").checked;
+    if (!CONSENT.geo) $("here").classList.add("hidden");
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
     $("song").focus();
@@ -460,7 +514,20 @@
   const NEIGHBOR = { A: "FB", B: "AC", C: "BD", D: "CE", E: "DF", F: "AE" };
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-  // avoid: 이미 보여 준 메뉴 (다른 메뉴 추천 때 겹치지 않게)
+  // 비슷한 메뉴는 같은 묶음으로 보고 한 번에 하나만, 다시 추천할 때도 겹치지 않게
+  const GROUP = {
+    "파스타·피자": "피자", "뉴욕 피자": "피자", "화덕 피자": "피자", "떡볶이": "떡볶이", "매운 떡볶이": "떡볶이", "라볶이": "떡볶이",
+    "스테이크": "스테이크", "함박스테이크": "스테이크", "샌드위치": "샌드위치", "샌드위치·파니니": "샌드위치", "토스트": "샌드위치",
+    "브런치": "브런치", "에그 베네딕트": "브런치", "팬케이크": "브런치", "바비큐": "바비큐", "립·바비큐 플래터": "바비큐",
+    "마라탕": "마라", "마라샹궈": "마라", "훠궈": "마라", "디저트 카페": "디저트", "티라미수 카페": "디저트", "베이커리 카페": "디저트", "스콘 카페": "디저트",
+    "이자카야": "이자카야", "야키토리": "이자카야", "돈카츠": "카츠", "규카츠": "카츠", "전골": "전골", "샤브샤브": "전골",
+    "칼국수": "칼국수", "수제비": "칼국수", "잔치국수": "칼국수", "우육면": "중식면", "완탕면": "중식면", "짬뽕": "짬뽕",
+    "와인 비스트로": "와인", "수제 파스타": "파스타", "리조또": "파스타", "뇨끼": "파스타", "치킨": "치킨", "닭갈비": "닭",
+    "곱창": "곱창", "삼겹살 구이": "고기구이", "양꼬치": "고기구이", "국밥": "국밥", "감자탕": "국밥",
+  };
+  const groupOf = (f) => GROUP[f.food] || f.food;
+
+  // avoid: 이미 보여 준 메뉴 묶음 (다른 메뉴 추천 때 겹치지 않게)
   function recommend(v, avoid = []) {
     const type = pickType(v.energy, v.valence);
     const cond = v.cond;
@@ -476,19 +543,15 @@
     const near = shuffle(NEIGHBOR[type].split("").flatMap((k) => TYPES[k].foods));
     const rest = shuffle(ALL_FOODS);
 
-    const pick = (allowSeen) => {
-      const picks = [];
-      const add = (f) => {
-        if (picks.length < 3 && ok(f) && (allowSeen || !avoid.includes(f.food)) && !picks.some((p) => p.food === f.food)) picks.push(f);
-      };
-      prefers.forEach((t) => [...mine, ...wx, ...near, ...rest].filter((f) => matches(f, t)).slice(0, 1).forEach(add));
-      const w = wx.find((f) => ok(f) && (allowSeen || !avoid.includes(f.food)));
-      if (w) add(w);
-      mine.forEach(add); near.forEach(add); rest.forEach(add);
-      return picks;
+    const fresh = (f) => !avoid.includes(groupOf(f));
+    const picks = [];
+    const add = (f) => {
+      if (picks.length < 3 && ok(f) && fresh(f) && !picks.some((p) => groupOf(p) === groupOf(f))) picks.push(f);
     };
-    let picks = pick(false);
-    if (picks.length < 3) picks = pick(true);
+    prefers.forEach((t) => [...mine, ...wx, ...near, ...rest].filter((f) => matches(f, t) && ok(f) && fresh(f)).slice(0, 1).forEach(add));
+    const w = wx.find((f) => ok(f) && fresh(f));
+    if (w) add(w);
+    mine.forEach(add); near.forEach(add); rest.forEach(add);
     return { type, mood: TYPES[type].mood, picks, kinds };
   }
 
@@ -574,7 +637,7 @@
   }
 
   async function lookupSong(term) {
-    if (!term || /^https?:\/\//.test(term)) return null;
+    if (!term || /^https?:\/\//.test(term) || !CONSENT.abroad) return null;
     const parts = splitSong(term);
     const full = parts.length > 1 ? parts.join(" ") : term.replace(/\s*-\s*/g, " ");
     let fallback = null;
@@ -775,17 +838,20 @@
     } catch { return null; }
   }
 
+  const noSearchMsg = () => !CONSENT.abroad
+    ? "국외 이전(선택)에 동의하지 않아 주변 음식점 검색을 쓸 수 없어요. 처음 화면에서 동의하면 이용할 수 있어요."
+    : "식당 검색이 아직 연결되지 않았어요.";
   async function searchOnMap(loc, kw) {
     if (window.innerWidth < 960) $("mapcard").scrollIntoView({ behavior: "smooth", block: "start" });
     $("maptitle").textContent = `🗺️ ${loc} · ${kw}`;
     const list = $("places");
     clearMarkers();
-    if (!SEARCH_PROXY) {
+    if (!SEARCH_PROXY || !CONSENT.abroad) {
       if (M.map && M.info) {
-        M.info.setContent(`<div class="iw"><b>${esc(kw)}</b><br>식당 검색이 아직 연결되지 않았어요.<br>검색 프록시를 설정하면 이 지도에 식당이 표시돼요.</div>`);
+        M.info.setContent(`<div class="iw"><b>${esc(kw)}</b><br>${noSearchMsg()}</div>`);
         M.info.open(M.map, M.center);
       }
-      list.innerHTML = `<li style="cursor:default">식당 검색이 아직 연결되지 않았어요. (설정: README의 "식당 검색 연결")</li>`;
+      list.innerHTML = `<li style="cursor:default">${noSearchMsg()}</li>`;
       return;
     }
     list.innerHTML = `<li style="cursor:default">'${esc(kw)}' 찾는 중...</li>`;
@@ -821,7 +887,10 @@
   // 추천 메뉴마다 근처 음식점이 있는지 미리 확인해서 표시
   async function checkPicks(v, token) {
     await M.mapDone;
-    if (!SEARCH_PROXY || token !== render.token) return;
+    if (!SEARCH_PROXY || !CONSENT.abroad || token !== render.token) {
+      $("result").querySelectorAll(".pick .badge").forEach((b) => (b.textContent = b.dataset.kind));
+      return;
+    }
     const els = [...$("result").querySelectorAll(".pick")];
     const counts = await Promise.all(els.map(async (el) => {
       const kws = JSON.parse(el.dataset.kws);
@@ -976,7 +1045,7 @@
   function picksHTML(v, r) {
     const picks = r.picks.map((p, i) => `
       <div class="pick" data-kws='${esc(JSON.stringify(p.kw))}'>
-        <h3>${i + 1}. ${esc(p.food)} <span class="badge">${SEARCH_PROXY ? "근처 확인 중" : esc(p.kind)}</span></h3>
+        <h3>${i + 1}. ${esc(p.food)} <span class="badge" data-kind="${esc(p.kind)}">${SEARCH_PROXY && CONSENT.abroad ? "근처 확인 중" : esc(p.kind)}</span></h3>
         <p>${esc(p.reason)}</p>
         <div class="maps">${p.kw.map((k) => `<button type="button" data-kw="${esc(k)}">📍 ${esc(k)}</button>`).join("")}</div>
       </div>`).join("");
@@ -985,6 +1054,7 @@
         <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx ? " · " + esc(v.wx) : ""}${kindLbl}</span></h2>
         ${v.cond.labels.length ? `<p class="conds">적용한 조건: ${v.cond.labels.map(esc).join(", ")}</p>` : ""}
         ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
+        ${r.note ? `<p class="conds">${esc(r.note)}</p>` : ""}
         <p class="nonemsg hidden" id="nonemsg"></p>
         <div class="btnrow">
           <button type="button" id="reroll">🔄 다른 메뉴 추천</button>
@@ -1005,8 +1075,15 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     $("reroll").addEventListener("click", () => {
-      r.picks.forEach((p) => seen.includes(p.food) || seen.push(p.food));
-      const r2 = recommend(v, seen);
+      r.picks.forEach((p) => seen.includes(groupOf(p)) || seen.push(groupOf(p)));
+      let r2 = recommend(v, seen);
+      if (!r2.picks.length) {           // 조건에 맞는 메뉴를 모두 보여 줬으면 처음부터 다시
+        seen.length = 0;
+        r2 = recommend(v, seen);
+        r2.note = "조건에 맞는 메뉴를 모두 보여 드려서 처음부터 다시 추천해요.";
+      } else if (r2.picks.length < 3) {
+        r2.note = `조건에 맞는 새 메뉴가 ${r2.picks.length}개만 남았어요. 한 번 더 누르면 처음부터 다시 추천해요.`;
+      }
       const token = (render.token = (render.token || 0) + 1);
       $("pickscard").innerHTML = picksHTML(v, r2);
       bindPicks(v, r2, seen);
