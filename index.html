@@ -378,6 +378,30 @@
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .story .nav:hover, .story .nav:active { transform: translateY(-50%); }
+  #nav-logout { font-size: 13px; color: var(--muted); }
+  /* 스토리 댓글 */
+  .story .cmt { background: rgba(255,255,255,.18); color: #fff; }
+  .csheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; max-height: 72%; display: flex; flex-direction: column;
+    background: var(--card); color: var(--text); border-radius: 22px 22px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,.35); }
+  .csheet.hidden { display: none; }
+  .csheet .ch { display: flex; align-items: center; padding: 12px 14px 8px; font-family: "Jua", sans-serif; font-size: 18px; }
+  .csheet .ch button { margin: 0 0 0 auto; width: 36px; height: 36px; padding: 0; font-size: 20px; background: var(--chip); color: var(--text); box-shadow: none; }
+  .csheet .cl { flex: 1; overflow: auto; padding: 0 14px; min-height: 80px; }
+  .csheet .ci { padding: 8px 0; border-top: 2px dashed var(--line); font-size: 14px; }
+  .csheet .ci b { font-size: 14px; } .csheet .ci small { color: var(--muted); margin-left: 4px; }
+  .csheet .ci p { margin: 2px 0 0; white-space: pre-wrap; word-break: break-word; }
+  .csheet .ci .cdel { margin: 0 0 0 6px; width: auto; padding: 2px 8px; font-size: 12px; background: transparent; color: var(--muted); border: 1px solid var(--line); box-shadow: none; }
+  .csheet .cempty { color: var(--muted); font-size: 14px; padding: 16px 0; text-align: center; }
+  .csheet form { display: flex; gap: 6px; padding: 10px 14px 14px; border-top: 2px solid var(--line); }
+  .csheet form input { flex: 1; min-width: 0; padding: 10px 14px; font-size: 15px; }
+  .csheet form button { margin: 0; width: auto; padding: 10px 14px; font-size: 15px; box-shadow: none; }
+  /* 전곡 듣기 버튼 */
+  .listen { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .listen a { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px 7px 8px; border-radius: 999px; border: 2px solid var(--line);
+    background: var(--field); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 700; }
+  .listen a:hover { border-color: var(--accent); }
+  .listen svg { width: 24px; height: 24px; flex: none; }
+  .listen .lt { font-size: 12px; color: var(--muted); align-self: center; width: 100%; }
 
   .pnotice { border: 2px solid var(--line); border-radius: 18px; padding: 14px; margin: 4px 0 6px; background: var(--field); }
   .pnotice h3 { margin: 0 0 6px; font-size: 16px; }
@@ -442,6 +466,7 @@
       <button type="button" id="nav-feed">📸 스토리</button>
       <button type="button" id="nav-rank">🏆 순위</button>
       <button type="button" id="nav-me">👤 가입·로그인</button>
+      <button type="button" id="nav-logout" class="hidden" title="로그아웃">🚪 로그아웃</button>
       <button type="button" id="nav-admin" class="hidden">🛠️ 관리패널</button>
     </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
@@ -826,7 +851,12 @@
       <div class="tapl"></div><div class="tapr"></div>
       <div class="foot">
         <div class="mn"></div><div class="pl"></div><p></p>
-        <div class="acts"><button type="button" class="like">🤍 0</button><button type="button" class="more">🚩 신고</button></div>
+        <div class="acts"><button type="button" class="like">🤍 0</button><button type="button" class="cmt">💬 댓글</button><button type="button" class="more">🚩 신고</button></div>
+      </div>
+      <div class="csheet hidden" role="dialog" aria-label="댓글">
+        <div class="ch"><span>💬 댓글 <small class="cn"></small></span><button type="button" class="cx" aria-label="댓글 닫기">×</button></div>
+        <div class="cl"></div>
+        <form class="cf"><input maxlength="150" placeholder="따뜻한 댓글을 남겨 주세요 (150자)" aria-label="댓글 입력"><button type="submit">등록</button></form>
       </div>
     </div>
   </div>
@@ -1354,6 +1384,24 @@
     return v === 3 ? "곡에서 가장 신나는 구간으로 에너지가 폭발해요." : "묵직하고 강렬하게 몰아치며 긴장감을 최고로 끌어올려요.";
   }
 
+  // 전곡 듣기: 유튜브·스포티파이·애플뮤직 (로고는 각 서비스 로고를 단순화한 SVG)
+  const LOGO = {
+    yt: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4.5" width="22" height="15" rx="4.5" fill="#FF0000"/><path d="M10 8.6v6.8l5.8-3.4z" fill="#fff"/></svg>`,
+    sp: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><g fill="none" stroke="#000" stroke-linecap="round"><path d="M6 9.2c4-1.3 8.6-1 12.2.9" stroke-width="2.1"/><path d="M6.8 12.6c3.3-1 7-.7 9.9.8" stroke-width="1.8"/><path d="M7.5 15.8c2.6-.7 5.4-.5 7.6.6" stroke-width="1.5"/></g></svg>`,
+    am: `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="amg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FA5C70"/><stop offset="1" stop-color="#FA233B"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="5.5" fill="url(#amg)"/><path d="M15.8 5.6v9.1a2.2 2.2 0 1 1-1.4-2.05V8.3l-4.6 1.05v6.75a2.2 2.2 0 1 1-1.4-2.05V7.2z" fill="#fff"/></svg>`,
+  };
+  function listenHTML(v, info) {
+    const q = info ? `${info.artistName} ${info.trackName}` : (v.song || "").replace(/\s*-\s*/, " ");
+    if (!q.trim()) return "";
+    const e = encodeURIComponent(q.trim());
+    const apple = info && info.source !== "Deezer" && info.trackViewUrl ? info.trackViewUrl : `https://music.apple.com/kr/search?term=${e}`;
+    const a = (href, logo, name) => `<a href="${esc(href)}" target="_blank" rel="noopener" aria-label="${name}에서 전곡 듣기">${logo}${name}</a>`;
+    return `<div class="listen"><span class="lt">🎵 전곡 듣기</span>
+      ${a(`https://www.youtube.com/results?search_query=${e}`, LOGO.yt, "유튜브")}
+      ${a(`https://open.spotify.com/search/${e}`, LOGO.sp, "스포티파이")}
+      ${a(apple, LOGO.am, "애플뮤직")}</div>`;
+  }
+
   function analysisHTML(v, type, info, audio) {
     const genreStr = info ? info.primaryGenreName || "" : "";
     const g = GENRES.find((x) => x.re.test(genreStr));
@@ -1394,6 +1442,7 @@
       </div>
       ${dyn}
       ${info && info.previewUrl ? `<audio controls preload="none" src="${esc(info.previewUrl)}"></audio>` : ""}
+      ${listenHTML(v, info)}
       <div class="songmeta" style="margin-top:10px">※ 시놉시스와 구간 해설은 곡 장르로 에너지·분위기를 추정해 만든 해설이에요.</div>`;
   }
 
@@ -1853,6 +1902,7 @@
     } catch {}
     $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 가입·로그인";
     $("nav-admin").classList.toggle("hidden", !(AUTH.user && AUTH.user.admin));
+    $("nav-logout").classList.toggle("hidden", !AUTH.user);
     $("leave-box").classList.toggle("hidden", !!(AUTH.user && AUTH.user.admin));
     applyPrefs();
   }
@@ -2051,6 +2101,7 @@
     const like = s.querySelector(".like");
     like.classList.toggle("on", !!p.liked); like.textContent = `${p.liked ? "❤️" : "🤍"} ${p.likes}`;
     s.querySelector(".more").textContent = p.canDelete ? "🗑️ 삭제" : "🚩 신고";
+    closeComments(); loadCommentCount(p);
     s.querySelector(".nav.p").disabled = ST.i === 0;
     s.querySelector(".nav.n").disabled = ST.i === ST.list.length - 1;
     const pb = s.querySelector(".play");
@@ -2073,6 +2124,63 @@
       } catch (e) { if (e.status === 404) toast(e.message); }
     }
   }
+  // ---------- 스토리 댓글 ----------
+  const CM = { post: null, list: [] };
+  const cbtn = () => $("story").querySelector(".cmt");
+  const csheet = () => $("story").querySelector(".csheet");
+  function setCount(p, n) { p.ncomments = n; if (ST.list[ST.i] === p) cbtn().textContent = n ? `💬 ${n}` : "💬 댓글"; }
+  async function loadCommentCount(p) {
+    cbtn().textContent = p.ncomments ? `💬 ${p.ncomments}` : "💬 댓글";
+    if (p.ncomments !== undefined) return;
+    try { const d = await api(`/posts/${p.id}/comments`); p.cache = d.comments; setCount(p, d.comments.length); } catch {}
+  }
+  function drawComments() {
+    const sh = csheet();
+    sh.querySelector(".cn").textContent = CM.list.length ? CM.list.length + "개" : "";
+    sh.querySelector(".cl").innerHTML = CM.list.length ? CM.list.map((c, i) => `
+      <div class="ci"><b>${esc(c.nick)}</b><small>${ago(c.created)}</small>${c.canDelete ? `<button type="button" class="cdel" data-i="${i}">삭제</button>` : ""}
+      <p>${esc(c.body)}</p></div>`).join("") : `<div class="cempty">아직 댓글이 없어요. 첫 댓글을 남겨 보세요!</div>`;
+    const inp = sh.querySelector("input");
+    inp.placeholder = AUTH.user ? "따뜻한 댓글을 남겨 주세요 (150자)" : "로그인하면 댓글을 쓸 수 있어요";
+  }
+  async function openComments() {
+    const p = ST.list[ST.i]; CM.post = p; CM.list = p.cache || [];
+    csheet().classList.remove("hidden"); drawComments();
+    try {
+      const d = await api(`/posts/${p.id}/comments`);
+      if (CM.post !== p) return;
+      p.cache = CM.list = d.comments; setCount(p, d.comments.length); drawComments();
+    } catch (e) { toast(e.message); }
+  }
+  function closeComments() { csheet().classList.add("hidden"); CM.post = null; }
+  cbtn().addEventListener("click", openComments);
+  $("story").querySelector(".cx").addEventListener("click", closeComments);
+  $("story").querySelector(".cf").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const p = CM.post, inp = csheet().querySelector("input"), text = inp.value.trim();
+    if (!p) return;
+    if (!AUTH.user) { toast("로그인하면 댓글을 쓸 수 있어요."); return; }
+    if (!text) { toast("댓글 내용을 입력해 주세요."); return; }
+    const b = csheet().querySelector(".cf button"); b.disabled = true;
+    try {
+      const d = await api(`/posts/${p.id}/comments`, { method: "POST", body: { body: text } });
+      inp.value = "";
+      p.cache = CM.list = [...CM.list, d.comment]; setCount(p, CM.list.length); drawComments();
+      const cl = csheet().querySelector(".cl"); cl.scrollTop = cl.scrollHeight;
+    } catch (err) { toast(err.message); }
+    b.disabled = false;
+  });
+  $("story").querySelector(".cl").addEventListener("click", (e) => {
+    const b = e.target.closest(".cdel"); if (!b) return;
+    const p = CM.post, c = CM.list[+b.dataset.i]; if (!c) return;
+    twice(b, async () => {
+      try {
+        await api("/comments/" + c.id, { method: "DELETE" });
+        p.cache = CM.list = CM.list.filter((x) => x !== c); setCount(p, CM.list.length); drawComments();
+      } catch (err) { toast(err.message); }
+    });
+  });
+
   const stepStory = (d) => { const j = ST.i + d; if (j < 0) return; if (j >= ST.list.length) { closeStory(); return; } ST.i = j; drawStory(); };
   $("story").querySelector(".tapl").addEventListener("click", () => stepStory(-1));
   $("story").querySelector(".tapr").addEventListener("click", () => stepStory(1));
@@ -2081,10 +2189,11 @@
   $("story").querySelector(".x").addEventListener("click", () => closeStory());
   document.addEventListener("keydown", (e) => {
     if ($("story").classList.contains("hidden")) return;
+    if (!csheet().classList.contains("hidden")) { if (e.key === "Escape") closeComments(); return; }
     if (e.key === "Escape") closeStory(); else if (e.key === "ArrowLeft") stepStory(-1); else if (e.key === "ArrowRight") stepStory(1);
   });
   let touchX = null;
-  $("story").addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+  $("story").addEventListener("touchstart", (e) => { touchX = e.target.closest(".csheet") ? null : e.touches[0].clientX; }, { passive: true });
   $("story").addEventListener("touchend", (e) => {
     if (touchX === null) return;
     const dx = e.changedTouches[0].clientX - touchX; touchX = null;
@@ -2199,6 +2308,7 @@
   $("me-grid").addEventListener("click", (e) => {
     const c = e.target.closest(".scard"); if (c) openStory(MINE, +c.dataset.i);
   });
+  $("nav-logout").addEventListener("click", () => { closeStory(true); $("me-logout").click(); });
   $("me-logout").addEventListener("click", async () => {
     try { await api("/logout", { method: "POST" }); } catch {}
     setAuth("", null); toast("로그아웃했어요.");
@@ -2336,8 +2446,14 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.4";
+  const APP_VERSION = "v1.5";
   const CHANGELOG = [
+    ["v1.5", "2026-11-09", "로그아웃 버튼, 스토리 댓글, 전곡 듣기", [
+      "헤더의 닉네임 옆에 🚪 로그아웃 버튼 추가",
+      "스토리에 💬 댓글 기능 추가 (150자, 한 시간 30개 제한, 내 댓글·내 후기에 달린 댓글은 삭제 가능, 관리자는 모두 삭제 가능)",
+      "추천 결과의 곡 정보에 유튜브·스포티파이·애플뮤직 전곡 듣기 버튼(각 서비스 로고 포함) 추가",
+      "관리패널 현황에 댓글 수 추가",
+    ]],
     ["v1.4", "2026-11-09", "가입 시 서비스 동의 통합, 관리패널", [
       "회원가입 때 메뉴 추천 이용 동의(필수)와 곡·식당 검색 국외 이전·위치정보(선택)를 함께 받음",
       "로그인한 회원은 서비스 이용 동의 화면 없이 바로 추천 입력 화면으로 이동",
@@ -2477,7 +2593,7 @@
       $("adm-stats").innerHTML = `
         <div class="tiles">
           ${tile(d.users, "회원")}${tile(d.posts, "후기")}${tile(d.likes, "좋아요")}
-          ${tile(d.reported, "신고 대기", d.reported > 0)}${tile(d.hidden, "숨긴 후기")}${tile(`+${d.newUsers} / +${d.newPosts}`, "24시간 새 회원 / 후기")}
+          ${tile(d.reported, "신고 대기", d.reported > 0)}${tile(d.hidden, "숨긴 후기")}${tile(`+${d.newUsers} / +${d.newPosts}`, "24시간 새 회원 / 후기")}${d.comments !== null && d.comments !== undefined ? tile(d.comments, "댓글") : ""}
         </div>
         <h3 class="subh">코너별 후기</h3>
         <table class="ptable">${KINDS.map((k) => `<tr><th>${KIND_EMO[k]} ${esc(k)}</th><td>후기 ${(byKind[k] && byKind[k].n) || 0}개 · 좋아요 ${(byKind[k] && byKind[k].likes) || 0}</td></tr>`).join("")}</table>

@@ -141,6 +141,12 @@ const pub = (r, me, liked) => ({
   ...(r.thumb !== undefined ? { thumb: r.thumb } : {}), ...(r.photo !== undefined ? { photo: r.photo } : {}),
 });
 
+const MAX_COMMENTS = 200, COMMENTS_PER_HOUR = 30;
+const cpub = (c, me, owner) => ({
+  id: c.id, nick: c.nick, body: c.body, created: c.created, mine: !!me && me.id === c.user_id,
+  canDelete: !!me && (me.id === c.user_id || me.id === owner || !!me.admin),
+});
+
 async function likedSet(env, me, ids) {
   if (!me || !ids.length) return new Set();
   const { results } = await env.DB.prepare(`SELECT post_id FROM likes WHERE user_id = ? AND post_id IN (${ids.map(() => "?").join(",")})`)
@@ -150,6 +156,8 @@ async function likedSet(env, me, ids) {
 
 // 회원과 그 회원의 글·좋아요·신고·세션을 모두 지움 (내가 누른 좋아요 수는 글에서 뺌)
 async function deleteAccount(DB, uid) {
+  // 댓글 표가 아직 없을 수도 있어서(DB 업데이트 전) 따로 지움
+  try { await DB.prepare("DELETE FROM comments WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(uid, uid).run(); } catch {}
   await DB.batch([
     DB.prepare("UPDATE posts SET likes = MAX(likes - 1, 0) WHERE id IN (SELECT post_id FROM likes WHERE user_id = ?)").bind(uid),
     DB.prepare("UPDATE posts SET reports = MAX(reports - 1, 0) WHERE id IN (SELECT post_id FROM reports WHERE user_id = ?)").bind(uid),
@@ -175,7 +183,9 @@ async function admin(request, env, me, path, M, url) {
       one(`SELECT COUNT(*) AS n FROM users WHERE created > ${day}`), one(`SELECT COUNT(*) AS n FROM posts WHERE created > ${day}`),
     ]);
     const { results: byKind } = await DB.prepare("SELECT kind, COUNT(*) AS n, SUM(likes) AS likes FROM posts GROUP BY kind").all();
-    return { users, posts, likes, reported, hidden, newUsers, newPosts, byKind };
+    let comments = null;
+    try { comments = await one("SELECT COUNT(*) AS n FROM comments"); } catch {}
+    return { users, posts, likes, reported, hidden, newUsers, newPosts, byKind, comments };
   }
 
   if (path === "/admin/posts" && M === "GET") {
@@ -401,6 +411,7 @@ async function route(request, env) {
       const r = await DB.prepare("SELECT user_id FROM posts WHERE id = ?").bind(id).first();
       if (!r) fail(404, "이미 삭제된 후기예요.");
       if (r.user_id !== me.id && !me.admin) fail(403, "내가 쓴 후기만 지울 수 있어요.");
+      try { await DB.prepare("DELETE FROM comments WHERE post_id = ?").bind(id).run(); } catch {}
       await DB.batch([
         DB.prepare("DELETE FROM likes WHERE post_id = ?").bind(id),
         DB.prepare("DELETE FROM reports WHERE post_id = ?").bind(id),
@@ -440,6 +451,45 @@ async function route(request, env) {
       .bind(id, me.id, str(b.reason, 200), now()).run();
     if (!ins.meta.changes) return { ok: true, already: true };
     await DB.prepare("UPDATE posts SET reports = reports + 1, hidden = CASE WHEN reports + 1 >= ? THEN 1 ELSE hidden END WHERE id = ?").bind(HIDE_AT, id).run();
+    return { ok: true };
+  }
+
+  // ---------- 댓글 ----------
+  if ((m = /^\/posts\/(\d+)\/comments$/.exec(path))) {
+    const id = +m[1];
+    const me = await currentUser(request, env, M === "POST");
+    const post = await DB.prepare("SELECT user_id, hidden FROM posts WHERE id = ?").bind(id).first();
+    if (!post || (post.hidden && !(me && (me.id === post.user_id || me.admin)))) fail(404, "삭제되었거나 숨겨진 후기예요.");
+    if (M === "GET") {
+      let results;
+      try {
+        ({ results } = await DB.prepare(
+          `SELECT c.id, c.user_id, c.body, c.created, u.nick FROM comments c JOIN users u ON u.id = c.user_id
+           WHERE c.post_id = ? ORDER BY c.created ASC LIMIT ${MAX_COMMENTS}`
+        ).bind(id).all());
+      } catch { fail(503, "댓글 기능을 준비 중이에요. (관리자: DB에 comments 표 추가 필요)"); }
+      return { comments: results.map((c) => cpub(c, me, post.user_id)) };
+    }
+    if (M === "POST") {
+      const b = await body(request);
+      const text = str(b.body, 300);
+      if (!text) fail(400, "댓글 내용을 입력해 주세요.");
+      if (text.length > 150) fail(400, "댓글은 150자까지 쓸 수 있어요.");
+      let recent;
+      try { recent = await DB.prepare("SELECT COUNT(*) AS n FROM comments WHERE user_id = ? AND created > ?").bind(me.id, now() - 36e5).first(); }
+      catch { fail(503, "댓글 기능을 준비 중이에요. (관리자: DB에 comments 표 추가 필요)"); }
+      if (recent.n >= COMMENTS_PER_HOUR) fail(429, `댓글은 한 시간에 ${COMMENTS_PER_HOUR}개까지 쓸 수 있어요.`);
+      const t = now();
+      const res = await DB.prepare("INSERT INTO comments (post_id, user_id, body, created) VALUES (?, ?, ?, ?)").bind(id, me.id, text, t).run();
+      return { comment: cpub({ id: res.meta.last_row_id, user_id: me.id, body: text, created: t, nick: me.nick }, me) };
+    }
+  }
+  if ((m = /^\/comments\/(\d+)$/.exec(path)) && M === "DELETE") {
+    const me = await currentUser(request, env, true);
+    const c = await DB.prepare("SELECT c.user_id, p.user_id AS owner FROM comments c LEFT JOIN posts p ON p.id = c.post_id WHERE c.id = ?").bind(+m[1]).first();
+    if (!c) fail(404, "이미 삭제된 댓글이에요.");
+    if (c.user_id !== me.id && c.owner !== me.id && !me.admin) fail(403, "내 댓글이나 내 후기에 달린 댓글만 지울 수 있어요.");
+    await DB.prepare("DELETE FROM comments WHERE id = ?").bind(+m[1]).run();
     return { ok: true };
   }
 

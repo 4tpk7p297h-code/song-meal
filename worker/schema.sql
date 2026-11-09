@@ -56,5 +56,15 @@ CREATE TABLE IF NOT EXISTS reports (
   PRIMARY KEY (post_id, user_id)
 );
 
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  body TEXT NOT NULL,                  -- 댓글 내용 (150자 이내)
+  created INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS comments_post ON comments(post_id, created);
+CREATE INDEX IF NOT EXISTS comments_user ON comments(user_id);
+
 -- 이미 표를 만든 뒤라면 아래 한 줄만 실행 (v1.4): 동의 기록 열 추가
 -- ALTER TABLE users ADD COLUMN prefs TEXT NOT NULL DEFAULT '{}';
