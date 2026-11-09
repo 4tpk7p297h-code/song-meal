@@ -386,6 +386,11 @@
   .pnotice a, #auth details a { color: var(--accent); }
   .rules { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
   .rules li { margin-bottom: 4px; }
+
+  .skipbtn { position: fixed; right: 16px; bottom: 16px; z-index: 800; width: auto; margin: 0; padding: 10px 16px; font-size: 14px;
+    background: var(--card); color: var(--accent); border: 2px solid var(--accent); box-shadow: var(--shadow); }
+  .skipbtn.hidden { display: none; }
+  @media (max-width: 520px) { .skipbtn { right: 12px; bottom: 12px; padding: 8px 12px; font-size: 13px; } #auth { margin-bottom: 64px; } }
 </style>
 </head>
 <body>
@@ -706,6 +711,7 @@
     </div>
   </div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <button type="button" id="skipbtn" class="skipbtn hidden">🍽️ 가입 없이 음식만 추천받기 →</button>
 
   <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
   <footer>※ 곡 정보는 Apple 음악 검색, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
@@ -733,6 +739,7 @@
   function showScreen(name) {
     $("loading").classList.add("hidden");
     ["feed", "rank", "auth", "me", "write"].forEach((id) => $(id).classList.add("hidden"));
+    $("skipbtn").classList.add("hidden");
     const hasResult = !!$("result").innerHTML;
     if (name === "result" && hasResult) {
       $("consent").classList.add("hidden"); $("form").classList.add("hidden");
@@ -765,6 +772,7 @@
     CONSENT.abroad = CONSENT.geo = false;
     closeStory(true);
     COMM.forEach((id) => $(id).classList.add("hidden")); markNav("");
+    if (!AUTH.user) { showComm("auth"); return; }
     $("consent").classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
@@ -1725,6 +1733,7 @@
     $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 가입·로그인";
   }
   setAuth(AUTH.token, AUTH.user);
+  setTimeout(() => route(history.state), 0);
 
   async function api(path, { method = "GET", body } = {}) {
     let res;
@@ -1776,6 +1785,10 @@
     }
     hideAll(); markNav(name);
     $(name).classList.remove("hidden");
+    $("skipbtn").classList.toggle("hidden", !(name === "auth" && !AUTH.user));
+    $("auth-bubble").innerHTML = (!history.state || !history.state.d)
+      ? "음식점에 오신 걸 환영해요! 🎶<br>가입하고 나만의 음식 × 노래 조합을 올려 보세요."
+      : "가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!";
     window.scrollTo({ top: 0 });
     if (name === "feed") loadFeed(true);
     if (name === "rank") loadRank();
@@ -1789,9 +1802,11 @@
     closeStory(true);
     const s = state && state.screen;
     if (COMM.includes(s)) { showComm(s); return; }
+    if (!s && !AUTH.user) { showComm("auth"); return; }   // 첫 화면: 가입 먼저
     markNav(""); COMM.forEach((id) => $(id).classList.add("hidden"));
     showScreen(s);
   }
+  $("skipbtn").addEventListener("click", () => { showScreen("consent"); markNav(""); go("consent"); });
   $("nav-feed").addEventListener("click", () => openComm("feed"));
   $("nav-rank").addEventListener("click", () => openComm("rank"));
   $("nav-me").addEventListener("click", () => openComm(AUTH.user ? "me" : "auth"));
@@ -2007,8 +2022,10 @@
     $("login-form").reset(); $("signup-form").reset(); suSync(); authErr("");
     toast(msg);
     const next = afterLogin; afterLogin = null;
-    history.replaceState({ ...(history.state || {}), screen: next ? "write" : "me" }, "");
-    if (next) { fillWrite(next.seed); showComm("write"); } else showComm("me");
+    const atStart = !history.state || !history.state.d;
+    if (next) { history.replaceState({ ...(history.state || {}), screen: "write" }, ""); fillWrite(next.seed); showComm("write"); }
+    else if (atStart) { history.replaceState({ ...(history.state || {}), screen: null }, ""); markNav(""); showScreen("consent"); }
+    else { history.replaceState({ ...(history.state || {}), screen: "me" }, ""); showComm("me"); }
   }
   $("login-form").addEventListener("submit", async (e) => {
     e.preventDefault(); authErr("");
