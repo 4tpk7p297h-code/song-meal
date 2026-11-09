@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>뮤직푸드</title>
+<meta name="description" content="노래의 분위기로 오늘의 메뉴와 네이버 지도 검색 키워드를 추천합니다.">
+<style>
+  :root {
+    --bg: #faf7f2; --card: #ffffff; --text: #1f1d1a; --muted: #6b665e;
+    --line: #e6e0d6; --accent: #d9480f; --accent-weak: #fff0e6; --danger: #c92a2a;
+    --chip: #f1ece4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171512; --card: #211e1a; --text: #f1ece4; --muted: #a8a196;
+      --line: #36312b; --accent: #ff8a4c; --accent-weak: #3a2418; --danger: #ff6b6b;
+      --chip: #2d2924;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; margin: 0 0 12px; }
+  dl { margin: 0; display: grid; grid-template-columns: 76px 1fr; gap: 6px 12px; font-size: 14px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 14px 0 6px; }
+  label .opt { color: var(--muted); font-weight: 400; }
+  input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 11px 12px; font-size: 16px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 500; margin-top: 16px; }
+  .check input { margin-top: 5px; width: 18px; height: 18px; accent-color: var(--accent); }
+  button {
+    margin-top: 20px; width: 100%; padding: 13px; font-size: 16px; font-weight: 700;
+    color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .hint a { color: var(--accent); }
+  .error { color: var(--danger); font-size: 14px; margin-top: 12px; white-space: pre-wrap; word-break: break-word; }
+  .hidden { display: none !important; }
+  .song { font-size: 20px; font-weight: 700; margin: 0; }
+  .mood { margin: 4px 0 12px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .stat { background: var(--chip); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+  .tags { color: var(--accent); font-weight: 600; font-size: 14px; }
+  .note { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+  .pick { border-top: 1px solid var(--line); padding: 14px 0; }
+  .pick:first-of-type { border-top: 0; padding-top: 0; }
+  .pick h3 { margin: 0 0 4px; font-size: 17px; }
+  .pick p { margin: 0 0 8px; font-size: 14px; }
+  .maps { display: flex; flex-wrap: wrap; gap: 8px; }
+  .maps a {
+    display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 14px;
+    color: var(--accent); background: var(--accent-weak); border-radius: 999px; text-decoration: none;
+  }
+  .maps a:hover { text-decoration: underline; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -3px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎧 뮤직푸드</h1>
+  <p class="sub">노래 → 곡 분위기 분석 → 오늘의 메뉴와 네이버 지도 검색 키워드</p>
+
+  <!-- 1. 개인정보 동의 -->
+  <section id="consent" class="card">
+    <h2>개인정보 수집·이용 동의</h2>
+    <dl>
+      <dt>수집 항목</dt><dd>노래, 인원, 날씨, 위치, 식사 시간, 음식 종류, 음식 조건</dd>
+      <dt>이용 목적</dt><dd>곡 분석 및 음식·식당 검색 키워드 추천</dd>
+      <dt>처리</dt><dd>입력 정보는 추천 생성을 위해 AI 분석 서비스(Anthropic Claude)로 전송되며 별도 저장하지 않습니다.</dd>
+    </dl>
+    <label class="check"><input type="checkbox" id="agree"> 위 내용에 동의합니다.</label>
+    <button id="enter" disabled>동의하고 시작하기</button>
+    <p class="hint">동의하지 않으면 이용할 수 없습니다.</p>
+  </section>
+
+  <!-- 2. 입력 -->
+  <form id="form" class="card hidden" autocomplete="off">
+    <h2>추천 조건 입력</h2>
+
+    <label for="song">노래</label>
+    <input type="text" id="song" placeholder="링크 또는 '가수 - 곡명' (예: 아이유 - 밤편지)" required>
+
+    <div class="row">
+      <div>
+        <label for="ppl">인원</label>
+        <input type="number" id="ppl" min="1" max="50" value="2">
+      </div>
+      <div>
+        <label for="wx">날씨 <span class="opt">(선택)</span></label>
+        <select id="wx">
+          <option value="없음">선택 안 함</option>
+          <option>맑음</option><option>흐림</option><option>비</option>
+          <option>눈</option><option>더움</option><option>추움</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="loc">위치</label>
+    <input type="text" id="loc" placeholder="동네·역·지역명 (예: 성수역)" required>
+
+    <div class="row">
+      <div>
+        <label for="meal">식사 시간</label>
+        <select id="meal">
+          <option>아침</option><option selected>점심</option><option>저녁</option><option>야식</option>
+        </select>
+      </div>
+      <div>
+        <label for="kind">음식 종류</label>
+        <select id="kind">
+          <option selected>상관없음</option>
+          <option>한식</option><option>중식</option><option>일식</option><option>양식</option>
+          <option>분식</option><option>아시안</option><option>카페·디저트</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="flt">음식 조건 <span class="opt">(선택)</span></label>
+    <input type="text" id="flt" placeholder="예: 매운 것 제외">
+
+    <label for="key">Anthropic API 키</label>
+    <input type="password" id="key" placeholder="sk-ant-...">
+    <label class="check" style="font-weight:400;font-size:14px;margin-top:8px">
+      <input type="checkbox" id="remember"> 이 브라우저에 키 기억하기
+    </label>
+    <p class="hint">키는 이 브라우저에서 Anthropic API로만 직접 전송되며, 사이트 서버나 저장소에는 저장되지 않습니다.
+      키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic 콘솔</a>에서 발급받을 수 있어요.</p>
+
+    <button type="submit" id="go">추천받기</button>
+    <div id="err" class="error hidden"></div>
+  </form>
+
+  <!-- 3. 결과 -->
+  <section id="result" class="hidden"></section>
+
+  <footer>※ 음원을 직접 들은 분석이 아니라 곡·아티스트 지식에 기반한 추론입니다.</footer>
+</main>
+
+<script>
+(() => {
+  const MODEL = "claude-sonnet-5-5";
+  const KEY_STORE = "musicfood.apiKey";
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- 저장소 접근(실패해도 동작) ----------
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  // ---------- 동의 ----------
+  $("agree").addEventListener("change", (e) => { $("enter").disabled = !e.target.checked; });
+  $("enter").addEventListener("click", () => {
+    if (!$("agree").checked) return;
+    $("consent").classList.add("hidden");
+    $("form").classList.remove("hidden");
+    $("song").focus();
+  });
+
+  const saved = store.get(KEY_STORE);
+  if (saved) { $("key").value = saved; $("remember").checked = true; }
+
+  // ---------- 프롬프트 ----------
+  function buildPrompt(v) {
+    return (
+      "[Role] 당신은 음악 감성 분석가이자 음식 큐레이터입니다. 곡의 분위기를 스스로 판별하고 " +
+      "그에 어울리는 메뉴와 식당 검색 키워드를 추천합니다.\n" +
+      "[제약] 음원을 들을 수 없습니다. 곡명·아티스트에 대한 학습 지식(장르, 알려진 BPM, 악기, " +
+      "가사 분위기, 스타일, 발매 시기)으로 추론하세요. 확실히 아는 곡이 아니면 지어내지 마세요. " +
+      "곡은 모르지만 아티스트를 알면 아티스트 스타일로 추론하고, 둘 다 모르면 mood_hint를 쓰고, " +
+      "그것도 없으면 confidence를 low로 하고 무난한 메뉴를 추천하세요. " +
+      "confidence: high(곡을 구체적으로 앎) / medium(아티스트·장르 수준) / low(거의 모름). " +
+      "입력이 링크면 링크 속 제목·가수를 파악하되 불가하면 그 사실을 basis에 밝히세요.\n" +
+      `[Input] song: ${v.song} / weather: ${v.wx} / mood_hint: 없음 / food_filter: ${v.flt}\n` +
+      `추가 조건: 인원 ${v.ppl}명, 위치 ${v.loc}, 식사 시간 ${v.meal}, 음식 종류 ${v.kind}(상관없음이면 무시). ` +
+      "food_filter와 음식 종류는 반드시 지키세요.\n" +
+      "[Step 1] energy(1~5 정수), tempo(느림(~80BPM)/보통(80~110)/빠름(110~140)/매우 빠름(140~) 중 하나), " +
+      "valence(1~5 정수), texture(핵심 악기·사운드), genre, keywords(분위기 키워드 정확히 3개)를 도출하세요.\n" +
+      "[Step 2] energy·valence·장르로 가장 가까운 유형을 고르고, 둘 이상에 걸치면 weather와 mood_hint로 정하세요.\n" +
+      "A 저에너지+저·중valence(발라드, 어쿠스틱, 몽환, 새벽 감성): 전골·국물 요리, 수제 파스타, 와인바, 이자카야, 조용한 다이닝\n" +
+      "B 저에너지+고valence(보사노바, 시티팝, 잔잔한 인디팝): 브런치, 샌드위치, 샐러드, 디저트 카페, 테라스\n" +
+      "C 중에너지+중·고valence(팝, 어쿠스틱 팝, 알앤비): 파스타·피자, 수제버거, 수제맥주 펍, 캐주얼 레스토랑\n" +
+      "D 고에너지+고valence(댄스, EDM, 신나는 K-pop, 펑크): 치킨, 떡볶이·분식, 곱창, 포차·펍, 바비큐\n" +
+      "E 고에너지+저·중valence(록, 힙합, 메탈, 강렬한 곡): 마라탕, 매운 요리, 고기구이, 화덕 요리\n" +
+      "F 중에너지+저valence(서정 인디, 우울한 알앤비): 따뜻한 한식 정식, 라멘·우동, 스튜, 카페 식사\n" +
+      "날씨 보정: 비→전·국물·면, 더움→냉면·시원한 메뉴, 추움→뜨끈한 국물.\n" +
+      "[Output] 음식 3가지를 고르고 각 음식마다 네이버 지도에서 검색할 키워드 2개(위치 제외, 예: \"수제 파스타 맛집\")를 주세요. " +
+      "상호는 지어내지 마세요. 오직 JSON만 출력:\n" +
+      '{"song":"가수 – 곡명","confidence":"high|medium|low","basis":"추론 근거 1문장",' +
+      '"energy":3,"tempo":"","valence":3,"texture":"","genre":"","keywords":["","",""],' +
+      '"type":"A~F","mood":"분위기 한 줄 요약",' +
+      '"picks":[{"food":"음식명","reason":"어울리는 이유 1~2문장","search_keywords":["",""]}]}'
+    );
+  }
+
+  // ---------- Claude API ----------
+  async function callClaude(key, prompt) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const msg = data?.error?.message || res.statusText;
+      if (res.status === 401) throw new Error("API 키가 올바르지 않습니다. 키를 다시 확인해 주세요.");
+      throw new Error(`API 응답 오류 (${res.status}): ${msg}`);
+    }
+    const text = (data?.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
+    if (!text) throw new Error("API 응답에 텍스트가 없습니다.");
+    return text;
+  }
+
+  function parseResult(text) {
+    const s = text.indexOf("{"), e = text.lastIndexOf("}");
+    if (s < 0 || e < s) return null;
+    try { return JSON.parse(text.slice(s, e + 1)); } catch { return null; }
+  }
+
+  // ---------- 결과 렌더링 ----------
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const num = (n) => (Number.isFinite(+n) ? Math.round(+n) : 0);
+  const naverUrl = (loc, kw) => "https://map.naver.com/p/search/" + encodeURIComponent(`${loc} ${kw}`);
+  const CONF = { high: "높음", medium: "보통", low: "낮음" };
+
+  function render(r, loc) {
+    const kws = (r.keywords || []).filter((k) => typeof k === "string").map((k) => "#" + esc(k)).join(" ");
+    const picks = (r.picks || []).map((p, i) => {
+      const links = (p.search_keywords || []).filter((k) => typeof k === "string").map((k) =>
+        `<a href="${naverUrl(loc, k)}" target="_blank" rel="noopener">📍 ${esc(k)}</a>`).join("");
+      return `<div class="pick">
+          <h3>${i + 1}. ${esc(p.food)}</h3>
+          <p>${esc(p.reason)}</p>
+          <div class="maps">${links}</div>
+        </div>`;
+    }).join("");
+
+    $("result").innerHTML = `
+      <div class="card">
+        <p class="song">🎧 ${esc(r.song)}</p>
+        <p class="mood">${esc(r.mood)}</p>
+        <div class="stats">
+          <span class="stat">에너지 ${num(r.energy)}/5</span>
+          <span class="stat">밝기 ${num(r.valence)}/5</span>
+          <span class="stat">${esc(r.tempo)}</span>
+          ${r.type ? `<span class="stat">유형 ${esc(r.type)}</span>` : ""}
+        </div>
+        <div style="font-size:14px">${esc(r.genre)} · ${esc(r.texture)}</div>
+        <div class="tags">${kws}</div>
+        <div class="note">추론 확신도: <b>${esc(CONF[r.confidence] || r.confidence)}</b> — ${esc(r.basis)}<br>
+          ※ 음원을 직접 들은 분석이 아니라 곡·아티스트 지식에 기반한 추론입니다.</div>
+      </div>
+      <div class="card">
+        <h2>🍽️ 오늘의 추천 음식 <span class="opt" style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(loc)}</span></h2>
+        ${picks || "<p>추천 결과가 없습니다.</p>"}
+      </div>
+      <button class="ghost" id="again" type="button">다른 노래로 다시 하기</button>`;
+    $("result").classList.remove("hidden");
+    $("again").addEventListener("click", () => {
+      $("result").classList.add("hidden");
+      $("form").classList.remove("hidden");
+      $("song").select();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  // ---------- 제출 ----------
+  function showErr(msg) { $("err").textContent = msg; $("err").classList.remove("hidden"); }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("err").classList.add("hidden");
+    const v = {
+      song: $("song").value.trim(),
+      ppl: $("ppl").value.trim() || "2",
+      wx: $("wx").value,
+      loc: $("loc").value.trim(),
+      meal: $("meal").value,
+      kind: $("kind").value,
+      flt: $("flt").value.trim() || "없음",
+    };
+    const key = $("key").value.trim();
+    if (!v.song) return showErr("노래를 입력해 주세요.");
+    if (!v.loc) return showErr("위치를 입력해 주세요.");
+    if (!key) return showErr("Anthropic API 키를 입력해 주세요.");
+
+    if ($("remember").checked) store.set(KEY_STORE, key); else store.del(KEY_STORE);
+
+    const btn = $("go");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>곡을 분석하는 중...';
+    try {
+      const text = await callClaude(key, buildPrompt(v));
+      const r = parseResult(text);
+      if (!r) throw new Error("결과를 해석하지 못했습니다:\n" + text);
+      $("form").classList.add("hidden");
+      render(r, v.loc);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      showErr(err.message || String(err));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "추천받기";
+    }
+  });
+})();
+</script>
+</body>
+</html>
