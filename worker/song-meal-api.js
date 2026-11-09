@@ -13,6 +13,12 @@ const ALLOWED = ["https://song-meal.pages.dev", "https://4tpk7p297h-code.github.
 const isAllowed = (o, env) =>
   !!o && (ALLOWED.includes(o) || /^https:\/\/[a-z0-9-]+\.song-meal\.pages\.dev$/.test(o) || (env.DEV_ORIGIN && o === env.DEV_ORIGIN));
 
+// 관리자 아이디. 이 아이디는 회원가입으로 만들 수 없고, D1 콘솔에서만 만들 수 있음
+const ADMINS = ["aiadmin"];
+const RESERVED_LOGIN = /admin|root|manager|operator/;
+const RESERVED_NICK = /관리자|운영자|admin/i;
+const isAdmin = (login) => ADMINS.includes(login);
+
 const KINDS = ["한식", "중식", "일식", "양식", "분식", "아시안", "카페·디저트"];
 const ITER = 10000;                 // 무료 플랜 CPU 한도(10ms) 안에서 도는 반복 횟수
 const SESSION_DAYS = 30;
@@ -94,7 +100,7 @@ async function currentUser(request, env, required) {
     const row = await env.DB.prepare(
       "SELECT u.id, u.login, u.nick FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires > ?"
     ).bind(await sha256(m[1]), now()).first();
-    if (row) return row;
+    if (row) return { ...row, admin: isAdmin(row.login) };
   }
   if (required) fail(401, "로그인이 필요해요.");
   return null;
@@ -113,6 +119,7 @@ const POST_COLS = "p.id, p.song, p.art, p.preview, p.kind, p.menu, p.place, p.bo
 const pub = (r, me, liked) => ({
   id: r.id, song: r.song, art: r.art, preview: r.preview, kind: r.kind, menu: r.menu, place: r.place, body: r.body,
   likes: r.likes, created: r.created, nick: r.nick, mine: !!me && me.id === r.user_id, liked: !!liked,
+  canDelete: !!me && (me.id === r.user_id || !!me.admin),
   ...(r.thumb !== undefined ? { thumb: r.thumb } : {}), ...(r.photo !== undefined ? { photo: r.photo } : {}),
 });
 
@@ -141,12 +148,14 @@ async function route(request, env) {
     if (pw.length < 8 || pw.length > 72) fail(400, "비밀번호는 8자 이상으로 만들어 주세요.");
     if (pw.toLowerCase().includes(login)) fail(400, "비밀번호에 아이디를 넣지 말아 주세요.");
     if (nick.length < 2 || nick.length > 12) fail(400, "닉네임은 2~12자로 만들어 주세요.");
+    if (RESERVED_LOGIN.test(login)) fail(400, "이 아이디는 쓸 수 없어요. 다른 아이디를 골라 주세요.");
+    if (RESERVED_NICK.test(nick)) fail(400, "이 닉네임은 쓸 수 없어요. 다른 닉네임을 골라 주세요.");
     if (await DB.prepare("SELECT 1 FROM users WHERE login = ?").bind(login).first()) fail(409, "이미 쓰이는 아이디예요.");
     const salt = randHex(16);
     const res = await DB.prepare("INSERT INTO users (login, nick, salt, hash, created) VALUES (?, ?, ?, ?, ?)")
       .bind(login, nick, salt, await pbkdf2(pw, salt), now()).run();
     const id = res.meta.last_row_id;
-    return { token: await newSession(env, id), user: { id, login, nick } };
+    return { token: await newSession(env, id), user: { id, login, nick, admin: false } };
   }
 
   if (path === "/login" && M === "POST") {
@@ -162,7 +171,7 @@ async function route(request, env) {
       fail(401, "아이디 또는 비밀번호가 맞지 않아요.");
     }
     await DB.prepare("UPDATE users SET fails = 0, locked_until = 0 WHERE id = ?").bind(u.id).run();
-    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick } };
+    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: isAdmin(u.login) } };
   }
 
   if (path === "/logout" && M === "POST") {
@@ -178,11 +187,30 @@ async function route(request, env) {
     return { user: me, posts: results.map((r) => ({ ...pub(r, me, false), hidden: !!r.hidden })) };
   }
 
+  if (path === "/me/password" && M === "POST") {
+    const me = await currentUser(request, env, true);
+    const b = await body(request);
+    const pw = typeof b.pw === "string" ? b.pw : "", np = typeof b.newPw === "string" ? b.newPw : "";
+    const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
+    if (!sameHex(await pbkdf2(pw, u.salt), u.hash)) fail(401, "현재 비밀번호가 맞지 않아요.");
+    if (np.length < 8 || np.length > 72) fail(400, "새 비밀번호는 8자 이상으로 만들어 주세요.");
+    if (np.toLowerCase().includes(me.login)) fail(400, "비밀번호에 아이디를 넣지 말아 주세요.");
+    const salt = randHex(16);
+    const keep = /^Bearer ([0-9a-f]{64})$/.exec(request.headers.get("Authorization") || "");
+    // 비밀번호를 바꾸면 지금 기기를 뺀 다른 기기의 로그인은 모두 끊음
+    await DB.batch([
+      DB.prepare("UPDATE users SET salt = ?, hash = ?, fails = 0, locked_until = 0 WHERE id = ?").bind(salt, await pbkdf2(np, salt), me.id),
+      DB.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").bind(me.id, keep ? await sha256(keep[1]) : ""),
+    ]);
+    return { ok: true };
+  }
+
   if (path === "/me" && M === "DELETE") {
     const me = await currentUser(request, env, true);
     const b = await body(request);
     const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
     if (!sameHex(await pbkdf2(typeof b.pw === "string" ? b.pw : "", u.salt), u.hash)) fail(401, "비밀번호가 맞지 않아요.");
+    if (me.admin) fail(400, "관리자 계정은 탈퇴할 수 없어요.");
     // 내가 누른 좋아요 수를 글에서 빼고, 내 글·좋아요·신고·세션·계정을 모두 지움
     await DB.batch([
       DB.prepare("UPDATE posts SET likes = likes - 1 WHERE id IN (SELECT post_id FROM likes WHERE user_id = ?)").bind(me.id),
@@ -245,7 +273,7 @@ async function route(request, env) {
       const me = await currentUser(request, env, true);
       const r = await DB.prepare("SELECT user_id FROM posts WHERE id = ?").bind(id).first();
       if (!r) fail(404, "이미 삭제된 후기예요.");
-      if (r.user_id !== me.id) fail(403, "내가 쓴 후기만 지울 수 있어요.");
+      if (r.user_id !== me.id && !me.admin) fail(403, "내가 쓴 후기만 지울 수 있어요.");
       await DB.batch([
         DB.prepare("DELETE FROM likes WHERE post_id = ?").bind(id),
         DB.prepare("DELETE FROM reports WHERE post_id = ?").bind(id),

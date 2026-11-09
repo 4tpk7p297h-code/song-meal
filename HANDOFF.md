@@ -59,6 +59,12 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - 로컬 테스트: node:sqlite로 D1을 흉내 낸 서버를 띄워 확인함 (실제 Cloudflare 환경은 사용자 확인 필요)
 - 남은 일: 처리방침의 [운영자 이름]/[연락 이메일] 채우기, 12월 초 시연 녹화, 정기 백업(D1 → Export)
 
+## 7-1. 관리자와 업데이트 내역
+- 관리자 아이디 `aiadmin` (worker의 ADMINS). 회원가입으로는 만들 수 없고, D1 콘솔에서 INSERT로 만든 계정. 비밀번호는 사용자만 앎(저장소에 없음)
+- 관리자: 헤더의 "📋 업데이트 내역"(index.html의 CHANGELOG, APP_VERSION), 아무 후기나 삭제 가능, 탈퇴 불가
+- **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
+- 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
+
 ## 8. 작업할 때 주의
 - 비밀값(Client Secret, API 키)은 저장소나 채팅에 절대 넣지 말 것. Cloudflare Secret에만 저장
 - 주소를 옮기면 바꿀 곳: NCP 지도 Web 서비스 URL, Worker 허용 Origin, index.html의 og:url과 og:image

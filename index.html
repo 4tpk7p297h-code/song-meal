@@ -391,6 +391,19 @@
     background: var(--card); color: var(--accent); border: 2px solid var(--accent); box-shadow: var(--shadow); }
   .skipbtn.hidden { display: none; }
   @media (max-width: 520px) { .skipbtn { right: 12px; bottom: 12px; padding: 8px 12px; font-size: 13px; } #auth { margin-bottom: 64px; } }
+
+  #nav-log { border-color: #7c5cff; color: #7c5cff; }
+  .modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(0,0,0,.35); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .modal.hidden { display: none; }
+  .modalbox { width: 100%; max-width: 640px; max-height: 86vh; overflow: auto; background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); }
+  .modalbox h2 small { font-size: 13px; color: var(--muted); font-family: inherit; }
+  .logv { border-top: 2px dashed var(--line); padding: 10px 0 4px; }
+  .logv h3 { margin: 0 0 4px; font-size: 16px; }
+  .logv h3 small { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .logv ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+  .vtag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 13px; margin-right: 4px; }
+  #me .leave input { margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -402,6 +415,7 @@
       <button type="button" id="nav-feed">📸 스토리</button>
       <button type="button" id="nav-rank">🏆 순위</button>
       <button type="button" id="nav-me">👤 가입·로그인</button>
+      <button type="button" id="nav-log" class="hidden">📋 업데이트 내역</button>
     </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
       <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
@@ -647,7 +661,14 @@
     <h3 class="subh">내가 올린 후기</h3>
     <div class="grid" id="me-grid"></div>
     <p class="hint center" id="me-msg"></p>
-    <details class="leave"><summary>회원 탈퇴</summary>
+    <details class="leave"><summary>비밀번호 변경</summary>
+      <input type="password" id="pw-old" placeholder="현재 비밀번호" autocomplete="current-password">
+      <input type="password" id="pw-new" placeholder="새 비밀번호 (8자 이상)" autocomplete="new-password">
+      <input type="password" id="pw-new2" placeholder="새 비밀번호 확인" autocomplete="new-password">
+      <button type="button" id="pw-btn">비밀번호 바꾸기</button>
+      <p class="hint">바꾸면 다른 기기에서의 로그인은 모두 끊겨요.</p>
+    </details>
+    <details class="leave" id="leave-box"><summary>회원 탈퇴</summary>
       <p class="hint">탈퇴하면 계정과 내가 올린 후기, 누른 좋아요가 모두 바로 지워지고 되돌릴 수 없어요.</p>
       <input type="password" id="leave-pw" placeholder="비밀번호를 입력해 확인" autocomplete="current-password">
       <button type="button" class="danger" id="leave-btn">탈퇴하기</button>
@@ -711,6 +732,13 @@
     </div>
   </div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <div id="logmodal" class="modal hidden" role="dialog" aria-label="업데이트 내역">
+    <div class="modalbox">
+      <div class="chead"><h2>📋 업데이트 내역 <small id="log-ver"></small></h2><button type="button" class="mini ghost" id="log-close">닫기</button></div>
+      <p class="hint" style="margin:0 0 10px">관리자에게만 보이는 화면이에요.</p>
+      <div id="log-body"></div>
+    </div>
+  </div>
   <button type="button" id="skipbtn" class="skipbtn hidden">🍽️ 가입 없이 음식만 추천받기 →</button>
 
   <p class="footlinks"><a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a></p>
@@ -1731,9 +1759,14 @@
       else { localStorage.removeItem("food.token"); localStorage.removeItem("food.user"); }
     } catch {}
     $("nav-me").textContent = AUTH.user ? `👤 ${AUTH.user.nick}` : "👤 가입·로그인";
+    $("nav-log").classList.toggle("hidden", !(AUTH.user && AUTH.user.admin));
+    $("leave-box").classList.toggle("hidden", !!(AUTH.user && AUTH.user.admin));
+    if (!(AUTH.user && AUTH.user.admin)) $("logmodal").classList.add("hidden");
   }
   setAuth(AUTH.token, AUTH.user);
   setTimeout(() => route(history.state), 0);
+  // 저장된 로그인이 아직 유효한지, 관리자인지 서버에 확인
+  if (AUTH.token) setTimeout(() => api("/me").then((d) => setAuth(AUTH.token, d.user)).catch(() => {}), 0);
 
   async function api(path, { method = "GET", body } = {}) {
     let res;
@@ -1915,7 +1948,7 @@
     s.querySelector(".foot p").textContent = p.body || "";
     const like = s.querySelector(".like");
     like.classList.toggle("on", !!p.liked); like.textContent = `${p.liked ? "❤️" : "🤍"} ${p.likes}`;
-    s.querySelector(".more").textContent = p.mine ? "🗑️ 삭제" : "🚩 신고";
+    s.querySelector(".more").textContent = p.canDelete ? "🗑️ 삭제" : "🚩 신고";
     s.querySelector(".nav.p").disabled = ST.i === 0;
     s.querySelector(".nav.n").disabled = ST.i === ST.list.length - 1;
     const pb = s.querySelector(".play");
@@ -1929,11 +1962,11 @@
       const want = p;
       try {
         const d = await api("/posts/" + p.id);
-        Object.assign(want, { photo: d.post.photo, liked: d.post.liked, likes: d.post.likes, mine: d.post.mine });
+        Object.assign(want, { photo: d.post.photo, liked: d.post.liked, likes: d.post.likes, mine: d.post.mine, canDelete: d.post.canDelete });
         if (ST.list[ST.i] === want && !$("story").classList.contains("hidden")) {
           img.src = want.photo;
           like.classList.toggle("on", !!want.liked); like.textContent = `${want.liked ? "❤️" : "🤍"} ${want.likes}`;
-          s.querySelector(".more").textContent = want.mine ? "🗑️ 삭제" : "🚩 신고";
+          s.querySelector(".more").textContent = want.canDelete ? "🗑️ 삭제" : "🚩 신고";
         }
       } catch (e) { if (e.status === 404) toast(e.message); }
     }
@@ -1977,13 +2010,13 @@
     const btn = $("story").querySelector(".more");
     if (btn.dataset.confirm !== String(p.id)) {
       btn.dataset.confirm = p.id;
-      btn.textContent = p.mine ? "정말 삭제할까요? 한 번 더 누르기" : "정말 신고할까요? 한 번 더 누르기";
-      setTimeout(() => { if (btn.dataset.confirm === String(p.id)) { btn.dataset.confirm = ""; btn.textContent = p.mine ? "🗑️ 삭제" : "🚩 신고"; } }, 3000);
+      btn.textContent = p.canDelete ? "정말 삭제할까요? 한 번 더 누르기" : "정말 신고할까요? 한 번 더 누르기";
+      setTimeout(() => { if (btn.dataset.confirm === String(p.id)) { btn.dataset.confirm = ""; btn.textContent = p.canDelete ? "🗑️ 삭제" : "🚩 신고"; } }, 3000);
       return;
     }
     btn.dataset.confirm = "";
     try {
-      if (p.mine) {
+      if (p.canDelete) {
         await api("/posts/" + p.id, { method: "DELETE" });
         toast("후기를 삭제했어요.");
         ST.list.splice(ST.i, 1);
@@ -2052,6 +2085,7 @@
     $("me-grid").innerHTML = ""; $("me-msg").textContent = "불러오는 중...";
     try {
       const d = await api("/me");
+      setAuth(AUTH.token, d.user);
       MINE = d.posts;
       $("me-grid").innerHTML = MINE.map((p, i) => cardHTML(p, i, true)).join("");
       $("me-msg").textContent = MINE.length ? "" : "아직 올린 후기가 없어요.";
@@ -2184,6 +2218,112 @@
       if (er.status === 401) { afterLogin = { seed: W.seed }; showComm("auth"); }
     } finally { btn.disabled = false; btn.textContent = "올리기"; }
   });
+
+  // ---------- 비밀번호 변경 ----------
+  $("pw-btn").addEventListener("click", async () => {
+    const pw = $("pw-old").value, np = $("pw-new").value;
+    if (!pw || !np) { toast("현재 비밀번호와 새 비밀번호를 입력해 주세요."); return; }
+    if (np.length < 8) { toast("새 비밀번호는 8자 이상으로 만들어 주세요."); return; }
+    if (np !== $("pw-new2").value) { toast("새 비밀번호 확인이 일치하지 않아요."); return; }
+    try {
+      await api("/me/password", { method: "POST", body: { pw, newPw: np } });
+      ["pw-old", "pw-new", "pw-new2"].forEach((id) => ($(id).value = ""));
+      toast("비밀번호를 바꿨어요.");
+    } catch (e) { toast(e.message); }
+  });
+
+  // ---------- 업데이트 내역 (관리자 전용) ----------
+  const APP_VERSION = "v1.3";
+  const CHANGELOG = [
+    ["v1.3", "2026-11-09", "관리자 기능", [
+      "관리자 계정(aiadmin) 추가. 관리자 아이디·'관리자' 닉네임은 일반 회원가입으로 만들 수 없게 막음",
+      "관리자에게만 보이는 '📋 업데이트 내역' 버튼과 버전별 변경 기록",
+      "관리자는 규칙을 어긴 후기를 바로 삭제할 수 있음",
+      "내 정보에 비밀번호 변경 추가 (바꾸면 다른 기기 로그인은 끊김)",
+    ]],
+    ["v1.2", "2026-11-09", "가입 우선 화면과 동의 정리", [
+      "첫 화면을 회원가입으로 변경, 오른쪽 아래 '가입 없이 음식만 추천받기' 버튼 추가",
+      "가입 화면 맨 위에 개인정보 안내 표(받는 정보·목적·보관 기간·국외 이전·공개 범위·권리)",
+      "필수 동의에 '커뮤니티 이용 규칙' 추가, 처리 위탁 업체 고지",
+      "이 기기에서 가입·로그인한 적이 있으면 로그인 탭을 먼저 보여 줌",
+      "업로드 파일 이름 규칙: song-meal-pages_날짜_rev번호.zip",
+    ]],
+    ["v1.1", "2026-11-09", "후기·좋아요·코너별 순위", [
+      "회원가입·로그인 (아이디·비밀번호·닉네임만, 비밀번호 암호화 저장)",
+      "'이 조합으로 후기 올리기': 노래·메뉴·식당 자동 채움, 음식 사진과 한 줄 후기",
+      "인스타 스토리처럼 넘겨 보는 후기 화면 (앨범 이미지, 30초 미리듣기, 좋아요, 신고)",
+      "음식 종류 7개 코너별 좋아요 TOP 3 순위",
+      "내 정보: 내 후기 보기·삭제, 로그아웃, 회원 탈퇴",
+      "신고 3건 자동 숨김, 하루 20개 글 제한, 로그인 5회 실패 시 5분 잠금",
+      "서버: Cloudflare Worker(song-meal-api) + D1 데이터베이스, 개인정보 처리방침 개정",
+    ]],
+    ["v1.0", "2026-11-09", "Cloudflare Pages로 이전", [
+      "메인 주소를 song-meal.pages.dev로 이전 (GitHub 계정 정지 대비), GitHub Pages는 예비 주소로 유지",
+      "식당 검색 Worker가 새 주소에서도 동작하도록 허용 주소 추가",
+      "다른 계정에서 이어 작업할 수 있게 인수인계 문서(HANDOFF.md) 작성",
+    ]],
+    ["v0.9", "2026-11-09", "공식 캐릭터와 사용성", [
+      "공식 캐릭터(헤드폰 쓴 고양이) 추가: 로고, 첫 화면 인사, 로딩 화면, 공유 이미지",
+      "사이트 아이콘(파비콘)을 캐릭터 얼굴로 교체",
+      "곡 분위기 입력 삭제 (장르로 자동 추정)",
+      "뒤로가기를 누르면 사이트를 나가지 않고 이전 화면으로 이동",
+      "노래를 입력하지 않으면 다음으로 넘어가지 않음",
+      "추천받기를 누르면 화면 가운데에 흐린 배경과 캐릭터 로딩 표시",
+    ]],
+    ["v0.8", "2026-11-09", "디자인과 추천 정확도", [
+      "링크 공유 미리보기와 브라우저 탭 이름을 '음식점'으로 통일, 공유 이미지(og.png) 추가",
+      "'국물요리' 같은 조건을 추천 메뉴 3개 모두에 적용 (모자라면 안내)",
+      "입력 칸·버튼·칩을 둥글고 귀여운 디자인으로 변경 (Jua 글꼴, 이모지)",
+    ]],
+    ["v0.7", "2026-11-09", "입력 화면 개편과 길찾기", [
+      "로고를 누르면 처음 화면으로 이동",
+      "곡 에너지 입력 삭제 (장르로 추정), 식사 시간을 그 자리로 이동",
+      "날씨·음식 종류를 여러 개 고를 수 있는 체크 칩으로 변경",
+      "고른 식당까지 네이버 지도 길찾기 연결 (휴대폰은 네이버 지도 앱)",
+      "'지도에서 직접 고르기' 가독성 개선, 라이트/다크/시스템 테마 선택",
+    ]],
+    ["v0.6", "2026-11-09", "개인정보 동의", [
+      "처음 들어올 때 한국 법령 기준 개인정보 수집·이용 동의 화면 (필수/선택 구분)",
+      "개인정보 처리방침 페이지 추가",
+      "'다른 메뉴 추천'을 눌러도 같은 메뉴가 다시 나오지 않게 변경",
+    ]],
+    ["v0.5", "2026-11-09", "추천 품질과 화면 정리", [
+      "추천 메뉴 대폭 추가와 무작위 섞기로 다양화",
+      "근처(3km)에 맞는 식당이 없으면 없다고 안내",
+      "결과를 스크롤 없이 한 화면에 보이게 배치, 앨범 이미지와 미리듣기 추가",
+      "곡 검색 정확도 개선 (같은 제목 다른 가수 곡이 나오던 문제 수정)",
+      "유형 표시 제거, 위치 권한이 없을 때 '지도에서 직접 고르기' 추가",
+    ]],
+    ["v0.4", "2026-11-09", "곡 분석과 식당 검색", [
+      "'매운 음식 제외' 같은 음식 조건을 직접 입력",
+      "곡 분석: 시놉시스, 인트로·벌스·후렴 해설, BPM",
+      "키워드를 누르면 새 탭 대신 사이트 안 지도에 식당 표시 (네이버 검색 + Cloudflare Worker)",
+    ]],
+    ["v0.3", "2026-11-09", "네이버 지도 연결", [
+      "결과 화면에 네이버 지도와 마커, 주소 검색",
+      "'현재 위치' 버튼으로 동네 이름 자동 입력",
+    ]],
+    ["v0.2", "2026-11-09", "이름 변경과 API 정리", [
+      "Anthropic API 제거, 브라우저 안 규칙으로 추천",
+      "사이트 이름을 '음식점'으로 변경",
+    ]],
+    ["v0.1", "2026-11-09", "첫 버전", [
+      "C 언어 프로그램 '뮤직푸드'를 HTML5 웹사이트로 변환",
+      "노래 분위기 → 오늘의 메뉴 추천, GitHub Pages로 온라인 배포",
+    ]],
+  ];
+  $("log-ver").textContent = `현재 ${APP_VERSION}`;
+  $("log-body").innerHTML = CHANGELOG.map(([v, d, t, items]) => `
+    <section class="logv"><h3><span class="vtag">${esc(v)}</span> ${esc(t)} <small>${esc(d)}</small></h3>
+    <ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
+  $("nav-log").addEventListener("click", () => {
+    if (!(AUTH.user && AUTH.user.admin)) return;
+    $("logmodal").classList.remove("hidden"); document.body.style.overflow = "hidden";
+  });
+  const closeLog = () => { $("logmodal").classList.add("hidden"); document.body.style.overflow = ""; };
+  $("log-close").addEventListener("click", closeLog);
+  $("logmodal").addEventListener("click", (e) => { if (e.target === $("logmodal")) closeLog(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("logmodal").classList.contains("hidden")) closeLog(); });
 })();
 </script>
 </body>
