@@ -3,8 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>뮤직푸드</title>
-<meta name="description" content="노래의 분위기로 오늘의 메뉴와 네이버 지도 검색 키워드를 추천합니다.">
+<title>음식점</title>
+<meta name="description" content="노래 분위기로 오늘의 메뉴와 네이버 지도 검색 키워드를 추천합니다.">
+<!--
+  [네이버 지도 API 자리]
+  나중에 네이버 클라우드 플랫폼에서 Maps Client ID를 발급받은 뒤 아래 주석을 풀고 YOUR_CLIENT_ID를 바꾸세요.
+  <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=YOUR_CLIENT_ID"></script>
+-->
 <style>
   :root {
     --bg: #faf7f2; --card: #ffffff; --text: #1f1d1a; --muted: #6b665e;
@@ -34,7 +39,7 @@
   dd { margin: 0; }
   label { display: block; font-weight: 600; font-size: 14px; margin: 14px 0 6px; }
   label .opt { color: var(--muted); font-weight: 400; }
-  input[type=text], input[type=password], input[type=number], select {
+  input[type=text], input[type=number], select {
     width: 100%; padding: 11px 12px; font-size: 16px; color: var(--text);
     background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
   }
@@ -49,15 +54,12 @@
   button:disabled { opacity: .45; cursor: not-allowed; }
   button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
   .hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
-  .hint a { color: var(--accent); }
-  .error { color: var(--danger); font-size: 14px; margin-top: 12px; white-space: pre-wrap; word-break: break-word; }
+  .error { color: var(--danger); font-size: 14px; margin-top: 12px; }
   .hidden { display: none !important; }
   .song { font-size: 20px; font-weight: 700; margin: 0; }
   .mood { margin: 4px 0 12px; }
-  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; }
   .stat { background: var(--chip); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
-  .tags { color: var(--accent); font-weight: 600; font-size: 14px; }
-  .note { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
   .pick { border-top: 1px solid var(--line); padding: 14px 0; }
   .pick:first-of-type { border-top: 0; padding-top: 0; }
   .pick h3 { margin: 0 0 4px; font-size: 17px; }
@@ -68,23 +70,21 @@
     color: var(--accent); background: var(--accent-weak); border-radius: 999px; text-decoration: none;
   }
   .maps a:hover { text-decoration: underline; }
-  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -3px; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>🎧 뮤직푸드</h1>
-  <p class="sub">노래 → 곡 분위기 분석 → 오늘의 메뉴와 네이버 지도 검색 키워드</p>
+  <h1>🍽️ 음식점</h1>
+  <p class="sub">노래 분위기 → 오늘의 메뉴와 네이버 지도 검색 키워드</p>
 
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
     <h2>개인정보 수집·이용 동의</h2>
     <dl>
-      <dt>수집 항목</dt><dd>노래, 인원, 날씨, 위치, 식사 시간, 음식 종류, 음식 조건</dd>
-      <dt>이용 목적</dt><dd>곡 분석 및 음식·식당 검색 키워드 추천</dd>
-      <dt>처리</dt><dd>입력 정보는 추천 생성을 위해 AI 분석 서비스(Anthropic Claude)로 전송되며 별도 저장하지 않습니다.</dd>
+      <dt>수집 항목</dt><dd>노래, 곡 분위기, 인원, 날씨, 위치, 식사 시간, 음식 종류, 음식 조건</dd>
+      <dt>이용 목적</dt><dd>음식 및 식당 검색 키워드 추천</dd>
+      <dt>처리</dt><dd>입력 정보는 이 브라우저 안에서만 처리되며 서버로 전송하거나 저장하지 않습니다. 지도 버튼을 누르면 위치와 검색어가 네이버 지도로 전달됩니다.</dd>
     </dl>
     <label class="check"><input type="checkbox" id="agree"> 위 내용에 동의합니다.</label>
     <button id="enter" disabled>동의하고 시작하기</button>
@@ -96,7 +96,22 @@
     <h2>추천 조건 입력</h2>
 
     <label for="song">노래</label>
-    <input type="text" id="song" placeholder="링크 또는 '가수 - 곡명' (예: 아이유 - 밤편지)" required>
+    <input type="text" id="song" placeholder="'가수 - 곡명' (예: 아이유 - 밤편지)">
+
+    <div class="row">
+      <div>
+        <label for="energy">곡 에너지</label>
+        <select id="energy">
+          <option value="1">잔잔함</option><option value="2" selected>보통</option><option value="3">신남</option>
+        </select>
+      </div>
+      <div>
+        <label for="valence">곡 분위기</label>
+        <select id="valence">
+          <option value="1">어둡고 차분</option><option value="2" selected>무난</option><option value="3">밝고 경쾌</option>
+        </select>
+      </div>
+    </div>
 
     <div class="row">
       <div>
@@ -106,7 +121,7 @@
       <div>
         <label for="wx">날씨 <span class="opt">(선택)</span></label>
         <select id="wx">
-          <option value="없음">선택 안 함</option>
+          <option value="">선택 안 함</option>
           <option>맑음</option><option>흐림</option><option>비</option>
           <option>눈</option><option>더움</option><option>추움</option>
         </select>
@@ -114,7 +129,7 @@
     </div>
 
     <label for="loc">위치</label>
-    <input type="text" id="loc" placeholder="동네·역·지역명 (예: 성수역)" required>
+    <input type="text" id="loc" placeholder="동네·역·지역명 (예: 성수역)">
 
     <div class="row">
       <div>
@@ -133,39 +148,30 @@
       </div>
     </div>
 
-    <label for="flt">음식 조건 <span class="opt">(선택)</span></label>
-    <input type="text" id="flt" placeholder="예: 매운 것 제외">
-
-    <label for="key">Anthropic API 키</label>
-    <input type="password" id="key" placeholder="sk-ant-...">
-    <label class="check" style="font-weight:400;font-size:14px;margin-top:8px">
-      <input type="checkbox" id="remember"> 이 브라우저에 키 기억하기
+    <label class="check" style="font-weight:400;font-size:14px">
+      <input type="checkbox" id="nospicy"> 매운 음식 제외
     </label>
-    <p class="hint">키는 이 브라우저에서 Anthropic API로만 직접 전송되며, 사이트 서버나 저장소에는 저장되지 않습니다.
-      키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic 콘솔</a>에서 발급받을 수 있어요.</p>
 
-    <button type="submit" id="go">추천받기</button>
+    <button type="submit">추천받기</button>
     <div id="err" class="error hidden"></div>
   </form>
 
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
 
-  <footer>※ 음원을 직접 들은 분석이 아니라 곡·아티스트 지식에 기반한 추론입니다.</footer>
+  <!--
+    [네이버 지도 API 자리]
+    API를 붙이면 아래 div에 지도를 그리면 됩니다. 예:
+    <div id="map" style="width:100%;height:320px;border-radius:14px"></div>
+    new naver.maps.Map("map", { center: new naver.maps.LatLng(37.5446, 127.0557), zoom: 15 });
+  -->
+
+  <footer>※ 선택한 곡 분위기를 바탕으로 한 규칙 기반 추천입니다.</footer>
 </main>
 
 <script>
 (() => {
-  const MODEL = "claude-sonnet-5-5";
-  const KEY_STORE = "musicfood.apiKey";
   const $ = (id) => document.getElementById(id);
-
-  // ---------- 저장소 접근(실패해도 동작) ----------
-  const store = {
-    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
-    del(k) { try { localStorage.removeItem(k); } catch {} },
-  };
 
   // ---------- 동의 ----------
   $("agree").addEventListener("change", (e) => { $("enter").disabled = !e.target.checked; });
@@ -176,160 +182,155 @@
     $("song").focus();
   });
 
-  const saved = store.get(KEY_STORE);
-  if (saved) { $("key").value = saved; $("remember").checked = true; }
+  // ---------- 추천 데이터 (유형 A~F) ----------
+  // s: 매운 음식 여부
+  const TYPES = {
+    A: { mood: "잔잔하고 감성적인 분위기", foods: [
+      { food: "전골", kind: "한식", kw: ["전골 맛집", "곱창전골"], reason: "조용히 나눠 먹는 따뜻한 국물이 잔잔한 곡과 잘 맞아요." },
+      { food: "수제 파스타", kind: "양식", kw: ["수제 파스타 맛집", "조용한 파스타"], reason: "차분한 분위기에서 천천히 즐기기 좋아요." },
+      { food: "이자카야", kind: "일식", kw: ["이자카야", "분위기 좋은 이자카야"], reason: "은은한 조명 아래 감성적인 곡과 어울려요." },
+      { food: "샤브샤브", kind: "일식", kw: ["샤브샤브 맛집", "샤브샤브"], reason: "부담 없이 천천히 먹기 좋은 메뉴예요." },
+      { food: "딤섬", kind: "중식", kw: ["딤섬 맛집", "딤섬"], reason: "조금씩 나눠 먹으며 대화하기 좋아요." },
+    ]},
+    B: { mood: "잔잔하지만 밝고 산뜻한 분위기", foods: [
+      { food: "브런치", kind: "양식", kw: ["브런치 맛집", "브런치 카페"], reason: "가볍고 산뜻한 곡처럼 여유로운 한 끼예요." },
+      { food: "샌드위치", kind: "양식", kw: ["샌드위치 맛집", "수제 샌드위치"], reason: "가볍게 즐기기 좋은 메뉴예요." },
+      { food: "디저트 카페", kind: "카페·디저트", kw: ["디저트 카페", "케이크 맛집"], reason: "밝은 분위기에 달콤함을 더해 줘요." },
+      { food: "쌀국수", kind: "아시안", kw: ["쌀국수 맛집", "베트남 음식"], reason: "깔끔하고 산뜻한 맛이 곡과 어울려요." },
+      { food: "베이커리 카페", kind: "카페·디저트", kw: ["베이커리 카페", "빵 맛집"], reason: "갓 구운 빵과 커피로 여유를 즐겨요." },
+      { food: "포케·샐러드", kind: "양식", kw: ["포케 맛집", "샐러드 맛집"], reason: "가볍고 상큼한 한 끼로 좋아요." },
+    ]},
+    C: { mood: "적당히 경쾌하고 기분 좋은 분위기", foods: [
+      { food: "파스타·피자", kind: "양식", kw: ["파스타 맛집", "피자 맛집"], reason: "함께 나눠 먹기 좋은 무난한 메뉴예요." },
+      { food: "수제버거", kind: "양식", kw: ["수제버거 맛집", "수제버거"], reason: "경쾌한 리듬처럼 캐주얼한 한 끼예요." },
+      { food: "돈카츠", kind: "일식", kw: ["돈카츠 맛집", "돈까스"], reason: "누구나 좋아하는 든든한 메뉴예요." },
+      { food: "꿔바로우", kind: "중식", kw: ["꿔바로우 맛집", "중식당"], reason: "바삭하고 새콤달콤해서 기분이 좋아져요." },
+      { food: "와플·크로플", kind: "카페·디저트", kw: ["크로플 맛집", "와플 카페"], reason: "기분 좋은 곡처럼 달콤하고 바삭해요." },
+      { food: "김밥·분식", kind: "분식", kw: ["김밥 맛집", "분식 맛집"], reason: "가볍고 부담 없는 한 끼예요." },
+    ]},
+    D: { mood: "신나고 밝은 분위기", foods: [
+      { food: "치킨", kind: "한식", kw: ["치킨 맛집", "치킨 호프"], reason: "신나는 곡엔 역시 치킨이에요." },
+      { food: "떡볶이", kind: "분식", s: true, kw: ["떡볶이 맛집", "즉석떡볶이"], reason: "흥겨운 분위기에 딱 맞는 분식이에요." },
+      { food: "곱창", kind: "한식", kw: ["곱창 맛집", "소곱창"], reason: "북적이는 분위기에서 즐기기 좋아요." },
+      { food: "바비큐", kind: "양식", kw: ["바비큐 맛집", "텍사스 바비큐"], reason: "에너지 넘치는 곡과 잘 어울려요." },
+      { food: "튀김·순대", kind: "분식", kw: ["튀김 맛집", "순대 맛집"], reason: "왁자지껄 나눠 먹기 좋은 분식이에요." },
+      { food: "타코", kind: "아시안", kw: ["타코 맛집", "멕시칸 음식"], reason: "경쾌하고 화려한 맛이에요." },
+    ]},
+    E: { mood: "강렬하고 묵직한 분위기", foods: [
+      { food: "마라탕", kind: "중식", s: true, kw: ["마라탕 맛집", "마라샹궈"], reason: "강렬한 곡엔 얼얼한 맛이 어울려요." },
+      { food: "삼겹살 구이", kind: "한식", kw: ["삼겹살 맛집", "고기집"], reason: "묵직한 곡처럼 든든한 고기구이예요." },
+      { food: "매운 갈비찜", kind: "한식", s: true, kw: ["매운 갈비찜", "갈비찜 맛집"], reason: "화끈한 맛이 강한 사운드와 어울려요." },
+      { food: "짬뽕", kind: "중식", s: true, kw: ["짬뽕 맛집", "불짬뽕"], reason: "얼큰한 국물로 에너지를 채워요." },
+      { food: "인도 커리", kind: "아시안", s: true, kw: ["커리 맛집", "인도 음식"], reason: "향신료 가득한 강렬한 맛이에요." },
+      { food: "화덕 피자", kind: "양식", kw: ["화덕 피자 맛집", "화덕 피자"], reason: "불맛 가득한 강렬한 메뉴예요." },
+    ]},
+    F: { mood: "차분하고 서정적인 분위기", foods: [
+      { food: "한식 정식", kind: "한식", kw: ["한정식 맛집", "백반 맛집"], reason: "따뜻하고 정갈한 한 끼가 위로가 돼요." },
+      { food: "라멘", kind: "일식", kw: ["라멘 맛집", "돈코츠 라멘"], reason: "진한 국물이 서정적인 곡과 어울려요." },
+      { food: "우동", kind: "일식", kw: ["우동 맛집", "수제 우동"], reason: "부드럽고 따뜻한 면 요리예요." },
+      { food: "스튜", kind: "양식", kw: ["스튜 맛집", "비프 스튜"], reason: "천천히 몸을 녹여 주는 메뉴예요." },
+      { food: "짜장면", kind: "중식", kw: ["짜장면 맛집", "중국집"], reason: "익숙하고 편안한 맛이에요." },
+    ]},
+  };
 
-  // ---------- 프롬프트 ----------
-  function buildPrompt(v) {
-    return (
-      "[Role] 당신은 음악 감성 분석가이자 음식 큐레이터입니다. 곡의 분위기를 스스로 판별하고 " +
-      "그에 어울리는 메뉴와 식당 검색 키워드를 추천합니다.\n" +
-      "[제약] 음원을 들을 수 없습니다. 곡명·아티스트에 대한 학습 지식(장르, 알려진 BPM, 악기, " +
-      "가사 분위기, 스타일, 발매 시기)으로 추론하세요. 확실히 아는 곡이 아니면 지어내지 마세요. " +
-      "곡은 모르지만 아티스트를 알면 아티스트 스타일로 추론하고, 둘 다 모르면 mood_hint를 쓰고, " +
-      "그것도 없으면 confidence를 low로 하고 무난한 메뉴를 추천하세요. " +
-      "confidence: high(곡을 구체적으로 앎) / medium(아티스트·장르 수준) / low(거의 모름). " +
-      "입력이 링크면 링크 속 제목·가수를 파악하되 불가하면 그 사실을 basis에 밝히세요.\n" +
-      `[Input] song: ${v.song} / weather: ${v.wx} / mood_hint: 없음 / food_filter: ${v.flt}\n` +
-      `추가 조건: 인원 ${v.ppl}명, 위치 ${v.loc}, 식사 시간 ${v.meal}, 음식 종류 ${v.kind}(상관없음이면 무시). ` +
-      "food_filter와 음식 종류는 반드시 지키세요.\n" +
-      "[Step 1] energy(1~5 정수), tempo(느림(~80BPM)/보통(80~110)/빠름(110~140)/매우 빠름(140~) 중 하나), " +
-      "valence(1~5 정수), texture(핵심 악기·사운드), genre, keywords(분위기 키워드 정확히 3개)를 도출하세요.\n" +
-      "[Step 2] energy·valence·장르로 가장 가까운 유형을 고르고, 둘 이상에 걸치면 weather와 mood_hint로 정하세요.\n" +
-      "A 저에너지+저·중valence(발라드, 어쿠스틱, 몽환, 새벽 감성): 전골·국물 요리, 수제 파스타, 와인바, 이자카야, 조용한 다이닝\n" +
-      "B 저에너지+고valence(보사노바, 시티팝, 잔잔한 인디팝): 브런치, 샌드위치, 샐러드, 디저트 카페, 테라스\n" +
-      "C 중에너지+중·고valence(팝, 어쿠스틱 팝, 알앤비): 파스타·피자, 수제버거, 수제맥주 펍, 캐주얼 레스토랑\n" +
-      "D 고에너지+고valence(댄스, EDM, 신나는 K-pop, 펑크): 치킨, 떡볶이·분식, 곱창, 포차·펍, 바비큐\n" +
-      "E 고에너지+저·중valence(록, 힙합, 메탈, 강렬한 곡): 마라탕, 매운 요리, 고기구이, 화덕 요리\n" +
-      "F 중에너지+저valence(서정 인디, 우울한 알앤비): 따뜻한 한식 정식, 라멘·우동, 스튜, 카페 식사\n" +
-      "날씨 보정: 비→전·국물·면, 더움→냉면·시원한 메뉴, 추움→뜨끈한 국물.\n" +
-      "[Output] 음식 3가지를 고르고 각 음식마다 네이버 지도에서 검색할 키워드 2개(위치 제외, 예: \"수제 파스타 맛집\")를 주세요. " +
-      "상호는 지어내지 마세요. 오직 JSON만 출력:\n" +
-      '{"song":"가수 – 곡명","confidence":"high|medium|low","basis":"추론 근거 1문장",' +
-      '"energy":3,"tempo":"","valence":3,"texture":"","genre":"","keywords":["","",""],' +
-      '"type":"A~F","mood":"분위기 한 줄 요약",' +
-      '"picks":[{"food":"음식명","reason":"어울리는 이유 1~2문장","search_keywords":["",""]}]}'
-    );
+  // 날씨 보정: 해당 날씨면 이 메뉴들을 먼저 고려
+  const WEATHER = {
+    "비": [
+      { food: "파전", kind: "한식", kw: ["파전 맛집", "전집"], reason: "비 오는 날엔 역시 전이죠." },
+      { food: "칼국수", kind: "한식", kw: ["칼국수 맛집", "바지락 칼국수"], reason: "비 오는 날 따뜻한 면 국물이 좋아요." },
+    ],
+    "더움": [
+      { food: "냉면", kind: "한식", kw: ["냉면 맛집", "평양냉면"], reason: "더운 날 시원하게 즐기기 좋아요." },
+      { food: "빙수", kind: "카페·디저트", kw: ["빙수 맛집", "빙수 카페"], reason: "더위를 식혀 주는 디저트예요." },
+    ],
+    "추움": [
+      { food: "국밥", kind: "한식", kw: ["국밥 맛집", "순대국"], reason: "추운 날 뜨끈한 국물이 최고예요." },
+      { food: "훠궈", kind: "중식", s: true, kw: ["훠궈 맛집", "훠궈"], reason: "추운 날 뜨겁게 끓여 먹기 좋아요." },
+    ],
+  };
+  WEATHER["눈"] = WEATHER["추움"];
+
+  // 에너지(1~3) × 분위기(1~3) → 유형
+  function pickType(energy, valence) {
+    if (energy === 1) return valence === 3 ? "B" : "A";
+    if (energy === 2) return valence === 1 ? "F" : "C";
+    return valence === 3 ? "D" : "E";
   }
 
-  // ---------- Claude API ----------
-  async function callClaude(key, prompt) {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 2000,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      const msg = data?.error?.message || res.statusText;
-      if (res.status === 401) throw new Error("API 키가 올바르지 않습니다. 키를 다시 확인해 주세요.");
-      throw new Error(`API 응답 오류 (${res.status}): ${msg}`);
-    }
-    const text = (data?.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
-    if (!text) throw new Error("API 응답에 텍스트가 없습니다.");
-    return text;
+  const ALL_FOODS = [...Object.values(TYPES).flatMap((t) => t.foods), ...WEATHER["비"], ...WEATHER["더움"], ...WEATHER["추움"]];
+
+  function recommend(v) {
+    const type = pickType(v.energy, v.valence);
+    const ok = (f) => (v.kind === "상관없음" || f.kind === v.kind) && !(v.nospicy && f.s);
+    const picks = [];
+    const add = (f) => { if (picks.length < 3 && ok(f) && !picks.some((p) => p.food === f.food)) picks.push(f); };
+    const wxFood = (WEATHER[v.wx] || []).find(ok);   // 날씨 메뉴는 조건에 맞는 것 1개까지
+    if (wxFood) add(wxFood);
+    TYPES[type].foods.forEach(add);
+    ALL_FOODS.forEach(add);                          // 음식 종류 조건으로 부족하면 다른 유형에서 채움
+    return { type, mood: TYPES[type].mood, picks };
   }
 
-  function parseResult(text) {
-    const s = text.indexOf("{"), e = text.lastIndexOf("}");
-    if (s < 0 || e < s) return null;
-    try { return JSON.parse(text.slice(s, e + 1)); } catch { return null; }
-  }
-
-  // ---------- 결과 렌더링 ----------
+  // ---------- 결과 ----------
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const num = (n) => (Number.isFinite(+n) ? Math.round(+n) : 0);
   const naverUrl = (loc, kw) => "https://map.naver.com/p/search/" + encodeURIComponent(`${loc} ${kw}`);
-  const CONF = { high: "높음", medium: "보통", low: "낮음" };
+  const E_LABEL = ["", "잔잔함", "보통", "신남"], V_LABEL = ["", "어둡고 차분", "무난", "밝고 경쾌"];
 
-  function render(r, loc) {
-    const kws = (r.keywords || []).filter((k) => typeof k === "string").map((k) => "#" + esc(k)).join(" ");
-    const picks = (r.picks || []).map((p, i) => {
-      const links = (p.search_keywords || []).filter((k) => typeof k === "string").map((k) =>
-        `<a href="${naverUrl(loc, k)}" target="_blank" rel="noopener">📍 ${esc(k)}</a>`).join("");
-      return `<div class="pick">
-          <h3>${i + 1}. ${esc(p.food)}</h3>
-          <p>${esc(p.reason)}</p>
-          <div class="maps">${links}</div>
-        </div>`;
-    }).join("");
+  function render(v, r) {
+    const picks = r.picks.map((p, i) => `
+      <div class="pick">
+        <h3>${i + 1}. ${esc(p.food)}</h3>
+        <p>${esc(p.reason)}</p>
+        <div class="maps">${p.kw.map((k) => `<a href="${naverUrl(v.loc, k)}" target="_blank" rel="noopener">📍 ${esc(k)}</a>`).join("")}</div>
+      </div>`).join("");
 
     $("result").innerHTML = `
       <div class="card">
-        <p class="song">🎧 ${esc(r.song)}</p>
+        <p class="song">🎧 ${esc(v.song || "선택한 곡")}</p>
         <p class="mood">${esc(r.mood)}</p>
         <div class="stats">
-          <span class="stat">에너지 ${num(r.energy)}/5</span>
-          <span class="stat">밝기 ${num(r.valence)}/5</span>
-          <span class="stat">${esc(r.tempo)}</span>
-          ${r.type ? `<span class="stat">유형 ${esc(r.type)}</span>` : ""}
+          <span class="stat">에너지 ${E_LABEL[v.energy]}</span>
+          <span class="stat">${V_LABEL[v.valence]}</span>
+          <span class="stat">유형 ${r.type}</span>
+          ${v.wx ? `<span class="stat">${esc(v.wx)}</span>` : ""}
+          <span class="stat">${esc(v.ppl)}명 · ${esc(v.meal)}</span>
         </div>
-        <div style="font-size:14px">${esc(r.genre)} · ${esc(r.texture)}</div>
-        <div class="tags">${kws}</div>
-        <div class="note">추론 확신도: <b>${esc(CONF[r.confidence] || r.confidence)}</b> — ${esc(r.basis)}<br>
-          ※ 음원을 직접 들은 분석이 아니라 곡·아티스트 지식에 기반한 추론입니다.</div>
       </div>
       <div class="card">
-        <h2>🍽️ 오늘의 추천 음식 <span class="opt" style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(loc)}</span></h2>
-        ${picks || "<p>추천 결과가 없습니다.</p>"}
+        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:14px;color:var(--muted)">· ${esc(v.loc)}</span></h2>
+        ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
       </div>
-      <button class="ghost" id="again" type="button">다른 노래로 다시 하기</button>`;
+      <button class="ghost" id="again" type="button">다시 하기</button>`;
     $("result").classList.remove("hidden");
     $("again").addEventListener("click", () => {
       $("result").classList.add("hidden");
       $("form").classList.remove("hidden");
-      $("song").select();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
-  // ---------- 제출 ----------
-  function showErr(msg) { $("err").textContent = msg; $("err").classList.remove("hidden"); }
-
-  $("form").addEventListener("submit", async (e) => {
+  $("form").addEventListener("submit", (e) => {
     e.preventDefault();
     $("err").classList.add("hidden");
     const v = {
       song: $("song").value.trim(),
+      energy: +$("energy").value,
+      valence: +$("valence").value,
       ppl: $("ppl").value.trim() || "2",
       wx: $("wx").value,
       loc: $("loc").value.trim(),
       meal: $("meal").value,
       kind: $("kind").value,
-      flt: $("flt").value.trim() || "없음",
+      nospicy: $("nospicy").checked,
     };
-    const key = $("key").value.trim();
-    if (!v.song) return showErr("노래를 입력해 주세요.");
-    if (!v.loc) return showErr("위치를 입력해 주세요.");
-    if (!key) return showErr("Anthropic API 키를 입력해 주세요.");
-
-    if ($("remember").checked) store.set(KEY_STORE, key); else store.del(KEY_STORE);
-
-    const btn = $("go");
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>곡을 분석하는 중...';
-    try {
-      const text = await callClaude(key, buildPrompt(v));
-      const r = parseResult(text);
-      if (!r) throw new Error("결과를 해석하지 못했습니다:\n" + text);
-      $("form").classList.add("hidden");
-      render(r, v.loc);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-      showErr(err.message || String(err));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "추천받기";
+    if (!v.loc) {
+      $("err").textContent = "위치를 입력해 주세요.";
+      $("err").classList.remove("hidden");
+      return;
     }
+    $("form").classList.add("hidden");
+    render(v, recommend(v));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 })();
 </script>
