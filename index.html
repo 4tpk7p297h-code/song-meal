@@ -346,7 +346,10 @@
   .story .shade { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.55), transparent 22%, transparent 55%, rgba(0,0,0,.8)); pointer-events: none; }
   .story .bars { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; }
   .story .bars i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.35); }
-  .story .bars i.on { background: #fff; }
+  #rank #feed { margin-top: 14px; }
+  .story .bars i { position: relative; overflow: hidden; }
+  .story .bars i b { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #fff; }
+  .story .bars i.on b { width: 100%; }
   .story .head { position: absolute; top: 22px; left: 14px; right: 14px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
   .story .head b { font-size: 16px; }
   .story .head small { opacity: .8; }
@@ -464,8 +467,7 @@
     <div class="topr">
     <nav class="cnav" aria-label="커뮤니티">
       <button type="button" id="nav-music">🎵 음악찾기</button>
-      <button type="button" id="nav-feed">📸 스토리</button>
-      <button type="button" id="nav-rank">🏆 순위</button>
+      <button type="button" id="nav-rank">🏆 순위·스토리</button>
       <button type="button" id="nav-me">👤 가입·로그인</button>
       <button type="button" id="nav-logout" class="hidden" title="로그아웃">🚪 로그아웃</button>
       <button type="button" id="nav-admin" class="hidden">🛠️ 관리패널</button>
@@ -603,32 +605,29 @@
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
 
-  <!-- 4. 커뮤니티: 스토리 -->
-  <section id="feed" class="card hidden">
-    <div class="chead">
-      <h2>📸 음식 × 노래 스토리</h2>
-      <button type="button" class="mini" id="feed-write">＋ 후기 올리기</button>
-    </div>
-    <div class="chips corner" id="feed-kind"></div>
-    <div class="seg" id="feed-sort">
-      <button type="button" data-sort="new" class="on">🆕 최신순</button>
-      <button type="button" data-sort="top">❤️ 좋아요순</button>
-    </div>
-    <div class="grid" id="feed-grid"></div>
-    <p class="hint center" id="feed-msg"></p>
-    <button type="button" class="ghost hidden" id="feed-more">더 보기</button>
-  </section>
-
-  <!-- 5. 커뮤니티: 코너별 순위 -->
+  <!-- 4. 커뮤니티: 코너별 순위 + 모든 스토리 -->
   <section id="rank" class="hidden">
     <div class="card">
       <div class="chead">
         <h2>🏆 코너별 순위</h2>
         <button type="button" class="mini" id="rank-write">＋ 후기 올리기</button>
       </div>
-      <p class="hint" style="margin:0">좋아요를 많이 받은 음식 × 노래 조합 TOP 3예요. 누르면 스토리로 볼 수 있어요.</p>
+      <p class="hint" style="margin:0">좋아요를 많이 받은 음식 × 노래 조합 TOP 3예요. 누르면 스토리로 볼 수 있어요. 아래에서 모든 스토리도 볼 수 있어요.</p>
     </div>
     <div class="rankgrid" id="rank-box"></div>
+    <section id="feed" class="card">
+      <div class="chead">
+        <h2>📸 모든 스토리</h2>
+      </div>
+      <div class="chips corner" id="feed-kind"></div>
+      <div class="seg" id="feed-sort">
+        <button type="button" data-sort="new" class="on">🆕 최신순</button>
+        <button type="button" data-sort="top">❤️ 좋아요순</button>
+      </div>
+      <div class="grid" id="feed-grid"></div>
+      <p class="hint center" id="feed-msg"></p>
+      <button type="button" class="ghost hidden" id="feed-more">더 보기</button>
+    </section>
   </section>
 
   <!-- 6. 로그인 / 회원가입 -->
@@ -1968,12 +1967,13 @@
   }
   function markNav(name) {
     $("nav-music").classList.toggle("on", !name);
-    $("nav-feed").classList.toggle("on", name === "feed");
     $("nav-rank").classList.toggle("on", name === "rank");
     $("nav-me").classList.toggle("on", name === "me" || name === "auth");
     $("nav-admin").classList.toggle("on", name === "admin");
   }
   function showComm(name) {
+    const toFeed = name === "feed";   // 스토리 목록은 순위 탭 안에 있음
+    if (toFeed) name = "rank";
     if (name === "me" && !AUTH.user) name = "auth";
     if (name === "write" && !AUTH.user) name = "auth";
     if (name === "admin" && !AUTH.user) name = "auth";
@@ -1988,10 +1988,13 @@
       ? "음식점에 오신 걸 환영해요! 🎶<br>가입하고 나만의 음식 × 노래 조합을 올려 보세요."
       : "가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!";
     window.scrollTo({ top: 0 });
-    if (name === "feed") loadFeed(true);
-    if (name === "rank") loadRank();
+    if (name === "rank") {
+      $("feed").classList.remove("hidden");
+      loadRank(); loadFeed(true);
+      if (toFeed) setTimeout(() => $("feed").scrollIntoView({ behavior: "smooth" }), 50);
+    }
     if (name === "me") loadMe();
-    if (name === "admin") { if (!(AUTH.user && AUTH.user.admin)) { showComm("feed"); return; } admTab(ADM.tab); }
+    if (name === "admin") { if (!(AUTH.user && AUTH.user.admin)) { showComm("rank"); return; } admTab(ADM.tab); }
   }
   function openComm(name) {
     if (history.state && history.state.screen === name) { showComm(name); return; }
@@ -2006,10 +2009,8 @@
     showScreen(s);
   }
   $("skipbtn").addEventListener("click", () => { showScreen("consent"); markNav(""); go("consent"); });
-  $("nav-feed").addEventListener("click", () => openComm("feed"));
   $("nav-rank").addEventListener("click", () => openComm("rank"));
   $("nav-me").addEventListener("click", () => openComm(AUTH.user ? "me" : "auth"));
-  $("feed-write").addEventListener("click", () => openWrite(null));
   $("rank-write").addEventListener("click", () => openWrite(null));
 
   // ---------- 스토리 목록 ----------
@@ -2081,7 +2082,9 @@
   });
 
   // ---------- 스토리 보기 ----------
-  const ST = { list: [], i: 0, audio: null, pushed: false };
+  // 스토리: 미리듣기를 자동 재생하고, 끝나면 다음 스토리로 (미리듣기가 없으면 7초 뒤)
+  const ST = { list: [], i: 0, el: new Audio(), timer: 0, pushed: false, pending: false };
+  const NOSONG_MS = 7000;
   function openStory(list, i) {
     if (!list || !list[i]) return;
     ST.list = list; ST.i = i;
@@ -2090,7 +2093,30 @@
     if (!ST.pushed) { history.pushState({ ...(history.state || {}), story: 1, d: ((history.state && history.state.d) || 0) + 1 }, ""); ST.pushed = true; }
     drawStory();
   }
-  function stopAudio() { if (ST.audio) { ST.audio.pause(); ST.audio = null; } }
+  function stopAudio() {
+    clearTimeout(ST.timer); ST.pending = false;
+    ST.el.onended = ST.el.ontimeupdate = null; ST.el.pause();
+  }
+  const curBar = () => $("story").querySelector(".bars i.cur b");
+  function autoNext() {
+    if (!csheet().classList.contains("hidden")) { ST.pending = true; return; }   // 댓글을 보는 중이면 닫을 때 넘어감
+    stepStory(1);
+  }
+  function runTimer(ms) {
+    const b = curBar(); if (b) { b.style.transition = "none"; b.style.width = "0"; void b.offsetWidth; b.style.transition = `width ${ms}ms linear`; b.style.width = "100%"; }
+    ST.timer = setTimeout(autoNext, ms);
+  }
+  function startPlay(p) {
+    stopAudio();
+    const pb = $("story").querySelector(".play");
+    if (!p.preview) { runTimer(NOSONG_MS); return; }
+    const a = ST.el;
+    a.src = p.preview; a.currentTime = 0;
+    a.ontimeupdate = () => { const b = curBar(); if (b && a.duration) b.style.width = (a.currentTime / a.duration) * 100 + "%"; };
+    a.onended = () => { if (pb) pb.textContent = "▶"; autoNext(); };
+    a.play().then(() => { if (pb) pb.textContent = "❚❚"; })
+      .catch(() => { if (pb) pb.textContent = "▶"; runTimer(NOSONG_MS); });   // 브라우저가 자동 재생을 막으면 시간으로 넘어감
+  }
   function closeStory(fromHistory) {
     if ($("story").classList.contains("hidden")) return;
     stopAudio();
@@ -2102,7 +2128,7 @@
   async function drawStory() {
     stopAudio();
     const p = ST.list[ST.i], s = $("story");
-    s.querySelector(".bars").innerHTML = ST.list.map((_, j) => `<i class="${j <= ST.i ? "on" : ""}"></i>`).join("");
+    s.querySelector(".bars").innerHTML = ST.list.map((_, j) => `<i class="${j < ST.i ? "on" : j === ST.i ? "cur" : ""}"><b></b></i>`).join("");
     s.querySelector(".bgblur").style.backgroundImage = `url("${p.thumb}")`;
     const img = s.querySelector(".photo"); img.src = p.photo || p.thumb; img.alt = `${p.menu} 사진`;
     s.querySelector(".who").innerHTML = `<b>${esc(p.nick)}님</b> <small>${KIND_EMO[p.kind] || ""} ${esc(p.kind)} 코너 · ${ago(p.created)}</small>`;
@@ -2121,10 +2147,13 @@
     const pb = s.querySelector(".play");
     if (pb) pb.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (ST.audio) { stopAudio(); pb.textContent = "▶"; return; }
-      ST.audio = new Audio(p.preview); ST.audio.play().catch(() => {}); pb.textContent = "❚❚";
-      ST.audio.addEventListener("ended", () => { pb.textContent = "▶"; ST.audio = null; });
+      const a = ST.el;
+      clearTimeout(ST.timer);
+      if (!a.paused) { a.pause(); pb.textContent = "▶"; return; }
+      if (a.src !== p.preview) { startPlay(p); return; }
+      a.play().then(() => { pb.textContent = "❚❚"; }).catch(() => {});
     });
+    startPlay(p);
     if (!p.photo) {
       const want = p;
       try {
@@ -2166,7 +2195,10 @@
       p.cache = CM.list = d.comments; setCount(p, d.comments.length); drawComments();
     } catch (e) { toast(e.message); }
   }
-  function closeComments() { csheet().classList.add("hidden"); CM.post = null; }
+  function closeComments() {
+    csheet().classList.add("hidden"); CM.post = null;
+    if (ST.pending) { ST.pending = false; stepStory(1); }
+  }
   cbtn().addEventListener("click", openComments);
   $("story").querySelector(".cx").addEventListener("click", closeComments);
   $("story").querySelector(".cf").addEventListener("submit", async (e) => {
@@ -2460,8 +2492,13 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.7";
+  const APP_VERSION = "v1.8";
   const CHANGELOG = [
+    ["v1.8", "2026-11-10", "순위 탭에 스토리 합치기, 스토리 자동 재생", [
+      "헤더의 📸 스토리 탭을 없애고 🏆 순위·스토리 탭 안(코너별 TOP 3 아래)에 모든 스토리 목록을 넣음",
+      "스토리를 열면 노래 미리듣기가 자동 재생되고, 재생이 끝나면 다음 스토리로 넘어감 (미리듣기가 없으면 7초 뒤)",
+      "스토리 위쪽 막대가 재생 진행 상황을 보여 줌, 댓글을 보는 중에는 넘어가지 않고 댓글을 닫으면 넘어감",
+    ]],
     ["v1.7", "2026-11-10", "음악찾기 버튼, 뮤디의 추천 음식", [
       "헤더 맨 앞에 🎵 음악찾기 버튼 추가 (로고 '음식점'을 누른 것과 같은 화면으로 이동)",
       "추천 결과 제목 '오늘의 추천 음식'을 '뮤디의 추천 음식'으로 변경",
