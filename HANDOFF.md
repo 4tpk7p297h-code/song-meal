@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-10 (사이트 v1.6, 업로드 zip rev6)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-10 (사이트 v1.7, 업로드 zip 20261110_rev1)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -65,6 +65,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v1.7: 헤더 맨 앞 🎵 음악찾기(로고와 같은 동작), 결과 제목 '뮤디의 추천 음식'. 공식 캐릭터 이름은 '뮤디'
 - v1.6: 추천 입력의 노래 칸을 '가수 이름'(선택) + '노래 제목'(필수)으로 나눔. 검색할 때는 '가수 - 곡명'으로 합침
 - v1.5: 헤더 🚪 로그아웃 버튼, 스토리 💬 댓글(comments 표, 150자, 시간당 30개, 본인·글쓴이·관리자 삭제), 결과 화면 유튜브·스포티파이·애플뮤직 전곡 듣기 링크(검색 URL, 애플은 iTunes trackViewUrl 우선)
 - 관리자 패널(헤더 🛠️ 관리패널, 관리자만 보임): 통계, 후기 관리(신고·숨김 필터, 신고 사유, 숨김/해제, 삭제), 회원 관리(닉네임 변경, 임시 비밀번호 발급, 잠금 해제, 계정 삭제), 업데이트 내역
@@ -77,7 +78,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 ## 9. 인수인계 묶음 사용법 (새 Claude에게)
 - 이 zip 안: HANDOFF.md(이 문서), site/(사이트 파일, Pages에 올리는 것과 같음), worker/(song-meal-api.js, naver-search.js, schema.sql, comments-setup.sql)
 - 지금 서비스는 이미 Cloudflare(Pages·Worker·D1)에서 돌아가고 있음. 새로 만들 필요 없이, 고친 파일을 사용자에게 주면 사용자가 대시보드에서 직접 올림
-  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261109_rev6)
+  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261110_rev1)
   - 서버 변경: song-meal-api.js 전체를 Worker 편집기에 붙여 넣고 Deploy
   - DB 변경: 주석 없는 SQL을 D1 Console에 붙여 넣기 (주석이 있으면 "No SQL statements detected")
 - 회원·후기 데이터는 D1 안에 있어서 이 zip에는 없음 (백업은 D1 → Export)

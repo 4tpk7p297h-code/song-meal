@@ -463,6 +463,7 @@
     <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=2" alt="">음식점</a></h1>
     <div class="topr">
     <nav class="cnav" aria-label="커뮤니티">
+      <button type="button" id="nav-music">🎵 음악찾기</button>
       <button type="button" id="nav-feed">📸 스토리</button>
       <button type="button" id="nav-rank">🏆 순위</button>
       <button type="button" id="nav-me">👤 가입·로그인</button>
@@ -936,6 +937,9 @@
     applyPrefs(); showScreen("form");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+
+  // 헤더 '음악찾기' = 로고(음식점)를 누른 것과 같은 화면으로 이동
+  $("nav-music").addEventListener("click", () => $("home").click());
 
   // ---------- 테마: 라이트 / 다크 / 시스템 ----------
   function applyTheme(t) {
@@ -1767,7 +1771,7 @@
       </div>`).join("");
     const kindLbl = r.kinds.length ? ` · ${r.kinds.map(esc).join("·")}` : "";
     return `
-        <h2>🍽️ 오늘의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx.length ? " · " + esc(v.wx.join("·")) : ""}${kindLbl}</span></h2>
+        <h2>🍽️ 뮤디의 추천 음식 <span style="font-weight:400;font-size:13px;color:var(--muted)">· ${esc(v.loc)} · ${esc(v.ppl)}명 · ${esc(v.meal)}${v.wx.length ? " · " + esc(v.wx.join("·")) : ""}${kindLbl}</span></h2>
         ${v.cond.labels.length ? `<p class="conds">적용한 조건: ${v.cond.labels.map(esc).join(", ")}</p>` : ""}
         ${picks || "<p>조건에 맞는 메뉴가 없어요. 음식 종류나 조건을 바꿔 보세요.</p>"}
         ${r.note ? `<p class="conds">${esc(r.note)}</p>` : ""}
@@ -1963,6 +1967,7 @@
     $("loading").classList.add("hidden");
   }
   function markNav(name) {
+    $("nav-music").classList.toggle("on", !name);
     $("nav-feed").classList.toggle("on", name === "feed");
     $("nav-rank").classList.toggle("on", name === "rank");
     $("nav-me").classList.toggle("on", name === "me" || name === "auth");
@@ -2455,8 +2460,12 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.6";
+  const APP_VERSION = "v1.7";
   const CHANGELOG = [
+    ["v1.7", "2026-11-10", "음악찾기 버튼, 뮤디의 추천 음식", [
+      "헤더 맨 앞에 🎵 음악찾기 버튼 추가 (로고 '음식점'을 누른 것과 같은 화면으로 이동)",
+      "추천 결과 제목 '오늘의 추천 음식'을 '뮤디의 추천 음식'으로 변경",
+    ]],
     ["v1.6", "2026-11-09", "노래 입력칸 나누기", [
       "추천 입력 화면의 노래 칸을 '가수 이름'(선택)과 '노래 제목'(필수) 두 칸으로 나눔",
       "두 칸을 합쳐 '가수 - 곡명'으로 곡을 검색해서 정확도는 그대로 유지",
