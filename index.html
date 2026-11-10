@@ -1233,8 +1233,30 @@
     });
   }
 
-  const norm = (t) => String(t || "").toLowerCase().replace(/\(.*?\)|\[.*?\]|feat\..*$/g, "").replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]/g, "");
-  const near = (a, b) => { a = norm(a); b = norm(b); return !!a && !!b && (a.includes(b) || b.includes(a)); };
+  // ---------- 곡 찾기 (국내·해외 곡 모두) ----------
+  // 비교용 글자: 악센트 제거(é→e), &→and, 괄호·feat 뒤 제거, 기호 제거
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").normalize("NFC").toLowerCase()
+    .replace(/\(.*?\)|\[.*?\]/g, "").replace(/\b(feat|ft|featuring)\b\.?.*$/g, "").replace(/&/g, "and").replace(/^\s*the\s+/, "")
+    .replace(/[^0-9a-z가-힣ぁ-んァ-ンー一-龥]/g, "");
+  // 오타 허용: 편집 거리 비율
+  function lev(a, b) {
+    if (a === b) return 0;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  const near = (a, b) => {
+    a = norm(a); b = norm(b);
+    if (!a || !b) return false;
+    const [s, l] = a.length <= b.length ? [a, b] : [b, a];
+    if (l.includes(s) && (s.length >= 2 || s === l)) return true;
+    return s.length >= 4 && 1 - lev(a, b) / l.length >= 0.8;
+  };
+  const isKo = (t) => /[가-힣]/.test(t || "");
 
   // "가수 - 곡명" 또는 "곡명 - 가수" 모두 허용
   function splitSong(term) {
@@ -1242,7 +1264,7 @@
     return parts.length >= 2 ? [parts[0], parts.slice(1).join(" ")] : [term.trim()];
   }
 
-  // 한글 가수명 ↔ 스토어 표기(영문)가 다른 경우
+  // 한글로 쓴 가수 이름 → 스토어 표기 (국내 가수 영문 표기 + 해외 가수 한글 표기)
   const ALIAS = {
     "아이유": "IU", "방탄소년단": "BTS", "블랙핑크": "BLACKPINK", "뉴진스": "NewJeans", "세븐틴": "SEVENTEEN", "빅뱅": "BIGBANG",
     "데이식스": "DAY6", "악뮤": "AKMU", "악동뮤지션": "AKMU", "트와이스": "TWICE", "에스파": "aespa", "아이브": "IVE",
@@ -1251,49 +1273,89 @@
     "박효신": "Park Hyo Shin", "아이들": "(G)I-DLE", "여자아이들": "(G)I-DLE", "스트레이키즈": "Stray Kids", "엔시티": "NCT",
     "투모로우바이투게더": "TOMORROW X TOGETHER", "에이티즈": "ATEEZ", "케이윌": "K.will", "폴킴": "Paul Kim", "멜로망스": "MeloMance",
     "검정치마": "The Black Skirts", "혁오": "HYUKOH", "새소년": "SE SO NEON", "백예린": "Yerin Baek", "헤이즈": "Heize",
+    "로제": "ROSÉ", "제니": "JENNIE", "리사": "LISA", "지수": "JISOO", "정국": "Jung Kook", "지민": "Jimin", "뷔": "V", "슈가": "SUGA",
+    "제이홉": "j-hope", "알엠": "RM", "진": "Jin", "엔믹스": "NMIXX", "키스오브라이프": "KISS OF LIFE", "라이즈": "RIIZE",
+    "보이넥스트도어": "BOYNEXTDOOR", "투어스": "TWS", "베이비몬스터": "BABYMONSTER", "있지": "ITZY", "마마무": "MAMAMOO", "오마이걸": "OH MY GIRL",
+    // 해외 가수
+    "에드시런": "Ed Sheeran", "에드쉬런": "Ed Sheeran", "테일러스위프트": "Taylor Swift", "브루노마스": "Bruno Mars",
+    "아리아나그란데": "Ariana Grande", "저스틴비버": "Justin Bieber", "빌리아일리시": "Billie Eilish", "빌리아이리시": "Billie Eilish",
+    "빌리에일리시": "Billie Eilish", "콜드플레이": "Coldplay", "마룬5": "Maroon 5", "마룬파이브": "Maroon 5", "퀸": "Queen",
+    "위켄드": "The Weeknd", "더위켄드": "The Weeknd", "두아리파": "Dua Lipa", "찰리푸스": "Charlie Puth", "아델": "Adele",
+    "레이디가가": "Lady Gaga", "비욘세": "Beyoncé", "리한나": "Rihanna", "케이티페리": "Katy Perry", "샘스미스": "Sam Smith",
+    "해리스타일스": "Harry Styles", "원디렉션": "One Direction", "이매진드래곤스": "Imagine Dragons", "원리퍼블릭": "OneRepublic",
+    "포스트말론": "Post Malone", "올리비아로드리고": "Olivia Rodrigo", "사브리나카펜터": "Sabrina Carpenter", "라우브": "Lauv",
+    "시아": "Sia", "셀레나고메즈": "Selena Gomez", "숀멘데스": "Shawn Mendes", "카밀라카베요": "Camila Cabello", "에미넴": "Eminem",
+    "드레이크": "Drake", "켄드릭라마": "Kendrick Lamar", "트래비스스캇": "Travis Scott", "비틀즈": "The Beatles", "비틀스": "The Beatles",
+    "마이클잭슨": "Michael Jackson", "휘트니휴스턴": "Whitney Houston", "머라이어캐리": "Mariah Carey", "셀린디온": "Céline Dion",
+    "아바": "ABBA", "카펜터스": "Carpenters", "오아시스": "Oasis", "라디오헤드": "Radiohead", "린킨파크": "Linkin Park",
+    "그린데이": "Green Day", "너바나": "Nirvana", "건즈앤로지스": "Guns N' Roses", "본조비": "Bon Jovi", "존레논": "John Lennon",
+    "엘튼존": "Elton John", "스팅": "Sting", "제이슨므라즈": "Jason Mraz", "존메이어": "John Mayer", "앤마리": "Anne-Marie",
+    "혼네": "HONNE", "체인스모커스": "The Chainsmokers", "더체인스모커스": "The Chainsmokers", "마시멜로": "Marshmello",
+    "아비치": "Avicii", "캘빈해리스": "Calvin Harris", "데이비드게타": "David Guetta", "앨런워커": "Alan Walker", "제드": "Zedd",
+    "도자캣": "Doja Cat", "시저": "SZA", "빌리조엘": "Billy Joel", "스티비원더": "Stevie Wonder", "다프트펑크": "Daft Punk",
+    "핑크플로이드": "Pink Floyd", "레드제플린": "Led Zeppelin", "메탈리카": "Metallica", "에이브릴라빈": "Avril Lavigne",
+    "켈리클락슨": "Kelly Clarkson", "노라존스": "Norah Jones", "제임스블런트": "James Blunt", "제임스아서": "James Arthur",
+    "루이스카팔디": "Lewis Capaldi", "할시": "Halsey", "웨스트라이프": "Westlife", "백스트리트보이즈": "Backstreet Boys",
+    "엔싱크": "*NSYNC", "스파이스걸스": "Spice Girls", "마돈나": "Madonna", "브리트니스피어스": "Britney Spears",
+    "저스틴팀버레이크": "Justin Timberlake", "어셔": "Usher", "크리스브라운": "Chris Brown", "니키미나즈": "Nicki Minaj",
+    "카디비": "Cardi B", "메건트레이너": "Meghan Trainor", "빌리홀리데이": "Billie Holiday", "프랭크시나트라": "Frank Sinatra",
+    "노아칸": "Noah Kahan", "벤슨분": "Benson Boone", "채플론": "Chappell Roan", "테이트맥레이": "Tate McRae", "조지": "Joji",
+    "검은치마": "The Black Skirts", "루이스폰시": "Luis Fonsi", "샤키라": "Shakira", "배드버니": "Bad Bunny",
+    "요아소비": "YOASOBI", "요네즈켄시": "Kenshi Yonezu", "아이묭": "Aimyon", "킹누": "King Gnu", "히게단": "Official HIGE DANdism",
+    "오피셜히게단디즘": "Official HIGE DANdism", "래드윔프스": "RADWIMPS", "미세스그린애플": "Mrs. GREEN APPLE", "유우리": "Yuuri",
+    "아도": "Ado", "요루시카": "ヨルシカ", "후지이카제": "Fujii Kaze", "우타다히카루": "Hikaru Utada", "바운디": "Vaundy",
   };
-  const artistOk = (r, a) => near(r.artistName, a) || (ALIAS[a.replace(/\s/g, "")] && near(r.artistName, ALIAS[a.replace(/\s/g, "")]));
-  const VARIANT = /remix|inst|karaoke|cover|live|ver\.|version|sped|slowed|mr\b|feat\.|piano|acoustic/i;
-  const titleScore = (r, t) => (norm(r.trackName) === norm(t) ? 3 : near(r.trackName, t) ? 2 : 0) - (VARIANT.test(r.trackName) ? 1 : 0);
+  const aliasOf = (x) => ALIAS[String(x || "").replace(/\s/g, "").toLowerCase()];
+  const artistOk = (r, a) => near(r.artistName, a) || (!!aliasOf(a) && near(r.artistName, aliasOf(a)));
+  const VARIANT = /remix|inst\b|instrumental|karaoke|cover|live|ver\.|version|sped|slowed|\bmr\b|piano|acoustic|tribute|made famous|originally performed|lullaby|8.?bit/i;
+  const VARIANT_ALB = /karaoke|tribute|cover|made famous|originally performed|lullaby|instrumental|8.?bit|piano version|music box/i;
+  const titleScore = (r, t) => (norm(r.trackName) === norm(t) ? 3 : near(r.trackName, t) ? 2 : 0)
+    - (VARIANT.test(r.trackName) || VARIANT_ALB.test(r.artistName || "") || VARIANT_ALB.test(r.collectionName || "") ? 1 : 0);
 
-  // 결과 하나의 점수: 곡명 일치(0~3) + 가수 일치(+4). 가수가 맞아야 확정.
+  // 점수: 곡명 일치(2~3) + 가수 일치(+4). 5 이상이면 확정.
+  // 가수를 한글로 썼는데 표기를 몰라 확인할 수 없는 경우(해외 가수)는 +1만 주고 '확인 못 함'으로 표시
   function score(r, parts) {
-    if (parts.length < 2) return near(r.trackName, parts[0]) ? 2 : 1;
-    const [a, b] = parts;
-    return Math.max(
-      titleScore(r, b) > 1 ? titleScore(r, b) + (artistOk(r, a) ? 4 : 0) : 0,
-      titleScore(r, a) > 1 ? titleScore(r, a) + (artistOk(r, b) ? 4 : 0) : 0,
-    );
+    if (parts.length < 2) { const t = titleScore(r, parts[0]); return t > 1 ? t : 0; }
+    const one = (artist, title) => {
+      const t = titleScore(r, title);
+      if (t <= 1) return 0;
+      if (artistOk(r, artist)) return t + 4;
+      if (isKo(artist) && !aliasOf(artist) && !isKo(r.artistName)) return t + 1;
+      return t;
+    };
+    return Math.max(one(parts[0], parts[1]), one(parts[1], parts[0]));
   }
   function best(list, parts) {
     let top = null, topScore = 0;
-    (list || []).forEach((r) => { const sc = score(r, parts); if (sc > topScore) { topScore = sc; top = r; } });
+    (list || []).forEach((r) => { const sc = score(r, parts); if (sc > topScore) { topScore = sc; top = r; } });  // 같은 점수면 스토어 인기 순서(앞쪽) 유지
     return top ? { r: top, sc: topScore } : null;
   }
 
-  async function itunes(term, country) {
-    const d = await jsonp(`https://itunes.apple.com/search?entity=song&limit=25&country=${country}&term=${encodeURIComponent(term)}`);
+  async function itunes(term, country, attribute) {
+    if (!term) return [];
+    const d = await jsonp(`https://itunes.apple.com/search?entity=song&limit=25&country=${country}&term=${encodeURIComponent(term)}${attribute ? "&attribute=" + attribute : ""}`);
     return (d && d.results) || [];
   }
 
   // 가수로 먼저 찾고 그 가수의 곡 목록에서 곡명 찾기 (가장 정확)
-  async function itunesByArtist(artist, title) {
-    const names = [artist, ALIAS[artist.replace(/\s/g, "")]].filter(Boolean);
+  async function itunesByArtist(artist, title, country) {
+    const names = [...new Set([aliasOf(artist), artist].filter(Boolean))];
     for (const name of names) {
-      const d = await jsonp(`https://itunes.apple.com/search?entity=musicArtist&limit=3&country=kr&term=${encodeURIComponent(name)}`);
-      for (const ar of (d && d.results) || []) {
-        const l = await jsonp(`https://itunes.apple.com/lookup?id=${ar.artistId}&entity=song&limit=200&country=kr`);
+      const d = await jsonp(`https://itunes.apple.com/search?entity=musicArtist&limit=5&country=${country}&term=${encodeURIComponent(name)}`);
+      const artists = ((d && d.results) || []).filter((ar) => near(ar.artistName, name)).slice(0, 2);
+      for (const ar of artists) {
+        const l = await jsonp(`https://itunes.apple.com/lookup?id=${ar.artistId}&entity=song&limit=200&country=${country}`);
         const songs = ((l && l.results) || []).filter((x) => x.wrapperType === "track");
         let top = null, ts = 1;
         songs.forEach((x) => { const t = titleScore(x, title); if (t > ts) { ts = t; top = x; } });
-        if (top) return top;
+        if (top) return [top];
       }
     }
-    return null;
+    return [];
   }
 
-  async function deezer(term) {
-    const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=25&q=${encodeURIComponent(term)}`);
+  async function deezer(q) {
+    const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=25&q=${encodeURIComponent(q)}`);
     return ((d && d.data) || []).map((x) => ({
       artistName: x.artist && x.artist.name, trackName: x.title, collectionName: x.album && x.album.title,
       artworkUrl100: x.album && x.album.cover_medium, previewUrl: x.preview, primaryGenreName: "", releaseDate: "", source: "Deezer",
@@ -1303,30 +1365,30 @@
   async function lookupSong(term) {
     if (!term || /^https?:\/\//.test(term) || !CONSENT.abroad) return null;
     const parts = splitSong(term);
+    const [a, t] = parts;
     const full = parts.length > 1 ? parts.join(" ") : term.replace(/\s*-\s*/g, " ");
-    let fallback = null;
-    const consider = (list) => {
-      const m = best(list, parts);
-      if (!m) return null;
-      if (parts.length < 2 || m.sc >= 5) return m.r;          // 곡명 + 가수 모두 일치
-      if (!fallback || m.sc > fallback.sc) fallback = m;        // 곡명만 일치: 끝까지 못 찾으면 사용
-      return null;
-    };
-    const alias = parts[1] && (ALIAS[parts[0].replace(/\s/g, "")] || ALIAS[parts[1].replace(/\s/g, "")]);
-    const tries = [
-      () => itunes(full, "kr"),
-      () => alias ? itunes(parts.map((x) => ALIAS[x.replace(/\s/g, "")] || x).join(" "), "kr") : [],
-      () => parts[1] ? itunesByArtist(parts[0], parts[1]).then((x) => (x ? [x] : [])) : [],
-      () => parts[1] ? itunesByArtist(parts[1], parts[0]).then((x) => (x ? [x] : [])) : [],
-      () => itunes(full, "us"),
-      () => deezer(full),
-      () => parts[1] ? itunes(parts[1], "kr") : [],
+    const aa = parts.length > 1 ? aliasOf(a) : null;
+    const viaAlias = aa ? `${aa} ${t}` : "";
+    // 여러 곳에 한꺼번에 물어보고(빠르게), 단계마다 가장 잘 맞는 곡을 고름
+    const stages = parts.length < 2 ? [
+      () => [itunes(full, "kr"), itunes(full, "us")],
+      () => [itunes(full, "kr", "songTerm"), itunes(full, "us", "songTerm"), deezer(full)],
+    ] : [
+      () => [itunes(full, "kr"), itunes(full, "us"), itunes(viaAlias, "kr"), itunes(viaAlias, "us")],
+      () => [itunesByArtist(a, t, "kr"), itunesByArtist(a, t, "us"), deezer(`artist:"${aa || a}" track:"${t}"`)],
+      () => [itunes(t, "kr", "songTerm"), itunes(t, "us", "songTerm"), deezer(full), deezer(t)],
+      () => [itunesByArtist(t, a, "kr"), itunes(a, "kr", "songTerm")],   // 순서를 바꿔 쓴 경우
     ];
-    for (const t of tries) {
-      const hit = consider(await t());
-      if (hit) return hit;
+    let fallback = null;
+    for (const stage of stages) {
+      const lists = await Promise.all(stage().map((p) => Promise.resolve(p).catch(() => [])));
+      const m = best(lists.flat(), parts);
+      if (m && (parts.length < 2 || m.sc >= 5)) return m.r;
+      if (m && (!fallback || m.sc > fallback.sc)) fallback = m;
     }
-    return fallback ? { ...fallback.r, mismatch: true } : null;
+    if (!fallback) return null;
+    const unverified = parts.length > 1 && isKo(a) && !aliasOf(a) && !isKo(fallback.r.artistName);
+    return { ...fallback.r, [unverified ? "unverified" : "mismatch"]: true };
   }
 
   // ---------- 미리듣기 30초로 BPM·소리 크기 변화 측정 (실패하면 null) ----------
@@ -1437,6 +1499,7 @@
         <div>
           <p class="song">🎧 ${esc(title)}</p>
           ${info && info.mismatch ? `<div class="songmeta" style="color:var(--danger)">입력한 가수의 곡을 찾지 못해 같은 제목의 다른 곡을 보여 줘요.</div>` : ""}
+          ${info && info.unverified ? `<div class="songmeta" style="color:var(--danger)">가수 이름이 영어로 등록된 곡이라 같은 가수인지 확인하지 못했어요. 가수 이름을 영어로 쓰면 더 정확해요.</div>` : ""}
           <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName, info.source].filter(Boolean).map(esc).join(" · ") : "곡 정보를 찾지 못해 기본 분위기로 해설했어요. 가수 이름과 노래 제목을 정확히 입력하면 더 잘 찾아요."}</div>
         </div>
       </div>
@@ -2492,8 +2555,15 @@
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v1.8";
+  const APP_VERSION = "v1.9";
   const CHANGELOG = [
+    ["v1.9", "2026-11-10", "팝송·해외 곡 검색 정확도 개선", [
+      "해외 가수 한글 이름(에드 시런, 테일러 스위프트, 요아소비 등 100여 명)을 스토어 표기로 바꿔 찾음",
+      "악센트(Beyoncé, Céline), &·and, The, feat. 표기 차이와 작은 오타도 같은 곡으로 인식",
+      "한국·미국 Apple 스토어와 Deezer를 동시에 찾고, 곡명 전용 검색과 가수 전곡 목록 검색까지 단계별로 시도 (더 빠르고 정확)",
+      "커버·카라오케·리믹스·트리뷰트 버전은 뒤로 밀고 원곡을 먼저 고름",
+      "가수 이름을 한글로 써서 확인할 수 없는 해외 곡은 영어로 쓰라는 안내 표시",
+    ]],
     ["v1.8", "2026-11-10", "순위 탭에 스토리 합치기, 스토리 자동 재생", [
       "헤더의 📸 스토리 탭을 없애고 🏆 순위·스토리 탭 안(코너별 TOP 3 아래)에 모든 스토리 목록을 넣음",
       "스토리를 열면 노래 미리듣기가 자동 재생되고, 재생이 끝나면 다음 스토리로 넘어감 (미리듣기가 없으면 7초 뒤)",

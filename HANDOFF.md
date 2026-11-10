@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-10 (사이트 v1.8, 업로드 zip 20261110_rev2)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-10 (사이트 v1.9, 업로드 zip 20261110_rev3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -65,6 +65,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v1.9: 곡 검색 개선. ALIAS에 해외 가수 한글 표기 100여 명, norm이 악센트·&·The·feat 무시, 오타 허용(편집 거리 80%), kr·us 스토어와 Deezer를 단계별 병렬 검색, 커버·카라오케 감점, 한글 가수명을 확인 못 하면 unverified 안내
 - v1.8: 📸스토리 탭 제거, 🏆 순위·스토리 탭 안(TOP 3 아래)에 #feed 목록. showComm("feed")는 rank로 보내고 목록으로 스크롤. 스토리 열면 미리듣기 자동 재생(하나의 Audio 재사용), 끝나면 다음 스토리, 미리듣기 없으면 7초, 댓글 창 열려 있으면 닫을 때 넘어감
 - v1.7: 헤더 맨 앞 🎵 음악찾기(로고와 같은 동작), 결과 제목 '뮤디의 추천 음식'. 공식 캐릭터 이름은 '뮤디'
 - v1.6: 추천 입력의 노래 칸을 '가수 이름'(선택) + '노래 제목'(필수)으로 나눔. 검색할 때는 '가수 - 곡명'으로 합침
@@ -79,7 +80,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 ## 9. 인수인계 묶음 사용법 (새 Claude에게)
 - 이 zip 안: HANDOFF.md(이 문서), site/(사이트 파일, Pages에 올리는 것과 같음), worker/(song-meal-api.js, naver-search.js, schema.sql, comments-setup.sql)
 - 지금 서비스는 이미 Cloudflare(Pages·Worker·D1)에서 돌아가고 있음. 새로 만들 필요 없이, 고친 파일을 사용자에게 주면 사용자가 대시보드에서 직접 올림
-  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261110_rev2)
+  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261110_rev3)
   - 서버 변경: song-meal-api.js 전체를 Worker 편집기에 붙여 넣고 Deploy
   - DB 변경: 주석 없는 SQL을 D1 Console에 붙여 넣기 (주석이 있으면 "No SQL statements detected")
 - 회원·후기 데이터는 D1 안에 있어서 이 zip에는 없음 (백업은 D1 → Export)
