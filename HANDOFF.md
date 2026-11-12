@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-10 (사이트 v2.0, 업로드 zip 20261110_rev4)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-12 (사이트 v2.1, 업로드 zip 20261112_rev1, Worker song-meal-api v2.1)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -29,11 +29,15 @@
 - **식당 검색**: NAVER API HUB 지역 검색 (`naverapihub.apigw.ntruss.com/search/v1/local`). 브라우저 → Cloudflare Worker → HUB 순서로 호출.
   - Cloudflare 변수: `NAVER_CLIENT_ID=zcvnckns7t`, `NAVER_CLIENT_SECRET`(Secret으로 저장, 채팅이나 저장소에 절대 쓰지 말 것)
   - 네이버 개발자센터의 "검색" API는 2026-07-31부터 신규 신청이 막혀서 HUB를 사용함
-- **곡 정보**: iTunes Search/Lookup + Deezer API (JSONP, 키 없음). 앨범 이미지와 30초 미리듣기, 미리듣기 BPM 분석(Web Audio)에 사용
+- **곡 정보**: 여러 음악 서비스를 비교해서 고름 (v2.1)
+  - 브라우저에서 직접: iTunes Search/Lookup + Deezer API (JSONP, 키 없음). 앨범 이미지와 30초 미리듣기, 미리듣기 BPM 분석(Web Audio)에 사용
+  - Worker song-meal-api의 `GET /music/search?a=가수&t=곡명&k=영어표기|...`를 거쳐: MusicBrainz(곡·첫 발매일·태그, 키 없음, 1초 1번 한도), Wikidata(한글↔영어 가수·곡 이름, 키 없음)
+  - 선택: Worker Secret `SPOTIFY_CLIENT_ID`·`SPOTIFY_CLIENT_SECRET`(Spotify), `LASTFM_API_KEY`(Last.fm 오타 고침·태그)를 넣으면 같이 비교. 키가 없으면 그냥 건너뜀
+  - Worker 주소 뒤에 `/health`를 열면 버전(2.1)과 각 서비스 켜짐/꺼짐이 보임
 - Anthropic API는 사용자 요청으로 제거함 (다시 넣지 말 것)
 
 ## 5. 기능 요약 (현재 동작)
-1. **동의 화면**: [필수] 만 14세 이상, 개인정보 수집·이용 / [선택] 국외 이전(Apple, Deezer, Cloudflare. 미동의 시 곡 검색과 식당 검색 끔), 위치정보(미동의 시 '현재 위치' 버튼 숨김). 동의는 저장하지 않음
+1. **동의 화면**: [필수] 만 14세 이상, 개인정보 수집·이용 / [선택] 국외 이전(Apple, Deezer, Cloudflare, MusicBrainz·Wikidata(서버를 거쳐 곡 이름만). 미동의 시 곡 검색과 식당 검색 끔), 위치정보(미동의 시 '현재 위치' 버튼 숨김). 동의는 저장하지 않음
 2. **입력**: 가수 이름(선택)과 노래 제목(필수), 식사 시간, 인원, 날씨(다중 선택 칩), 위치(직접 입력, 현재 위치, 지도에서 직접 고르기), 음식 종류(다중 선택), 음식 조건(자유 입력: "매운 음식 제외", "국물 좋아요" 등. parseCond, TAGS/SYN)
 3. **추천 로직** (브라우저 안 규칙 기반):
    - 장르로 에너지(energyFromGenre)와 분위기(valenceFromGenre)를 각 1~3으로 추정
@@ -65,12 +69,19 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v2.1: 여러 음악 서비스 비교 검색 (lookupSong, pick, finish, musicServer)
+  - 1단계: Apple 한국(입력 그대로)·Deezer(가수 영어 표기)·서버(/music/search)를 동시에 부름 → pick()이 같은 곡(sameSong: 곡명 같음 + 가수 일치 3점 이상)끼리 묶고 '점수 → 확인한 서비스 수 → 먼저 나온 순'으로 고름. 곡명만 입력하면 각 서비스 상위 결과의 순위 점수(1위 3점, 2위 2점, 3위 1점, MusicBrainz 제외) 합으로 고름
+  - Apple·Deezer(미리듣기 있는 곳)가 들어 있는 묶음을 찾으면 끝. MusicBrainz에서만 찾았으면 2단계(서버가 알려 준 영어 표기·다른 곡명으로 Apple·Deezer 다시)를 돈 뒤에도 없을 때 MusicBrainz 결과를 씀
+  - 서버가 알려 준 이름은 DYN(가수)·TDYN(곡명) Map에 저장해 aliasForms()·titleScore()가 같이 씀 (페이지를 닫으면 사라짐)
+  - finish(): 표지·미리듣기 Apple→Deezer 순, 장르 Apple→Deezer 앨범→태그, 연도는 가장 이른 날짜(MusicBrainz 첫 발매일). 결과에 sources(확인한 서비스 목록) 저장, 결과 화면에 '🔎 n곳에서 같은 곡 확인'
+  - 서버가 옛 버전(404)이거나 안 되면 Apple·Deezer만으로 v2.0처럼 동작. 관리패널 곡 검색 점검 위에 서버 버전·서비스 상태 표시
+  - Worker: 서버 메모리에 같은 검색 30분 기억(실패한 서비스가 있으면 안 함), IP당 1분 40번 제한, 전체 6.5초 안에 끝냄, MusicBrainz 503이면 1.1초 뒤 한 번 더
 - v2.0: 곡 검색 재작성 (index.html의 lookupSong). 순서: 입력 그대로(Apple 한국) → 사전의 영어 표기(한국) → 영어 표기(미국) → 곡명 전용 검색(songTerm) 후 가수 비교(한국·미국) → 가수의 전곡 목록 → Deezer. 확정 점수 5 이상이면 바로 멈춤(보통 1~3번 요청)
   - 가수 사전 ARTISTS: 한 줄에 '영어|한글|변형' (약 450줄, 양방향). 사전에 없으면 phon()으로 한글↔영어 자음 뼈대 비교 (칸예 웨스트=KNST=Kanye West)
   - Apple 검색 한도(약 20번/분) 때문에 itTake()로 1분 18번까지만 요청(localStorage food.itlog), 실패 시 45초 쉼 → Deezer로. 찾은 곡은 localStorage food.songs에 7일 저장
   - 못 찾은 이유 lookupSong.last.reason: off(선택 동의 꺼짐 → 결과 화면에 '내 정보에서 켜기' 버튼), busy(Apple 막힘), none, partial
   - 관리자 계정(aiadmin)은 prefs가 비어 있어 곡·식당 검색이 꺼진 상태로 시작함. 내 정보 → 선택 동의 관리에서 켜야 함
-  - 관리패널 '🎵 곡 검색 점검' 탭: 여러 곡을 실제로 검색해 단계별 과정(로그)을 보여 줌. 실제 Apple 응답은 이 도구로 사용자 브라우저에서 확인 (작업 환경에서는 itunes.apple.com 접속 불가)
+  - 관리패널 '🎵 곡 검색 점검' 탭: 여러 곡을 실제로 검색해 단계별 과정(로그)을 보여 줌. 실제 Apple 응답은 이 도구로 사용자 브라우저에서 확인 (작업 환경에서는 itunes.apple.com, api.deezer.com, musicbrainz.org, wikidata.org 접속 불가 → 가짜 서비스로 시험)
 - v1.9: 곡 검색 개선. ALIAS에 해외 가수 한글 표기 100여 명, norm이 악센트·&·The·feat 무시, 오타 허용(편집 거리 80%), kr·us 스토어와 Deezer를 단계별 병렬 검색, 커버·카라오케 감점, 한글 가수명을 확인 못 하면 unverified 안내
 - v1.8: 📸스토리 탭 제거, 🏆 순위·스토리 탭 안(TOP 3 아래)에 #feed 목록. showComm("feed")는 rank로 보내고 목록으로 스크롤. 스토리 열면 미리듣기 자동 재생(하나의 Audio 재사용), 끝나면 다음 스토리, 미리듣기 없으면 7초, 댓글 창 열려 있으면 닫을 때 넘어감
 - v1.7: 헤더 맨 앞 🎵 음악찾기(로고와 같은 동작), 결과 제목 '뮤디의 추천 음식'. 공식 캐릭터 이름은 '뮤디'
@@ -86,7 +97,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 ## 9. 인수인계 묶음 사용법 (새 Claude에게)
 - 이 zip 안: HANDOFF.md(이 문서), site/(사이트 파일, Pages에 올리는 것과 같음), worker/(song-meal-api.js, naver-search.js, schema.sql, comments-setup.sql)
 - 지금 서비스는 이미 Cloudflare(Pages·Worker·D1)에서 돌아가고 있음. 새로 만들 필요 없이, 고친 파일을 사용자에게 주면 사용자가 대시보드에서 직접 올림
-  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261110_rev4)
+  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261112_rev1)
   - 서버 변경: song-meal-api.js 전체를 Worker 편집기에 붙여 넣고 Deploy
   - DB 변경: 주석 없는 SQL을 D1 Console에 붙여 넣기 (주석이 있으면 "No SQL statements detected")
 - 회원·후기 데이터는 D1 안에 있어서 이 zip에는 없음 (백업은 D1 → Export)
