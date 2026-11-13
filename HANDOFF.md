@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-13 (사이트 v2.2, 업로드 zip 20261113_rev1, Worker song-meal-api v2.2)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-13 (사이트 v2.3, 업로드 zip 20261113_rev2, Worker song-meal-api v2.2 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -18,7 +18,7 @@
 ## 3. 파일 구성
 - `index.html`: 앱 전체 (HTML+CSS+JS 한 파일, 빌드 과정 없음)
 - `privacy.html`: 개인정보 처리방침. **[운영자 이름], [연락 이메일] 자리표시자를 아직 채우지 않음**
-- `worker/naver-search.js`: Cloudflare Worker. 허용 Origin은 https://4tpk7p297h-code.github.io 하나뿐. 주소가 바뀌면 여기에 추가해야 함
+- `worker/naver-search.js`: Cloudflare Worker(식당 검색 중계, v2.3). 지역 검색(`?query=`)과 블로그 검색(`?type=blog&query=`, 혼밥 후기용). 허용 Origin은 GitHub Pages 예비 주소, song-meal.pages.dev와 그 미리보기 주소. 주소가 바뀌면 ALLOWED에 추가해야 함. `/health`는 버전, `/health?check=1`은 네이버 지역·블로그 검색이 실제로 되는지(1분 기억)
 - `mascot.png`(캐릭터 전신), `icon-32.png`, `icon-192.png`, `apple-touch-icon.png`(캐릭터 얼굴 파비콘), `og.png`(공유 미리보기 1200x630)
 - `.nojekyll`, `README.md`
 
@@ -26,7 +26,9 @@
 - **네이버 지도 (NCP Maps JS v3)**: Client ID `o8sqmz7fug`. 공개값이고 URL로 제한돼 있음.
   - 스크립트: `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=o8sqmz7fug&submodules=geocoder`
   - **새 도메인으로 옮기면 NCP 콘솔 → Maps → Application → Web 서비스 URL에 그 주소를 추가해야 지도가 뜸.**
-- **식당 검색**: NAVER API HUB 지역 검색 (`naverapihub.apigw.ntruss.com/search/v1/local`). 브라우저 → Cloudflare Worker → HUB 순서로 호출.
+- **식당 검색**: NAVER API HUB 지역 검색 (`naverapihub.apigw.ntruss.com/search/v1/local`)과 블로그 검색(`.../search/v1/blog`, v2.3 혼밥 후기). 브라우저 → Cloudflare Worker(naver-search) → HUB 순서로 호출.
+  - **API HUB 애플리케이션에서 '지역 검색'과 '블로그 검색'을 둘 다 골라 둬야 함** (같은 Client ID·Secret). 블로그 검색이 빠져 있으면 혼밥은 가게 분류로만 고르고 안내가 뜸. 관리패널 📊 현황 맨 아래에서 확인 가능
+  - 2026-11 기준 API HUB 검색 API는 한시적 무료(하루 25,000번 정도). 혼밥 필터를 켜고 한 번 추천받으면 블로그 검색이 가게 수만큼(보통 20~40번) 불리지만, 기기에 7일·Worker에 6시간 기억해서 같은 가게는 다시 안 부름
   - Cloudflare 변수: `NAVER_CLIENT_ID=zcvnckns7t`, `NAVER_CLIENT_SECRET`(Secret으로 저장, 채팅이나 저장소에 절대 쓰지 말 것)
   - 네이버 개발자센터의 "검색" API는 2026-07-31부터 신규 신청이 막혀서 HUB를 사용함
 - **곡 정보**: 여러 음악 서비스를 비교해서 고름 (v2.1)
@@ -44,7 +46,7 @@
    - pickType으로 유형 A~F를 정하고, TYPES/WEATHER 메뉴 풀에서 3개를 고름
    - "국물" 같은 우선 조건은 3개 메뉴 모두에 적용함. 모자라면 안내 문구를 띄움
    - "다른 메뉴 추천"을 누르면 이미 나온 메뉴 그룹(GROUP)을 빼고 다시 고름
-4. **결과**: 곡 분석(시놉시스, 인트로·벌스·후렴 해설, BPM, 미리듣기), 메뉴 3개, 사이트 안 네이버 지도(식당 마커, 3km 안만 '근처'로 판정). 길찾기: 모바일은 nmap:// 앱, PC는 map.naver.com 레거시 URL(PC 쪽은 동작 미확인). '🛵 배달 앱으로 주문하기' 체크(v2.2): 식당마다 배민·쿠팡이츠 버튼
+4. **결과**: 곡 분석(시놉시스, 인트로·벌스·후렴 해설, BPM, 미리듣기), 메뉴 3개, 사이트 안 네이버 지도(식당 마커, 3km 안만 '근처'로 판정). 길찾기: 모바일은 nmap:// 앱, PC는 map.naver.com 레거시 URL(PC 쪽은 동작 미확인). '🛵 배달 앱으로 주문하기' 체크(v2.2): 식당마다 배민·쿠팡이츠 버튼. '🙋 혼밥 가능한 곳만 보기' 필터와 식당별 혼밥 태그(v2.3)
 5. **기타**: 라이트/다크/시스템 테마(localStorage "food.theme"), 로고를 누르면 동의 화면으로, 뒤로가기는 화면 단위로 이동(history.pushState), 로딩 중에는 블러 배경 위 가운데에 캐릭터 표시, 귀여운 디자인(Jua 폰트, 코랄 #ff7a59)
 6. **공식 캐릭터**: 보라색 헤드폰을 쓰고 새싹이 달린 흰 고양이(사용자 제공 이미지). 파비콘, 헤더 로고, 동의 화면 인사, 로딩, og.png에 사용
 
@@ -69,6 +71,15 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v2.3: 혼밥 가능한 식당 찾기 (index.html의 '혼밥 확인' 블록: SOLO, searchBlog, blogSolo, soloJudge, soloOf, passSolo, soloTag, candidates)
+  - 네이버 지도(플레이스) 방문자 리뷰와 '혼밥하기 좋아요' 키워드 리뷰는 공식 API가 없고, 긁어 오기는 막혀 있고 약관 위반이라 쓰지 않음. 대신 API HUB 공식 '블로그 검색'으로 "가게이름 혼밥"을 찾아, 글 제목·요약에 가게 이름(지점명을 뺀 coreName)과 혼밥 이야기(SOLO_POS: 혼밥·혼자·1인석·바 좌석 등)가 함께 나온 글 수를 셈. 어렵다는 말(SOLO_NEG: 혼밥 눈치·2인 이상 주문 등)은 따로 셈
+  - 판정: review('🙋 혼밥 후기 n건', 누르면 네이버 블로그 검색) → hard('👥 혼밥이 어렵다는 후기') → 가게 분류 CAT_SOLO(국밥·라멘·돈가스 등 → '🙋 혼밥하기 좋은 메뉴') / CAT_GROUP(고기구이·한정식·술집 등 → '👥 여럿이 가기 좋은 곳') → none(태그 없음)
+  - 입력 화면 #solo 칩(인원을 1명으로 하면 자동, 음식 조건에 '혼밥'이라고 써도 됨) → 추천 조건에 {tag:"혼밥"}('혼밥 우선', SOLO_FOODS 68개 메뉴 먼저), 메뉴에 '🙋 혼밥 메뉴'
+  - 결과 지도 카드 #solo-on '혼밥 가능한 곳만 보기': review 또는 menu인 식당만 보여 줌. 필터를 켜면 'kw 혼밥' 지역 검색 결과도 더하는데, 이렇게 더 찾은 식당(extra)은 review일 때만. 숨긴 수 안내, 추천 메뉴 배지 '혼밥 식당 n곳'. 필터를 꺼도 목록 태그는 붙음
+  - 호출 줄이기: 기기 localStorage food.solo에 가게별 결과 7일(최대 300곳), 한 번에 3개까지, 보고 있는 목록 먼저. Worker 메모리에 블로그 6시간·지역 30분
+  - 블로그 검색이 안 되면(옛 Worker이거나 API HUB 401/403/404 → 새로고침 전까지, 그 밖의 오류 → 2분 쉼) 가게 분류로만 고르고 #solo-note 안내
+  - 관리패널 📊 현황 맨 아래 '식당 검색 서버': /health?check=1 결과(지역·블로그 검색 ✅/❌, 옛 Worker 안내)
+  - 한계(사용자에게 설명함): 후기 수는 참고용. 체인점은 다른 지점 글도 세고, 이름이 흔한 가게는 다른 가게 글이 섞일 수 있음. 실제 플레이스 리뷰는 '네이버 지도에서 보기'로 직접 확인
 - v2.2: 코너별 순위·스토리, 위치정보 동의 버튼, 배달 앱 연결
   - '🏆 순위·스토리' 탭(#rank) = 코너 타일 8개(✨ 전체 + KINDS 7개, 1위 사진·닉네임·좋아요, 후기 수). 누르면 #corner 화면(history state `{screen:"corner", k, sort, fromTiles}`)에서 그 코너 후기를 좋아요 순위(🥇🥈🥉, 4위…)/최신으로, 24개씩 더 보기. 예전 #feed 목록과 FEED 코드는 없앰 (옛 기록 screen:"feed"는 rank로 보냄)
   - 스토리를 닫고 돌아오면 다시 불러오지 않고 보던 자리 그대로(route()의 fromStory, ST.back). 후기를 올리면 그 코너의 최신순으로 이동, 코너 안 '후기 올리기'는 코너를 미리 골라 둠
@@ -103,7 +114,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 ## 9. 인수인계 묶음 사용법 (새 Claude에게)
 - 이 zip 안: HANDOFF.md(이 문서), site/(사이트 파일, Pages에 올리는 것과 같음), worker/(song-meal-api.js, naver-search.js, schema.sql, comments-setup.sql)
 - 지금 서비스는 이미 Cloudflare(Pages·Worker·D1)에서 돌아가고 있음. 새로 만들 필요 없이, 고친 파일을 사용자에게 주면 사용자가 대시보드에서 직접 올림
-  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261113_rev1)
-  - 서버 변경: song-meal-api.js 전체를 Worker 편집기에 붙여 넣고 Deploy
+  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261113_rev2)
+  - 서버 변경: song-meal-api.js(또는 naver-search.js) 전체를 그 Worker 편집기에 붙여 넣고 Deploy
   - DB 변경: 주석 없는 SQL을 D1 Console에 붙여 넣기 (주석이 있으면 "No SQL statements detected")
 - 회원·후기 데이터는 D1 안에 있어서 이 zip에는 없음 (백업은 D1 → Export)
