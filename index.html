@@ -294,8 +294,6 @@
   button.danger { background: var(--danger); }
   .center { text-align: center; }
   .subh { font-size: 16px; margin: 16px 0 8px; }
-  .chips.corner { margin: 6px 0 10px; }
-  .chips.corner span { padding: 6px 12px; font-size: 14px; }
   .seg { display: inline-flex; padding: 3px; gap: 2px; border: 2px solid var(--line); border-radius: 999px; background: var(--field); margin-bottom: 12px; }
   .seg button { margin: 0; width: auto; padding: 6px 14px; font-size: 14px; background: transparent; color: var(--muted); box-shadow: none; }
   .seg button.on { background: var(--accent); color: #fff; }
@@ -309,19 +307,43 @@
   .scard .lk { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.45); border-radius: 999px; padding: 2px 9px; font-size: 13px; font-weight: 700; }
   .scard .kd { position: absolute; top: 8px; left: 8px; background: rgba(255,255,255,.9); color: #3a2e2a; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; }
   .scard .hid { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.55); font-weight: 700; }
-  .rankgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  .rankgrid .card { margin: 0; }
-  .rankgrid h3 { margin: 0 0 8px; font-family: "Jua", sans-serif; font-weight: 400; font-size: 19px; }
-  .rrow { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0; padding: 8px; border-radius: 14px; background: transparent; color: var(--text); box-shadow: none; text-align: left; font: inherit; font-size: 14px; }
-  .rrow:hover { background: var(--chip); transform: none; }
-  .rrow .md { font-size: 22px; width: 28px; text-align: center; flex: none; }
-  .rrow img { width: 46px; height: 46px; border-radius: 10px; object-fit: cover; flex: none; }
-  .rrow .tx { min-width: 0; flex: 1; }
-  .rrow .tx b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rrow .tx small { color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rrow .lkn { font-weight: 700; color: var(--accent); flex: none; }
   .rempty { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
   .rempty img { width: 46px; opacity: .8; }
+  /* 순위·스토리: 코너 타일 → 코너 안 순위 */
+  .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .ctile { position: relative; aspect-ratio: 1 / 1; width: 100%; margin: 0; padding: 0; overflow: hidden; border-radius: 20px; border: 2px solid var(--line); background: var(--card); color: var(--text); box-shadow: var(--shadow); text-align: left; font: inherit; }
+  .ctile.has { border-color: transparent; color: #fff; background: #3a2e2a; }
+  .ctile .ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ctile.has::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.5), transparent 40%, transparent 50%, rgba(0,0,0,.75)); }
+  .ctile .big { position: absolute; inset: 0; display: grid; place-items: center; font-size: 52px; }
+  .ctile .nm { position: absolute; z-index: 1; top: 10px; left: 12px; right: 26px; font-family: "Jua", sans-serif; font-size: clamp(16px, 4.4vw, 19px); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ctile .arr { position: absolute; z-index: 1; top: 8px; right: 12px; font-size: 22px; line-height: 1; opacity: .75; }
+  .ctile .ft { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; font-size: 13px; line-height: 1.35; }
+  .ctile .ft span { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ctile .ft small { opacity: .85; }
+  .ctile:not(.has) .ft { color: var(--muted); }
+  .backbtn { padding: 7px 14px !important; }
+  .ctitle { font-family: "Jua", sans-serif; font-size: 24px !important; margin: 6px 0 10px !important; }
+  .scard .rk { position: absolute; top: 8px; left: 8px; border-radius: 999px; padding: 2px 9px; font-size: 13px; font-weight: 700; background: rgba(0,0,0,.5); color: #fff; }
+  .scard .rk.r1 { background: #ffd43b; color: #3a2e2a; }
+  .scard .rk.r2 { background: #e9ecef; color: #3a2e2a; }
+  .scard .rk.r3 { background: #f4b183; color: #3a2e2a; }
+  .scard.t1 { box-shadow: 0 0 0 3px #ffd43b, var(--shadow); }
+  .scard.t2 { box-shadow: 0 0 0 3px #ced4da, var(--shadow); }
+  .scard.t3 { box-shadow: 0 0 0 3px #f4b183, var(--shadow); }
+  #corner-empty { margin: 8px 0; }
+  /* 음악찾기: 위치정보 선택 동의 안내 */
+  .geoask { margin-top: 10px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 16px; background: var(--chip); font-size: 14px; }
+  .geoask > p { margin: 0 0 8px; font-weight: 600; }
+  .geoask > p small { font-weight: 400; color: var(--muted); }
+  .garow { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .geoask details { margin: 6px 0 0; }
+  /* 결과: 배달 앱으로 주문 */
+  label.dlvbar { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--chip); font-size: 14px; cursor: pointer; }
+  .dlvbar input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); flex: none; }
+  .places .go.dlv { display: none; }
+  .places.dlv .go.dlv { display: flex; }
+  .places .go a.dl { color: var(--text); background: var(--chip); border: 1px solid var(--line); }
   .hello.small .mascot-hello { width: 80px; }
   input[type=password], textarea {
     width: 100%; padding: 13px 16px; font-size: 16px; color: var(--text); background: var(--field);
@@ -346,7 +368,6 @@
   .story .shade { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.55), transparent 22%, transparent 55%, rgba(0,0,0,.8)); pointer-events: none; }
   .story .bars { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; }
   .story .bars i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.35); }
-  #rank #feed { margin-top: 14px; }
   .story .bars i { position: relative; overflow: hidden; }
   .story .bars i b { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #fff; }
   .story .bars i.on b { width: 100%; }
@@ -373,7 +394,7 @@
   .story .nav { position: absolute; top: 50%; z-index: 3; margin: 0; width: 44px; height: 44px; padding: 0; font-size: 20px; background: rgba(255,255,255,.2); color: #fff; box-shadow: none; transform: translateY(-50%); }
   .story .nav.p { left: max(8px, calc(50% - 300px)); } .story .nav.n { right: max(8px, calc(50% - 300px)); }
   @media (max-width: 599px) { .story .nav { display: none; } }
-  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1100; background: #3a2e2a; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100% - 32px); text-align: center; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1100; background: #3a2e2a; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100% - 32px); text-align: center; }
   .toast.hidden { display: none; }
   @media (max-width: 520px) {
     .top h1 { font-size: 26px; }
@@ -576,6 +597,22 @@
       <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
     </div>
+    <div id="geo-ask" class="geoask hidden">
+      <p>📍 아래 선택 동의 항목에 동의하시면 위치정보 이용이 가능합니다.<br><small>동의하면 '현재 위치' 버튼으로 지금 있는 동네 이름을 바로 넣을 수 있어요.</small></p>
+      <div class="garow">
+        <b>[선택] 위치정보 이용 동의</b>
+        <button type="button" class="mini" id="ga-btn">동의하기</button>
+      </div>
+      <details><summary>내용 보기</summary>
+        <table class="ptable">
+          <tr><th>이용 목적</th><td>'현재 위치' 버튼을 누를 때 기기 위치로 동네 이름 자동 입력</td></tr>
+          <tr><th>이용 항목</th><td>기기의 위도·경도 (버튼을 누를 때 1회)</td></tr>
+          <tr><th>보유 및 이용 기간</th><td>동네 이름으로 변환한 즉시 파기, 저장하지 않음</td></tr>
+          <tr><th>처리 위탁</th><td>NAVER Cloud(주): 좌표 → 주소 변환</td></tr>
+        </table>
+        <p class="hint">동의하지 않아도 위치를 직접 입력하거나 지도에서 골라 이용할 수 있습니다. <span id="ga-note"></span></p>
+      </details>
+    </div>
     <button type="button" class="ghost pickbtn" id="pickmap">🗺️ 위치 권한 없이 지도에서 직접 고르기</button>
     <div id="pickwrap" class="hidden">
       <div id="pickmapdiv" style="width:100%;height:260px;border-radius:10px;background:var(--chip);margin-top:8px"></div>
@@ -605,29 +642,35 @@
   <!-- 3. 결과 -->
   <section id="result" class="hidden"></section>
 
-  <!-- 4. 커뮤니티: 코너별 순위 + 모든 스토리 -->
+  <!-- 4. 커뮤니티: 순위·스토리 = 코너 고르기 → 코너 안에서 좋아요 순위 -->
   <section id="rank" class="hidden">
     <div class="card">
       <div class="chead">
-        <h2>🏆 코너별 순위</h2>
+        <h2>🏆 순위·스토리</h2>
         <button type="button" class="mini" id="rank-write">＋ 후기 올리기</button>
       </div>
-      <p class="hint" style="margin:0">좋아요를 많이 받은 음식 × 노래 조합 TOP 3예요. 누르면 스토리로 볼 수 있어요. 아래에서 모든 스토리도 볼 수 있어요.</p>
+      <p class="hint" style="margin:0">코너를 눌러 들어가면 좋아요를 많이 받은 순서대로 스토리를 볼 수 있어요.</p>
+      <p class="error hidden" id="rank-err"></p>
     </div>
-    <div class="rankgrid" id="rank-box"></div>
-    <section id="feed" class="card">
-      <div class="chead">
-        <h2>📸 모든 스토리</h2>
-      </div>
-      <div class="chips corner" id="feed-kind"></div>
-      <div class="seg" id="feed-sort">
-        <button type="button" data-sort="new" class="on">🆕 최신순</button>
-        <button type="button" data-sort="top">❤️ 좋아요순</button>
-      </div>
-      <div class="grid" id="feed-grid"></div>
-      <p class="hint center" id="feed-msg"></p>
-      <button type="button" class="ghost hidden" id="feed-more">더 보기</button>
-    </section>
+    <div class="cgrid" id="rank-box"></div>
+  </section>
+
+  <!-- 5. 코너 안: 순위(좋아요순) / 최신 -->
+  <section id="corner" class="card hidden">
+    <div class="chead">
+      <button type="button" class="mini ghost backbtn" id="corner-back">‹ 코너 목록</button>
+      <button type="button" class="mini" id="corner-write">＋ 후기 올리기</button>
+    </div>
+    <h2 id="corner-title" class="ctitle"></h2>
+    <div class="seg" id="corner-sort">
+      <button type="button" data-sort="top" class="on">🏆 순위</button>
+      <button type="button" data-sort="new">🆕 최신</button>
+    </div>
+    <p class="hint" id="corner-hint" style="margin:-4px 0 12px"></p>
+    <div class="grid" id="corner-grid"></div>
+    <div class="rempty hidden" id="corner-empty"><img src="icon-192.png?v=2" alt=""><span></span></div>
+    <p class="hint center" id="corner-msg"></p>
+    <button type="button" class="ghost hidden" id="corner-more">더 보기</button>
   </section>
 
   <!-- 6. 로그인 / 회원가입 -->
@@ -898,6 +941,12 @@
 
   // ---------- 동의 ----------
   const CONSENT = { abroad: false, geo: false };
+  // 위치정보 동의 여부에 따라 '현재 위치' 버튼 또는 동의 안내를 보여 줌
+  function syncGeo() {
+    $("here").classList.toggle("hidden", !CONSENT.geo);
+    $("geo-ask").classList.toggle("hidden", !!CONSENT.geo);
+    $("ga-note").textContent = AUTH.user ? "동의는 내 정보 → 선택 동의 관리에서 언제든 바꿀 수 있어요." : "로그인하지 않은 경우 동의는 이 페이지를 떠나면 저장되지 않아요.";
+  }
   const boxes = [...document.querySelectorAll(".c-req, .c-opt")];
   const reqOk = () => [...document.querySelectorAll(".c-req")].every((b) => b.checked);
   const syncConsent = () => { $("enter").disabled = !reqOk(); $("c-all").checked = boxes.every((b) => b.checked); };
@@ -908,7 +957,7 @@
   function showScreen(name) {
     if (AUTH.user && name !== "result") name = "form";   // 회원은 가입할 때 이미 동의함
     $("loading").classList.add("hidden");
-    ["feed", "rank", "auth", "me", "write", "admin"].forEach((id) => $(id).classList.add("hidden"));
+    ["rank", "corner", "auth", "me", "write", "admin"].forEach((id) => $(id).classList.add("hidden"));
     $("skipbtn").classList.add("hidden");
     const hasResult = !!$("result").innerHTML;
     if (name === "result" && hasResult) {
@@ -937,9 +986,8 @@
     $("result").classList.add("hidden"); $("result").innerHTML = "";
     $("form").classList.add("hidden"); $("form").reset();
     $("pickwrap").classList.add("hidden"); $("lochelp").classList.add("hidden"); $("err").classList.add("hidden");
-    $("here").classList.remove("hidden");
     boxes.forEach((b) => (b.checked = false)); $("c-all").checked = false; syncConsent();
-    CONSENT.abroad = CONSENT.geo = false;
+    CONSENT.abroad = CONSENT.geo = false; syncGeo();
     closeStory(true);
     COMM.forEach((id) => $(id).classList.add("hidden")); markNav("");
     if (!AUTH.user) { showComm("auth"); return; }
@@ -966,7 +1014,7 @@
     if (!reqOk()) return;
     CONSENT.abroad = $("c-abroad").checked;
     CONSENT.geo = $("c-geo").checked;
-    $("here").classList.toggle("hidden", !CONSENT.geo);
+    syncGeo();
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
     go("form", 1);
@@ -2298,6 +2346,48 @@ JJ Lin|林俊傑|임준걸`;
   }
   window.__route = (i) => M.items && M.items[i] && openRoute(M.items[i]);
 
+  // ---------- 배달 앱으로 주문 (배민·쿠팡이츠) ----------
+  // 두 회사 모두 공개 API나 '이 가게 바로 열기' 주소가 없어서, 가게 이름을 복사한 뒤 앱을 열어 줌
+  // (배달 가능 여부·배달비는 앱에 저장된 주소 기준으로 앱이 판단)
+  const DLV = { on: false, apps: {
+    baemin: { label: "배민", name: "배달의민족", scheme: "baemin", pkg: "com.sampleapp", ios: "id378084485" },
+    coupang: { label: "쿠팡이츠", name: "쿠팡이츠", scheme: "coupangeats", pkg: "com.coupang.mobile.eats", ios: "id1445504255" },
+  } };
+  try { DLV.on = localStorage.getItem("food.dlv") === "1"; } catch {}
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  function dlvHref(key) {
+    const a = DLV.apps[key];
+    // 안드로이드: 앱이 있으면 앱이 열리고, 없으면 크롬이 플레이 스토어를 열어 줌
+    // 아이폰: 앱스토어의 앱 화면이 열림 (설치돼 있으면 '열기', 없으면 설치)
+    if (isAndroid) return `intent://#Intent;scheme=${a.scheme};package=${a.pkg};end`;
+    if (isIOS) return `itms-apps://apps.apple.com/kr/app/${a.ios}`;
+    return "#";
+  }
+  function copyText(s) {
+    const old = () => {
+      try {
+        const t = document.createElement("textarea");
+        t.value = s; t.setAttribute("readonly", ""); t.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+        document.body.appendChild(t); t.select(); t.setSelectionRange(0, s.length);
+        document.execCommand("copy"); t.remove();
+      } catch {}
+    };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).catch(old); else old();
+  }
+  function onDelivery(e, p, key) {
+    e.stopPropagation();
+    const a = DLV.apps[key];
+    copyText(p.name);   // 앱으로 넘어가기 전에 (누른 순간) 복사
+    if (!isAndroid && !isIOS) {
+      e.preventDefault();
+      toast(`'${p.name}' 이름을 복사했어요. 배달 주문은 휴대폰의 ${a.name} 앱에서 이 이름으로 검색해 주세요.`, 5000);
+      return;
+    }
+    toast(isIOS ? `'${p.name}' 이름을 복사했어요. 앱스토어에서 '열기'를 누른 뒤 검색창에 붙여넣어 주세요.`
+                : `'${p.name}' 이름을 복사했어요. ${a.name} 검색창에 붙여넣어 주세요.`, 5000);
+  }
+
   function placeInfo(p, i) {
     return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}
       <div class="go"><a href="#" onclick="window.__route(${i});return false;">🧭 길찾기</a></div></div>`;
@@ -2357,8 +2447,10 @@ JJ Lin|林俊傑|임준걸`;
     if (M.map) { bounds.extend(M.center); M.map.fitBounds(bounds); }
     M.items = items;
     list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${esc(p.name)}</b><small>${esc(p.category)} · ${esc(p.addr)}</small>
-      <div class="go"><a href="#" data-route="${i}">🧭 길찾기</a><a class="sub2" href="${esc(placeUrl(p))}" target="_blank" rel="noopener">네이버 지도에서 보기</a></div></li>`).join("");
+      <div class="go"><a href="#" data-route="${i}">🧭 길찾기</a><a class="sub2" href="${esc(placeUrl(p))}" target="_blank" rel="noopener">네이버 지도에서 보기</a></div>
+      <div class="go dlv">${Object.keys(DLV.apps).map((k) => `<a class="dl" href="${esc(dlvHref(k))}" data-dlv="${k}" data-i="${i}">🛵 ${DLV.apps[k].label}</a>`).join("")}</div></li>`).join("");
     list.querySelectorAll("a[data-route]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openRoute(items[+a.dataset.route]); }));
+    list.querySelectorAll("a[data-dlv]").forEach((a) => a.addEventListener("click", (e) => onDelivery(e, items[+a.dataset.i], a.dataset.dlv)));
     list.querySelectorAll("a.sub2").forEach((a) => a.addEventListener("click", (e) => e.stopPropagation()));
     list.querySelectorAll("li[data-i]").forEach((li) => li.addEventListener("click", () => {
       const i = +li.dataset.i, mk = M.markers[i];
@@ -2590,8 +2682,15 @@ JJ Lin|林俊傑|임준걸`;
         <h2 id="maptitle">🗺️ ${esc(v.loc)} 주변</h2>
         <div id="map"></div>
         <p class="hint" id="mapmsg"></p>
-        <ul class="places" id="places"></ul>
+        ${SEARCH_PROXY && CONSENT.abroad ? `<label class="dlvbar"><input type="checkbox" id="dlv-on"${DLV.on ? " checked" : ""}> 🛵 배달 앱으로 주문하기 (배민·쿠팡이츠)</label>
+        <p class="hint${DLV.on ? "" : " hidden"}" id="dlv-hint">식당마다 배민·쿠팡이츠 버튼이 생겨요. 누르면 가게 이름이 복사되고 앱이 열려요. 앱 검색창에 붙여넣기 하면 돼요. 배달 가능 여부와 배달비는 앱에 저장된 내 주소 기준으로 앱에서 보여 줘요.</p>` : ""}
+        <ul class="places${DLV.on ? " dlv" : ""}" id="places"></ul>
       </div>`;
+    if ($("dlv-on")) $("dlv-on").addEventListener("change", (e) => {
+      DLV.on = e.target.checked;
+      try { localStorage.setItem("food.dlv", DLV.on ? "1" : "0"); } catch {}
+      $("places").classList.toggle("dlv", DLV.on); $("dlv-hint").classList.toggle("hidden", !DLV.on);
+    });
     $("result").classList.remove("hidden");
     M.mapDone = drawMap(v.loc);
     bindPicks(v, r, []);
@@ -2670,7 +2769,7 @@ JJ Lin|林俊傑|임준걸`;
   // 서버: worker/song-meal-api.js (Cloudflare Workers + D1)
   const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "http://localhost:8787" : "https://song-meal-api.fare1451.workers.dev";
   const KIND_EMO = { "한식": "🍚", "중식": "🥟", "일식": "🍣", "양식": "🍝", "분식": "🍢", "아시안": "🍜", "카페·디저트": "🍰" };
-  const COMM = ["feed", "rank", "auth", "me", "write", "admin"];
+  const COMM = ["rank", "corner", "auth", "me", "write", "admin"];
   const AUTH = { token: "", user: null };
   try { AUTH.token = localStorage.getItem("food.token") || ""; AUTH.user = JSON.parse(localStorage.getItem("food.user") || "null"); } catch {}
 
@@ -2690,7 +2789,7 @@ JJ Lin|林俊傑|임준걸`;
   function applyPrefs() {
     const pf = (AUTH.user && AUTH.user.prefs) || {};
     if (AUTH.user) { CONSENT.abroad = !!pf.abroad; CONSENT.geo = !!pf.geo; }
-    $("here").classList.toggle("hidden", !CONSENT.geo);
+    syncGeo();
   }
   setAuth(AUTH.token, AUTH.user);
   setTimeout(() => route(history.state), 0);
@@ -2716,9 +2815,9 @@ JJ Lin|林俊傑|임준걸`;
   }
 
   let toastTimer;
-  function toast(msg) {
+  function toast(msg, ms = 2600) {
     const t = $("toast"); t.textContent = msg; t.classList.remove("hidden");
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), 2600);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), ms);
   }
   const ago = (t) => {
     const s = (Date.now() - t) / 1000;
@@ -2735,13 +2834,12 @@ JJ Lin|林俊傑|임준걸`;
   }
   function markNav(name) {
     $("nav-music").classList.toggle("on", !name);
-    $("nav-rank").classList.toggle("on", name === "rank");
+    $("nav-rank").classList.toggle("on", name === "rank" || name === "corner");
     $("nav-me").classList.toggle("on", name === "me" || name === "auth");
     $("nav-admin").classList.toggle("on", name === "admin");
   }
   function showComm(name) {
-    const toFeed = name === "feed";   // 스토리 목록은 순위 탭 안에 있음
-    if (toFeed) name = "rank";
+    if (name === "feed") name = "rank";   // 예전 '모든 스토리' 화면 기록은 순위·스토리로
     if (name === "me" && !AUTH.user) name = "auth";
     if (name === "write" && !AUTH.user) name = "auth";
     if (name === "admin" && !AUTH.user) name = "auth";
@@ -2756,11 +2854,8 @@ JJ Lin|林俊傑|임준걸`;
       ? "음식점에 오신 걸 환영해요! 🎶<br>가입하고 나만의 음식 × 노래 조합을 올려 보세요."
       : "가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!";
     window.scrollTo({ top: 0 });
-    if (name === "rank") {
-      $("feed").classList.remove("hidden");
-      loadRank(); loadFeed(true);
-      if (toFeed) setTimeout(() => $("feed").scrollIntoView({ behavior: "smooth" }), 50);
-    }
+    if (name === "rank") loadRank();
+    if (name === "corner") enterCorner();
     if (name === "me") loadMe();
     if (name === "admin") { if (!(AUTH.user && AUTH.user.admin)) { showComm("rank"); return; } admTab(ADM.tab); }
   }
@@ -2769,9 +2864,20 @@ JJ Lin|林俊傑|임준걸`;
     showComm(name); go(name);
   }
   function route(state) {
+    const fromStory = ST.back || !$("story").classList.contains("hidden");
+    ST.back = false;
     closeStory(true);
-    const s = state && state.screen;
-    if (COMM.includes(s)) { showComm(s); return; }
+    let s = state && state.screen;
+    if (s === "feed") s = "rank";
+    if (COMM.includes(s)) {
+      // 스토리를 닫고 보던 목록으로 돌아오면 다시 불러오지 않고 그 자리 그대로 둠 (좋아요·삭제만 반영)
+      if (fromStory && !$(s).classList.contains("hidden")) {
+        if (s === "corner") drawCorner();
+        if (s === "me") drawMine();
+        return;
+      }
+      showComm(s); return;
+    }
     if (!s && !AUTH.user) { showComm("auth"); return; }   // 첫 화면: 가입 먼저 (회원은 showScreen에서 입력 화면으로)
     markNav(""); COMM.forEach((id) => $(id).classList.add("hidden"));
     showScreen(s);
@@ -2781,77 +2887,131 @@ JJ Lin|林俊傑|임준걸`;
   $("nav-me").addEventListener("click", () => openComm(AUTH.user ? "me" : "auth"));
   $("rank-write").addEventListener("click", () => openWrite(null));
 
-  // ---------- 스토리 목록 ----------
-  const FEED = { kind: "", sort: "new", offset: 0, posts: [] };
-  $("feed-kind").innerHTML = ["", ...KINDS].map((k) =>
-    `<label><input type="radio" name="fk" value="${esc(k)}" ${k ? "" : "checked"}><span>${k ? KIND_EMO[k] + " " + esc(k) : "✨ 전체"}</span></label>`).join("");
-  $("feed-kind").addEventListener("change", (e) => { FEED.kind = e.target.value; loadFeed(true); });
-  $("feed-sort").addEventListener("click", (e) => {
-    const b = e.target.closest("button"); if (!b) return;
-    FEED.sort = b.dataset.sort;
-    $("feed-sort").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    loadFeed(true);
-  });
-  $("feed-more").addEventListener("click", () => loadFeed(false));
-
-  const cardHTML = (p, i, mine) => `
-    <button type="button" class="scard" data-i="${i}">
+  const MED = ["🥇", "🥈", "🥉"];
+  // o.rank: 순위 배지(1위~), o.kind: 코너 표시 여부, o.time: 올린 시간 표시
+  const cardHTML = (p, i, mine, o = {}) => `
+    <button type="button" class="scard${o.rank && o.rank <= 3 ? " t" + o.rank : ""}" data-i="${i}">
       <img class="ph" src="${esc(p.thumb)}" alt="${esc(p.menu)} 사진" loading="lazy">
-      <span class="kd">${KIND_EMO[p.kind] || ""} ${esc(p.kind)}</span>
+      ${o.rank ? `<span class="rk${o.rank <= 3 ? " r" + o.rank : ""}">${o.rank <= 3 ? MED[o.rank - 1] + " " : ""}${o.rank}위</span>`
+        : o.kind === false ? "" : `<span class="kd">${KIND_EMO[p.kind] || ""} ${esc(p.kind)}</span>`}
       <span class="lk">❤️ ${p.likes}</span>
       ${mine && p.hidden ? `<span class="hid">신고로 숨겨짐</span>` : ""}
       <span class="ov"><b>${esc(p.menu)}</b>
         <span class="sg">${p.art ? `<img src="${esc(p.art)}" alt="" onerror="this.remove()">` : "🎧"} ${esc(p.song)}</span>
-        <span>${mine ? ago(p.created) : esc(p.nick) + "님"}</span></span>
+        <span>${o.rank && o.kind ? (KIND_EMO[p.kind] || "") + " " : ""}${mine ? ago(p.created) : esc(p.nick) + "님" + (o.time ? " · " + ago(p.created) : "")}</span></span>
     </button>`;
 
-  async function loadFeed(reset) {
-    if (reset) { FEED.offset = 0; FEED.posts = []; $("feed-grid").innerHTML = ""; }
-    $("feed-msg").textContent = "불러오는 중...";
-    $("feed-more").classList.add("hidden");
-    const q = new URLSearchParams({ sort: FEED.sort, offset: FEED.offset, limit: 24 });
-    if (FEED.kind) q.set("kind", FEED.kind);
-    try {
-      const d = await api("/posts?" + q);
-      const start = FEED.posts.length;
-      FEED.posts.push(...d.posts); FEED.offset += d.posts.length;
-      $("feed-grid").insertAdjacentHTML("beforeend", d.posts.map((p, j) => cardHTML(p, start + j, false)).join(""));
-      $("feed-msg").textContent = FEED.posts.length ? "" : "아직 올라온 후기가 없어요. 첫 후기를 올려 보세요!";
-      $("feed-more").classList.toggle("hidden", !d.more);
-    } catch (e) { $("feed-msg").textContent = e.message; }
+  // ---------- 순위·스토리: 코너 고르기 ----------
+  // 코너마다 1위 사진을 보여 주고, 누르면 그 코너 안의 좋아요 순위로 들어감
+  const byRank = (a, b) => b.likes - a.likes || a.created - b.created || a.id - b.id;
+  let RANK = {}, RANK_N = null, rankTok = 0;
+  function drawTiles(state) {
+    // 전체 TOP 3는 코너별 TOP 3 안에 반드시 있으므로 합쳐서 다시 정렬
+    const all = KINDS.flatMap((k) => RANK[k] || []).sort(byRank).slice(0, 3);
+    const total = RANK_N ? KINDS.reduce((n, k) => n + (RANK_N[k] || 0), 0) : null;
+    const tiles = [["", "✨", "전체", all, total],
+      ...KINDS.map((k) => [k, KIND_EMO[k], k, RANK[k] || [], RANK_N ? RANK_N[k] || 0 : null])];
+    $("rank-box").innerHTML = tiles.map(([k, emo, name, list, n]) => {
+      const p = list[0];
+      const sub = state === "loading" ? "불러오는 중..." : p ? `🥇 ${esc(p.nick)}님 · ❤️ ${p.likes}`
+        : state === "error" ? "눌러서 들어가기" : "아직 후기가 없어요";
+      return `<button type="button" class="ctile${p ? " has" : ""}" data-k="${esc(k)}">
+        ${p ? `<img class="ph" src="${esc(p.thumb)}" alt="" loading="lazy">` : `<span class="big">${emo}</span>`}
+        <span class="nm">${p ? emo + " " : ""}${esc(name)}</span><span class="arr">›</span>
+        <span class="ft"><span>${sub}</span>${n !== null ? `<small>후기 ${n}개</small>` : ""}</span>
+      </button>`;
+    }).join("");
   }
-  $("feed-grid").addEventListener("click", (e) => {
-    const c = e.target.closest(".scard"); if (c) openStory(FEED.posts, +c.dataset.i);
-  });
-
-  // ---------- 코너별 순위 ----------
-  let RANK = {};
   async function loadRank() {
-    $("rank-box").innerHTML = `<div class="card"><p class="hint">불러오는 중...</p></div>`;
+    const my = ++rankTok;
+    $("rank-err").classList.add("hidden");
+    if (!Object.keys(RANK).length) drawTiles("loading");
     try {
       const d = await api("/ranking");
-      RANK = d.corners;
-      const MED = ["🥇", "🥈", "🥉"];
-      $("rank-box").innerHTML = KINDS.map((k) => {
-        const list = RANK[k] || [];
-        const rows = list.length ? list.map((p, i) => `
-          <button type="button" class="rrow" data-k="${esc(k)}" data-i="${i}">
-            <span class="md">${MED[i]}</span><img src="${esc(p.thumb)}" alt="">
-            <span class="tx"><b>${esc(p.nick)}님의 ${esc(p.song)}</b><small>${esc(p.menu)}${p.place ? " · " + esc(p.place) : ""}</small></span>
-            <span class="lkn">❤️ ${p.likes}</span>
-          </button>`).join("")
-          : `<div class="rempty"><img src="icon-192.png?v=2" alt="">아직 후기가 없어요. 첫 1등이 되어 보세요!</div>`;
-        return `<div class="card"><h3>${KIND_EMO[k]} ${esc(k)} 코너</h3>${rows}</div>`;
-      }).join("");
-    } catch (e) { $("rank-box").innerHTML = `<div class="card"><p class="error">${esc(e.message)}</p></div>`; }
+      if (my !== rankTok) return;
+      RANK = d.corners || {}; RANK_N = d.counts || null;
+      drawTiles();
+    } catch (e) {
+      if (my !== rankTok) return;
+      drawTiles("error");
+      $("rank-err").textContent = e.message; $("rank-err").classList.remove("hidden");
+    }
   }
   $("rank-box").addEventListener("click", (e) => {
-    const r = e.target.closest(".rrow"); if (r) openStory(RANK[r.dataset.k], +r.dataset.i);
+    const t = e.target.closest(".ctile"); if (t) openCorner(t.dataset.k);
   });
+
+  // ---------- 코너 안: 좋아요 순위 / 최신 ----------
+  const CORNER = { k: "", sort: "top", offset: 0, count: 0, posts: [], tok: 0 };
+  function openCorner(k) {
+    history.pushState({ screen: "corner", k, sort: "top", fromTiles: 1, d: ((history.state && history.state.d) || 0) + 1 }, "");
+    showComm("corner");
+  }
+  function enterCorner() {
+    const st = history.state || {};
+    CORNER.k = KINDS.includes(st.k) ? st.k : "";
+    CORNER.sort = st.sort === "new" ? "new" : "top";
+    $("corner-title").textContent = CORNER.k ? `${KIND_EMO[CORNER.k]} ${CORNER.k} 코너` : "✨ 전체 스토리";
+    markSort(); loadCorner(true);
+  }
+  function markSort() {
+    $("corner-sort").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.sort === CORNER.sort));
+    $("corner-hint").textContent = CORNER.sort === "top"
+      ? "좋아요를 많이 받은 순서예요. 좋아요 수가 같으면 먼저 올린 후기가 앞서요. 누르면 스토리로 볼 수 있어요."
+      : "새로 올라온 순서예요. 누르면 스토리로 볼 수 있어요.";
+  }
+  async function loadCorner(reset) {
+    const my = ++CORNER.tok;
+    if (reset) {
+      CORNER.offset = CORNER.count = 0; CORNER.posts = [];
+      $("corner-grid").innerHTML = ""; $("corner-empty").classList.add("hidden");
+    }
+    $("corner-msg").textContent = "불러오는 중...";
+    $("corner-more").classList.add("hidden");
+    const q = new URLSearchParams({ sort: CORNER.sort, offset: CORNER.offset, limit: 24 });
+    if (CORNER.k) q.set("kind", CORNER.k);
+    try {
+      const d = await api("/posts?" + q);
+      if (my !== CORNER.tok) return;
+      const have = new Set(CORNER.posts.map((p) => p.id));   // 그 사이 순위가 바뀌어 겹친 후기는 빼고 붙임
+      CORNER.offset += d.posts.length;
+      CORNER.posts.push(...d.posts.filter((p) => !have.has(p.id)));
+      CORNER.count = CORNER.posts.length;
+      drawCorner();
+      $("corner-more").classList.toggle("hidden", !d.more);
+    } catch (e) { if (my === CORNER.tok) $("corner-msg").textContent = e.message; }
+  }
+  function drawCorner() {
+    const lost = CORNER.count - CORNER.posts.length;   // 스토리에서 지운 후기만큼 '더 보기' 위치를 당김
+    if (lost > 0) { CORNER.offset = Math.max(0, CORNER.offset - lost); CORNER.count = CORNER.posts.length; }
+    const top = CORNER.sort === "top";
+    $("corner-grid").innerHTML = CORNER.posts.map((p, i) => cardHTML(p, i, false, { rank: top ? i + 1 : 0, kind: !CORNER.k, time: !top })).join("");
+    const none = !CORNER.posts.length;
+    $("corner-empty").classList.toggle("hidden", !none);
+    $("corner-empty").querySelector("span").textContent = CORNER.k
+      ? `아직 ${CORNER.k} 코너에 후기가 없어요. 첫 1등이 되어 보세요!` : "아직 올라온 후기가 없어요. 첫 후기를 올려 보세요!";
+    $("corner-msg").textContent = "";
+  }
+  $("corner-grid").addEventListener("click", (e) => {
+    const c = e.target.closest(".scard"); if (c) openStory(CORNER.posts, +c.dataset.i);
+  });
+  $("corner-sort").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || b.dataset.sort === CORNER.sort) return;
+    CORNER.sort = b.dataset.sort;
+    history.replaceState({ ...(history.state || {}), sort: CORNER.sort }, "");
+    markSort(); loadCorner(true);
+  });
+  $("corner-more").addEventListener("click", () => loadCorner(false));
+  $("corner-back").addEventListener("click", () => {
+    if (history.state && history.state.fromTiles) { history.back(); return; }   // 코너 목록에서 들어왔으면 그대로 뒤로
+    history.replaceState({ screen: "rank", d: (history.state && history.state.d) || 1 }, "");
+    showComm("rank");
+  });
+  $("corner-write").addEventListener("click", () => openWrite(CORNER.k ? { kind: CORNER.k } : null));
 
   // ---------- 스토리 보기 ----------
   // 스토리: 미리듣기를 자동 재생하고, 끝나면 다음 스토리로 (미리듣기가 없으면 7초 뒤)
-  const ST = { list: [], i: 0, el: new Audio(), timer: 0, pushed: false, pending: false };
+  const ST = { list: [], i: 0, el: new Audio(), timer: 0, pushed: false, pending: false, back: false };
   const NOSONG_MS = 7000;
   function openStory(list, i) {
     if (!list || !list[i]) return;
@@ -2890,7 +3050,7 @@ JJ Lin|林俊傑|임준걸`;
     stopAudio();
     $("story").classList.add("hidden");
     document.body.style.overflow = "";
-    if (ST.pushed && !fromHistory) { ST.pushed = false; history.back(); return; }
+    if (ST.pushed && !fromHistory) { ST.pushed = false; ST.back = true; history.back(); return; }
     ST.pushed = false;
   }
   async function drawStory() {
@@ -3111,13 +3271,15 @@ JJ Lin|林俊傑|임준걸`;
     try {
       const d = await api("/me");
       setAuth(AUTH.token, d.user); fillPrefs();
-      MINE = d.posts;
-      $("me-grid").innerHTML = MINE.map((p, i) => cardHTML(p, i, true)).join("");
-      $("me-msg").textContent = MINE.length ? "" : "아직 올린 후기가 없어요.";
+      MINE = d.posts; drawMine();
     } catch (e) {
       if (e.status === 401) { toast("다시 로그인해 주세요."); showComm("auth"); return; }
       $("me-msg").textContent = e.message;
     }
+  }
+  function drawMine() {
+    $("me-grid").innerHTML = MINE.map((p, i) => cardHTML(p, i, true)).join("");
+    $("me-msg").textContent = MINE.length ? "" : "아직 올린 후기가 없어요.";
   }
   $("me-grid").addEventListener("click", (e) => {
     const c = e.target.closest(".scard"); if (c) openStory(MINE, +c.dataset.i);
@@ -3139,7 +3301,7 @@ JJ Lin|林俊傑|임준걸`;
       setAuth("", null); $("leave-pw").value = "";
       try { localStorage.removeItem("food.member"); } catch {}
       toast("탈퇴했어요. 모든 정보를 지웠어요.");
-      history.replaceState({ ...(history.state || {}), screen: "feed" }, ""); showComm("feed");
+      history.replaceState({ ...(history.state || {}), screen: "rank" }, ""); showComm("rank");
     } catch (e) { toast(e.message); }
   });
 
@@ -3174,6 +3336,7 @@ JJ Lin|林俊傑|임준걸`;
     $("w-menu-list").innerHTML = seed.picks.map((p) => `<option value="${esc(p.food)}">`).join("");
     $("w-place-list").innerHTML = seed.places.map((n) => `<option value="${esc(n)}">`).join("");
     if (seed.places[0]) $("w-place").value = seed.places[0];
+    if (KINDS.includes(seed.kind)) $("w-kind").value = seed.kind;   // 코너 안에서 '후기 올리기'를 누른 경우
   }
   $("w-menu").addEventListener("change", () => {
     const p = W.seed && W.seed.picks.find((x) => x.food === $("w-menu").value.trim());
@@ -3226,20 +3389,19 @@ JJ Lin|林俊傑|임준걸`;
     if (!song) return wErr("노래를 입력해 주세요.");
     if (!menu) return wErr("메뉴 이름을 입력해 주세요.");
     const btn = $("w-btn"); btn.disabled = true; btn.textContent = "올리는 중...";
+    const kind = $("w-kind").value;
     try {
       let info = W.info;
       const same = info && song === `${info.artistName} - ${info.trackName}`;
       if (!same) info = await lookupSong(song).catch(() => null);
       await api("/posts", { method: "POST", body: {
         song, art: info && info.artworkUrl100 ? info.artworkUrl100.replace("100x100", "300x300") : "", preview: (info && info.previewUrl) || "",
-        kind: $("w-kind").value, menu, place: $("w-place").value.trim(), body: $("w-body").value.trim(), photo: W.photo, thumb: W.thumb,
+        kind, menu, place: $("w-place").value.trim(), body: $("w-body").value.trim(), photo: W.photo, thumb: W.thumb,
       } });
       toast("후기를 올렸어요! 🎉");
-      FEED.kind = ""; FEED.sort = "new";
-      document.querySelector('#feed-kind input[value=""]').checked = true;
-      $("feed-sort").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.sort === "new"));
-      history.replaceState({ ...(history.state || {}), screen: "feed" }, "");
-      showComm("feed");
+      // 올린 코너로 가서 최신순으로 보여 줌 (방금 올린 후기가 맨 앞)
+      history.replaceState({ ...(history.state || {}), screen: "corner", k: kind, sort: "new", fromTiles: 0 }, "");
+      showComm("corner");
     } catch (er) {
       wErr(er.message);
       if (er.status === 401) { afterLogin = { seed: W.seed }; showComm("auth"); }
@@ -3260,8 +3422,16 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.1";
+  const APP_VERSION = "v2.2";
   const CHANGELOG = [
+    ["v2.2", "2026-11-13", "코너별 순위·스토리, 위치정보 동의 버튼, 배달 앱 연결", [
+      "순위와 스토리를 합침: '🏆 순위·스토리'에서 한식·중식 등 코너를 고르면 그 코너 안에서 좋아요 순위(🥇🥈🥉, 4위…)대로 스토리를 봄",
+      "코너 안에서 🏆 순위 / 🆕 최신 정렬, 더 보기, 그 코너로 바로 후기 올리기",
+      "코너 타일에 1위 사진·닉네임·좋아요 수와 후기 수 표시 (✨ 전체 스토리 포함)",
+      "후기를 올리면 올린 코너의 최신순 화면으로 이동, 스토리를 닫으면 보던 자리 그대로 돌아옴",
+      "음악찾기 화면에서 위치정보에 동의하지 않았으면 '선택 동의' 안내와 동의하기 버튼 표시 (회원은 계정 설정에 저장)",
+      "결과 화면에 '🛵 배달 앱으로 주문하기' 체크: 식당마다 배민·쿠팡이츠 버튼 (가게 이름 복사 후 앱 열기)",
+    ]],
     ["v2.1", "2026-11-12", "여러 음악 서비스 비교 검색", [
       "Apple Music 하나만 보지 않고 Apple Music·Deezer·MusicBrainz에 한꺼번에 물어본 뒤, 같은 곡이 몇 곳에서 나오는지 비교해서 고름",
       "사전에 없는 가수·곡 이름은 Wikidata에서 한글↔영어 표기를 찾아 다시 검색 (예: 보헤미안 랩소디 → Bohemian Rhapsody)",
@@ -3413,6 +3583,24 @@ JJ Lin|林俊傑|임준걸`;
       setAuth(AUTH.token, { ...AUTH.user, prefs: d.prefs }); fillPrefs();
       toast("선택 동의를 저장했어요.");
     } catch (e) { toast(e.message); }
+  });
+  // 음악찾기 화면의 위치정보 동의 버튼: 회원은 계정의 선택 동의에 저장, 비회원은 이 페이지에서만 켬
+  $("ga-btn").addEventListener("click", async () => {
+    const b = $("ga-btn");
+    if (AUTH.user) {
+      const pf = AUTH.user.prefs || {};
+      b.disabled = true; b.textContent = "저장 중...";
+      try {
+        const d = await api("/me/prefs", { method: "POST", body: { abroad: !!pf.abroad, geo: true } });
+        setAuth(AUTH.token, { ...AUTH.user, prefs: d.prefs });
+      } catch (e) { toast(e.message); return; }
+      finally { b.disabled = false; b.textContent = "동의하기"; }
+    } else {
+      CONSENT.geo = true; $("c-geo").checked = true; syncConsent(); syncGeo();
+    }
+    if (!CONSENT.geo) return;
+    toast("위치정보 이용에 동의했어요. '📍 현재 위치'를 눌러 보세요.");
+    $("here").focus();
   });
 
   // ---------- 관리패널 ----------

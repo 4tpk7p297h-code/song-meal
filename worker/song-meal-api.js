@@ -390,7 +390,8 @@ async function route(request, env) {
     const offset = Math.max(0, +url.searchParams.get("offset") || 0);
     const where = ["p.hidden = 0"], args = [];
     if (kind) { if (!KINDS.includes(kind)) fail(400, "없는 코너예요."); where.push("p.kind = ?"); args.push(kind); }
-    const order = sort === "top" ? "p.likes DESC, p.created DESC" : "p.created DESC";
+    // 순위(top): 좋아요가 같으면 먼저 올린 후기가 앞 (코너별 순위와 같은 기준)
+    const order = sort === "top" ? "p.likes DESC, p.created ASC, p.id ASC" : "p.created DESC, p.id DESC";
     const { results } = await DB.prepare(`SELECT ${POST_COLS}, p.thumb FROM posts p JOIN users u ON u.id = p.user_id WHERE ${where.join(" AND ")} ORDER BY ${order} LIMIT ? OFFSET ?`)
       .bind(...args, limit + 1, offset).all();
     const page = results.slice(0, limit);
@@ -518,13 +519,17 @@ async function route(request, env) {
   if (path === "/ranking" && M === "GET") {
     const { results } = await DB.prepare(
       `SELECT * FROM (
-         SELECT ${POST_COLS}, p.thumb, ROW_NUMBER() OVER (PARTITION BY p.kind ORDER BY p.likes DESC, p.created ASC) AS rn
+         SELECT ${POST_COLS}, p.thumb, ROW_NUMBER() OVER (PARTITION BY p.kind ORDER BY p.likes DESC, p.created ASC, p.id ASC) AS rn
          FROM posts p JOIN users u ON u.id = p.user_id WHERE p.hidden = 0
        ) WHERE rn <= 3 ORDER BY kind, rn`
     ).all();
     const corners = Object.fromEntries(KINDS.map((k) => [k, []]));
     results.forEach((r) => corners[r.kind] && corners[r.kind].push(pub(r, null, false)));
-    return { corners };
+    // 코너마다 후기 수 (코너 타일에 표시)
+    const { results: cnt } = await DB.prepare("SELECT kind, COUNT(*) AS n FROM posts WHERE hidden = 0 GROUP BY kind").all();
+    const counts = Object.fromEntries(KINDS.map((k) => [k, 0]));
+    cnt.forEach((r) => { if (r.kind in counts) counts[r.kind] = r.n; });
+    return { corners, counts };
   }
 
   fail(404, "없는 주소예요.");
@@ -538,7 +543,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.1";
+const MUSIC_VERSION = "2.2";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
