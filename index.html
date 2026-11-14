@@ -407,6 +407,7 @@
   @media (max-width: 599px) { .story .nav { display: none; } }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1100; background: #3a2e2a; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100% - 32px); text-align: center; }
   .toast.hidden { display: none; }
+  .toast a { color: #ffd2c4; text-decoration: underline; }
   @media (max-width: 520px) {
     .top h1 { font-size: 26px; }
     .cnav button { padding: 6px 10px; font-size: 13px; }
@@ -2386,9 +2387,10 @@ JJ Lin|林俊傑|임준걸`;
   function dlvHref(key) {
     const a = DLV.apps[key];
     // 안드로이드: 앱이 있으면 앱이 열리고, 없으면 크롬이 플레이 스토어를 열어 줌
-    // 아이폰: 앱스토어의 앱 화면이 열림 (설치돼 있으면 '열기', 없으면 설치)
+    // 아이폰: 앱 주소(baemin://, coupangeats://)로 바로 엶. 사파리가 "열겠습니까?"를 물어봄 (2026-11-14 사용자 아이폰에서 확인)
+    //         앱이 없으면 사파리가 오류 창을 띄우므로, 안내 창의 '앱스토어' 링크로 설치하게 함
     if (isAndroid) return `intent://#Intent;scheme=${a.scheme};package=${a.pkg};end`;
-    if (isIOS) return `itms-apps://apps.apple.com/kr/app/${a.ios}`;
+    if (isIOS) return `${a.scheme}://`;
     return "#";
   }
   function copyText(s) {
@@ -2411,8 +2413,11 @@ JJ Lin|林俊傑|임준걸`;
       toast(`'${p.name}' 이름을 복사했어요. 배달 주문은 휴대폰의 ${a.name} 앱에서 이 이름으로 검색해 주세요.`, 5000);
       return;
     }
-    toast(isIOS ? `'${p.name}' 이름을 복사했어요. 앱스토어에서 '열기'를 누른 뒤 검색창에 붙여넣어 주세요.`
-                : `'${p.name}' 이름을 복사했어요. ${a.name} 검색창에 붙여넣어 주세요.`, 5000);
+    if (isIOS) {
+      toast(`'${esc(p.name)}' 이름을 복사했어요. '열기'를 누른 뒤 ${a.name} 검색창에 붙여넣어 주세요.<br><a href="itms-apps://apps.apple.com/kr/app/${a.ios}">앱이 없으면 여기를 눌러 앱스토어에서 설치</a>`, 8000, true);
+      return;
+    }
+    toast(`'${p.name}' 이름을 복사했어요. ${a.name} 검색창에 붙여넣어 주세요.`, 5000);
   }
 
   function placeInfo(p, i) {
@@ -3034,8 +3039,8 @@ JJ Lin|林俊傑|임준걸`;
   }
 
   let toastTimer;
-  function toast(msg, ms = 2600) {
-    const t = $("toast"); t.textContent = msg; t.classList.remove("hidden");
+  function toast(msg, ms = 2600, html = false) {
+    const t = $("toast"); if (html) t.innerHTML = msg; else t.textContent = msg; t.classList.remove("hidden");
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), ms);
   }
   const ago = (t) => {
@@ -3641,8 +3646,12 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.3";
+  const APP_VERSION = "v2.4";
   const CHANGELOG = [
+    ["v2.4", "2026-11-14", "아이폰 배달 앱 바로 열기", [
+      "아이폰에서 배민·쿠팡이츠 버튼을 누르면 앱스토어를 거치지 않고 앱이 바로 열림 (사파리의 '열겠습니까?'에서 열기)",
+      "앱이 없는 경우를 위해 안내 창에 '앱스토어에서 설치' 링크 표시",
+    ]],
     ["v2.3", "2026-11-13", "혼밥 가능한 식당 찾기", [
       "입력 화면에 '🙋 혼밥 가능한 곳만 찾기' 추가 (인원을 1명으로 하면 자동으로 켜짐, 음식 조건에 '혼밥'이라고 써도 됨)",
       "혼밥을 켜면 혼자 먹기 좋은 메뉴(국밥·라멘·돈카츠·덮밥 등)를 먼저 추천하고, 메뉴에 '🙋 혼밥 메뉴' 태그 표시",
