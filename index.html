@@ -1874,7 +1874,9 @@ JJ Lin|林俊傑|임준걸`;
   }
   const VARIANT = /remix|inst\b|instrumental|karaoke|cover|live|ver\.|version|sped|slowed|\bmr\b|piano|acoustic|tribute|made famous|originally performed|lullaby|8.?bit/i;
   const VARIANT_ALB = /karaoke|tribute|cover|made famous|originally performed|lullaby|instrumental|8.?bit|piano version|music box/i;
-  const isVariant = (r) => VARIANT.test(r.trackName || "") || VARIANT_ALB.test(r.artistName || "") || VARIANT_ALB.test(r.collectionName || "");
+  // 곡명은 괄호·대괄호·' - ' 뒤 꼬리만 봄 (Piano Man, Alive처럼 제목 자체에 든 단어는 감점하지 않음)
+  const deco = (t) => (String(t || "").match(/\(.*?\)|\[.*?\]|\s[-–]\s.*$/g) || []).join(" ");
+  const isVariant = (r) => VARIANT.test(deco(r.trackName)) || VARIANT_ALB.test(r.trackName || "") || VARIANT_ALB.test(r.artistName || "") || VARIANT_ALB.test(r.collectionName || "");
   // 곡명 일치 정도: 같으면 3, 비슷하거나(오타·일부) 한글↔영어 발음이 같으면 2, 커버·리믹스 등은 1점 뺌
   function titleScore1(r, t) {
     const a = norm(r.trackName), b = norm(t);
@@ -1891,8 +1893,29 @@ JJ Lin|林俊傑|임준걸`;
   }
   // 점수: 곡명(2~3) + 가수(3~4). 5 이상이면 확정.
   // 가수를 한글로 썼는데 사전에도 없고 발음으로도 확인 못 한 해외 곡은 +1만 주고 '확인 못 함'으로 표시
+  // 한 칸에 '가수 곡명'(또는 '곡명 가수')을 붙여 쓴 경우: 입력에서 곡명을 빼고 남은 말이 가수면 맞음
+  function comboScore(r, term) {
+    const T = norm(term), tn = norm(r.trackName);
+    if (tn.length < 2 || T === tn || !T.includes(tn)) return 0;
+    const raw = deacc(term).toLowerCase(), words = raw.split(/\s+/).filter(Boolean);
+    // 띄어쓰기 단위로 앞·뒤를 잘라 곡명과 가수로 나눠 봄
+    for (let i = 1; i < words.length; i++) {
+      for (const [x, y] of [[words.slice(0, i).join(" "), words.slice(i).join(" ")], [words.slice(i).join(" "), words.slice(0, i).join(" ")]]) {
+        const ts = titleScore(r, y);
+        if (ts < 2) continue;
+        const am = artistMatch(r.artistName, x);
+        if (am >= 3) return ts + am;
+      }
+    }
+    return 0;
+  }
+  // 가수 이름만 쓴 경우(사전에 있는 가수): 그 가수의 곡이면 2점 → 여러 서비스 상위 결과(인기 순)로 대표곡을 고름
+  const artistOnly = (r, term) => (aliasForms(term).length && !isVariant(r) && artistMatch(r.artistName, term) >= 4 ? 2 : 0);
   function score(r, parts) {
-    if (parts.length < 2) { const s = titleScore(r, parts[0]); return s >= 2 ? s : 0; }
+    if (parts.length < 2) {
+      const s = titleScore(r, parts[0]);
+      return Math.max(s >= 2 ? s : 0, comboScore(r, parts[0]), s >= 2 ? 0 : artistOnly(r, parts[0]));
+    }
     const one = (artist, title) => {
       const t = titleScore(r, title);
       if (t < 2) return 0;
@@ -2107,12 +2130,20 @@ JJ Lin|林俊傑|임준걸`;
     let latin = latinOf();
     const qa0 = latin[0] || a;
     step("Apple Music · Deezer · MusicBrainz에서 같은 곡을 비교하는 중");
-    (await Promise.all([
-      itunes(L, two ? `${a} ${t}` : t, "kr"),
-      deezer(L, two ? `artist:"${qa0}" track:"${t}"` : t),
-      musicServer(L, a, t, latin),
-    ])).forEach(add);
+    // 사전에 없는 한글 가수는 Deezer에 가수 이름 조건을 걸면 못 찾으므로 곡명으로 찾고 가수는 비교로 확인
+    const dzq = !two ? t : isKo(qa0) ? `track:"${t}"` : `artist:"${qa0}" track:"${t}"`;
+    const srv = musicServer(L, a, t, latin);
+    (await Promise.all([itunes(L, two ? `${a} ${t}` : t, "kr"), deezer(L, dzq)])).forEach(add);
     let m = pick([...pool.values()], parts);
+    // Apple·Deezer만으로 확실하면(두 곳에서 같은 곡, 또는 곡명·가수가 정확히 같음) 느린 서버를 오래 기다리지 않음
+    const sure = (x) => ok(x) && playable(x) && (x.srcs.length >= 2 || (two && x.sc >= 7) || !two);
+    if (sure(m)) {
+      add(await Promise.race([srv, new Promise((res) => setTimeout(() => res(null), 800))]));
+      m = pick([...pool.values()], parts);
+      if (ok(m) && playable(m)) return done(m, `동시 검색 (${m.srcs.length}곳에서 확인)`);
+    }
+    add(await srv);
+    m = pick([...pool.values()], parts);
     if (ok(m) && playable(m)) return done(m, `동시 검색 (${m.srcs.length}곳에서 확인)`);
 
     // 2단계
@@ -2121,7 +2152,19 @@ JJ Lin|林俊傑|임준걸`;
     const qa = latin[0] || a;
     const koA = [a, ...aliasForms(a)].find(isKo) || a;
     const tAlt = titleForms(t).filter((f) => isKo(f) !== isKo(t)).slice(0, 1);   // 한글 ↔ 영어 곡명
+    // 한 칸에 '가수 곡명'을 붙여 쓴 경우: 사전에 있는 가수 이름을 떼어 영어 표기로 다시 찾음 (예: 칸예 웨스트 Heartless)
+    const split1 = () => {
+      const w = t.split(/\s+/).filter(Boolean);
+      for (let i = w.length - 1; i >= 1; i--) for (const [x, y] of [[w.slice(0, i).join(" "), w.slice(i).join(" ")], [w.slice(w.length - i).join(" "), w.slice(0, w.length - i).join(" ")]]) {
+        const en = [x, ...aliasForms(x)].find((f) => !isKo(f) && /[a-z]/i.test(f));
+        if (aliasForms(x).length && en) return [en, y];
+      }
+      return null;
+    };
+    const sp = !two && split1();
     const steps = !two ? [
+      ...(sp ? [[`가수 '${sp[0]}' + 곡명 '${sp[1]}' (Deezer)`, () => deezer(L, `artist:"${sp[0]}" track:"${sp[1]}"`)],
+                [`가수 '${sp[0]}' + 곡명 '${sp[1]}' (Apple 한국)`, () => itunes(L, `${sp[0]} ${sp[1]}`, "kr")]] : []),
       ...tAlt.map((f) => [`다른 곡명 '${f}' (Apple 한국)`, () => itunes(L, f, "kr")]),
       ["곡명 (Apple 미국)", () => itunes(L, t, "us")],
     ] : [
@@ -3646,8 +3689,15 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.4";
+  const APP_VERSION = "v2.5";
   const CHANGELOG = [
+    ["v2.5", "2026-11-15", "곡 검색 더 정확하고 빠르게", [
+      "노래 제목 칸 하나에 '아이유 밤편지', '밤편지 아이유', '칸예 웨스트 Heartless'처럼 가수와 곡명을 붙여 써도 찾음",
+      "가수 이름만 쓰면(사전에 있는 가수) 그 가수의 대표곡을 찾음 (예: 아이유 → 밤편지)",
+      "커버·리믹스 판정을 괄호 안 꼬리 말로만 함: 'Piano Man', 'Alive'처럼 제목에 그 단어가 든 원곡이 자장가·라이브 버전에 밀리던 문제 고침",
+      "Apple·Deezer 두 곳에서 같은 곡이 확인되면 느린 서버(MusicBrainz)를 0.8초까지만 기다림 (서버가 느릴 때 1.2~3.6초 → 0.8초)",
+      "사전에 없는 한글 가수는 Deezer에서 곡명으로 찾고 가수를 비교함",
+    ]],
     ["v2.4", "2026-11-14", "아이폰 배달 앱 바로 열기", [
       "아이폰에서 배민·쿠팡이츠 버튼을 누르면 앱스토어를 거치지 않고 앱이 바로 열림 (사파리의 '열겠습니까?'에서 열기)",
       "앱이 없는 경우를 위해 안내 창에 '앱스토어에서 설치' 링크 표시",
@@ -3858,7 +3908,7 @@ JJ Lin|林俊傑|임준걸`;
     "Ed Sheeran - Shape of You", "에드 시런 - Perfect", "테일러 스위프트 - Love Story", "Bruno Mars - Just the Way You Are",
     "빌리 아일리시 - bad guy", "퀸 - Bohemian Rhapsody", "트래비스 스캇 - SICKO MODE", "Charlie Puth - Attention",
     "아이유 - 밤편지", "IU - 좋은 날", "방탄소년단 - Dynamite", "BTS - 봄날", "Jannabi - 주저하는 연인들을 위해", "요아소비 - Idol",
-    "사브리나 카펜터 - Espresso", "퀸 - 보헤미안 랩소디", "Halo"];
+    "사브리나 카펜터 - Espresso", "퀸 - 보헤미안 랩소디", "Halo", "아이유 밤편지", "칸예 웨스트 Heartless", "아이유", "Piano Man"];
   $("adm-sq").value = SONG_TESTS.join("\n");
   // 서버(Worker)가 새 버전인지, 어떤 음악 서비스가 켜져 있는지
   async function admMusicHealth() {
