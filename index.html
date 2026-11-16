@@ -1924,6 +1924,8 @@ JJ Lin|林俊傑|임준걸`;
     if (!a || !b) return 0;
     let s = a === b ? 3 : near(r.trackName, t) ? 2 : 0;
     if (!s && isKo(r.trackName) !== isKo(t) && phonSim(r.trackName, t) >= 0.8) s = 2;
+    // 괄호 안에 다른 언어 제목을 같이 쓴 곡 (예: It's Art (예술이야), Spring Day (봄날))
+    if (!s) for (const m of String(r.trackName || "").matchAll(/[(\[]([^()\[\]]+)[)\]]/g)) if (!VARIANT.test(m[1]) && norm(m[1]) === b) { s = 3; break; }
     return s ? s - (isVariant(r) ? 1 : 0) : 0;
   }
   // 서버가 알려 준 다른 표기(예: 보헤미안 랩소디 ↔ Bohemian Rhapsody)도 같은 곡명으로 봄
@@ -1986,7 +1988,8 @@ JJ Lin|林俊傑|임준걸`;
   function pick(list, parts) {
     const two = parts.length > 1, seen = {}, groups = [];
     for (const r of list) {
-      const sc = score(r, parts);
+      // 곡명이 달라도(예: 예술이야 ↔ It's Art) '가수+곡명' 검색의 맨 위 3곡 안에 그 가수의 곡이 나오면 4점(확정은 아님)
+      const sc = score(r, parts) || (two && r.hit && Math.max(artistMatch(r.artistName, parts[0]), artistMatch(r.artistName, parts[1])) >= 3 ? 4 : 0);
       if (!sc) continue;
       const s = srcOf(r), c = { r, sc, pos: (seen[s] = (seen[s] || 0) + 1) };
       const g = groups.find((x) => sameSong(x.items[0].r, r));
@@ -2003,6 +2006,7 @@ JJ Lin|林俊傑|임준걸`;
       // 대표 곡: Apple → Deezer → Spotify → MusicBrainz → Last.fm, 같은 곳이면 점수가 높고 먼저 나온 곡
       g.items.sort((x, y) => SRC_ORDER.indexOf(srcOf(x.r)) - SRC_ORDER.indexOf(srcOf(y.r)) || y.sc - x.sc);
       g.r = g.items[0].r;
+      g.hitSrcs = [...new Set(g.items.filter((c) => c.sc === 4 && c.r.hit).map((c) => srcOf(c.r)))];
     });
     return groups.reduce((p, q) => (q.rank > p.rank ? q : p));
   }
@@ -2155,8 +2159,8 @@ JJ Lin|林俊傑|임준걸`;
   function songCache(k, r) {
     try {
       const c = JSON.parse(localStorage.getItem("food.songs") || "{}");
-      // 미리듣기가 없는 결과는 1시간만 저장 (다음에 다시 찾아 미리듣기를 채울 기회)
-      if (r === undefined) return c[k] && Date.now() - c[k].t < (c[k].r.previewUrl ? 7 * 864e5 : 3600e3) ? c[k].r : null;
+      // 미리듣기가 없는 결과는 10분만 저장 (다음에 다시 찾아 미리듣기를 채울 기회)
+      if (r === undefined) return c[k] && Date.now() - c[k].t < (c[k].r.previewUrl ? 7 * 864e5 : 600e3) ? c[k].r : null;
       c[k] = { t: Date.now(), r: Object.fromEntries(SONG_KEEP.filter((x) => r[x] !== undefined).map((x) => [x, r[x]])) };
       Object.keys(c).sort((a, b) => c[b].t - c[a].t).slice(80).forEach((x) => delete c[x]);
       localStorage.setItem("food.songs", JSON.stringify(c));
@@ -2188,7 +2192,9 @@ JJ Lin|林俊傑|임준걸`;
       return out;
     };
     const pool = new Map();
-    const add = (list) => (list || []).forEach((r) => { const k = srcOf(r) + "|" + (r.trackId || `${r.artistName}|${r.trackName}`); if (!pool.has(k)) pool.set(k, r); });
+    const add = (list) => (list || []).forEach((r) => { const k = srcOf(r) + "|" + (r.trackId || `${r.artistName}|${r.trackName}`); if (!pool.has(k)) pool.set(k, r); else if (r.hit && !pool.get(k).hit) pool.set(k, { ...pool.get(k), hit: r.hit }); });
+    // '가수+곡명'으로 찾은 결과의 맨 위 3곡 표시 (곡명이 다른 언어로 등록된 곡을 알아보는 데 씀)
+    const hit = async (pr) => { const l = await pr; return l ? l.map((r, i) => (i < 3 ? { ...r, hit: i + 1 } : r)) : l; };
     const ok = (m) => m && (!two || m.sc >= 5);
     const done = async (m, how) => {
       L.reason = "found"; L.how = how;
@@ -2205,7 +2211,7 @@ JJ Lin|林俊傑|임준걸`;
     // 사전에 없는 한글 가수는 Deezer에 가수 이름 조건을 걸면 못 찾으므로 곡명으로 찾고 가수는 비교로 확인
     const dzq = !two ? t : isKo(qa0) ? `track:"${t}"` : `artist:"${qa0}" track:"${t}"`;
     const srv = musicServer(L, a, t, latin);
-    (await Promise.all([itunes(L, two ? `${a} ${t}` : t, "kr"), deezer(L, dzq)])).forEach(add);
+    (await Promise.all([two ? hit(itunes(L, `${a} ${t}`, "kr")) : itunes(L, t, "kr"), two ? hit(deezer(L, dzq)) : deezer(L, dzq)])).forEach(add);
     let m = pick([...pool.values()], parts);
     // Apple·Deezer만으로 확실하면(두 곳에서 같은 곡, 또는 곡명·가수가 정확히 같음) 느린 서버를 오래 기다리지 않음
     const sure = (x) => ok(x) && playable(x) && (x.srcs.length >= 2 || (two && x.sc >= 7) || !two);
@@ -2224,10 +2230,10 @@ JJ Lin|林俊傑|임준걸`;
       filled = true;
       const fa = m.r.artistName, ft = String(m.r.trackName).replace(/\s*[([].*$|\s+[-–]\s+.*$/, "").trim() || m.r.trackName;
       step(`'${fa} - ${ft}'(으)로 미리듣기 찾는 중`);
-      (await Promise.all([deezer(L, `artist:"${fa}" track:"${ft}"`), itunes(L, `${fa} ${ft}`, "kr")])).forEach(add);
+      (await Promise.all([hit(deezer(L, `artist:"${fa}" track:"${ft}"`)), hit(itunes(L, `${fa} ${ft}`, "kr"))])).forEach(add);
       let n = pick([...pool.values()], parts);
-      if (!(n && playable(n))) { add(await deezer(L, `${fa} ${ft}`)); n = pick([...pool.values()], parts); }
-      if (!(n && playable(n))) { add(await itunes(L, `${fa} ${ft}`, "us")); n = pick([...pool.values()], parts); }
+      if (!(n && playable(n))) { add(await hit(deezer(L, `${fa} ${ft}`))); n = pick([...pool.values()], parts); }
+      if (!(n && playable(n))) { add(await hit(itunes(L, `${fa} ${ft}`, "us"))); n = pick([...pool.values()], parts); }
       m = n;
       return !!(ok(m) && playable(m));
     };
@@ -2255,9 +2261,9 @@ JJ Lin|林俊傑|임준걸`;
       ["곡명 (Apple 미국)", () => itunes(L, t, "us")],
     ] : [
       ...tAlt.map((f) => [`다른 곡명 '${f}' (Apple 한국)`, () => itunes(L, `${isKo(f) ? koA : qa} ${f}`, "kr")]),
-      ...alt.map((f) => [`영어 표기 '${f}' (Apple 한국)`, () => itunes(L, `${f} ${t}`, "kr")]),
-      ...(norm(qa) !== norm(qa0) ? [[`영어 표기 '${qa}' (Deezer)`, () => deezer(L, `artist:"${qa}" track:"${t}"`)]] : []),
-      ...(latin.length ? [["영어 표기 (Apple 미국)", () => itunes(L, `${qa} ${t}`, "us")]] : []),
+      ...alt.map((f) => [`영어 표기 '${f}' (Apple 한국)`, () => hit(itunes(L, `${f} ${t}`, "kr"))]),
+      ...(norm(qa) !== norm(qa0) ? [[`영어 표기 '${qa}' (Deezer)`, () => hit(deezer(L, `artist:"${qa}" track:"${t}"`))]] : []),
+      ...(latin.length ? [["영어 표기 (Apple 미국)", () => hit(itunes(L, `${qa} ${t}`, "us"))]] : []),
       ["곡명으로 찾고 가수 비교 (Apple 한국)", () => itunes(L, t, "kr", "songTerm", 50)],
       ["곡명으로 찾고 가수 비교 (Apple 미국)", () => itunes(L, t, "us", "songTerm", 50)],
       ["가수의 전체 곡에서 (Apple 한국)", () => itunesByArtist(L, qa, t, "kr")],
@@ -2271,6 +2277,17 @@ JJ Lin|林俊傑|임준걸`;
       if (ok(m) && playable(m)) return done(m, name);
     }
     if (ok(m) && await fill()) return done(m, `${m.srcs.join("·")}에서 확인한 이름으로 미리듣기까지 찾음`);
+    // 서버(Last.fm 등)가 확인한 곡인데 Apple·Deezer에는 다른 언어 제목으로만 있는 경우:
+    // 두 곳 이상의 '가수+곡명' 검색 맨 위에 같은 가수의 같은 곡이 나오면 그 곡의 미리듣기·표지를 씀 (표시는 입력한 제목)
+    if (ok(m) && !playable(m)) {
+      const g = (pick.groups || []).filter((x) => playable(x) && x.sc === 4 && x.hitSrcs.length >= 2).sort((x, y) => y.rank - x.rank)[0];
+      if (g) {
+        const both = { ...g, items: [...g.items, ...m.items], srcs: SRC_ORDER.filter((s) => g.srcs.includes(s) || m.srcs.includes(s)) };
+        both.r = { ...g.r, trackName: m.r.trackName, artistName: m.r.artistName };
+        L.log.push(`🔗 ${g.hitSrcs.join("·")} 검색 맨 위의 '${g.r.artistName} - ${g.r.trackName}'을(를) 같은 곡으로 봄`);
+        return done(both, `${both.srcs.join("·")}에서 같은 곡 확인 (다른 언어 제목)`);
+      }
+    }
     // 확실하지 않거나 미리듣기가 없으면: 미리듣기가 있는 후보(최대 3곡)를 남겨 두고 화면에서 고르게 함
     L.ck = ck;
     L.cands = (pick.groups || []).filter((g) => playable(g) && g.sc >= 2).sort((x, y) => y.rank - x.rank).slice(0, 3);
@@ -3878,8 +3895,14 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.8";
+  const APP_VERSION = "v2.9";
   const CHANGELOG = [
+    ["v2.9", "2026-11-16", "다른 언어 제목으로 등록된 곡도 미리듣기", [
+      "Apple·Deezer에 영어 제목으로만 있는 한국 곡(예: 싸이 '예술이야' → It's Art)도 같은 곡으로 알아보고 미리듣기·앨범 표지를 붙임",
+      "판단 방법: '가수 + 곡명' 검색 맨 위에 같은 가수의 같은 곡이 Apple·Deezer 두 곳에서 나오면 같은 곡으로 봄 (한 곳뿐이면 후보 고르기 창으로)",
+      "'It's Art (예술이야)'처럼 괄호 안에 다른 언어 제목을 쓴 곡도 같은 제목으로 인식",
+      "미리듣기가 없는 결과는 기기에 10분만 저장 (곧바로 다시 찾을 수 있게)",
+    ]],
     ["v2.8", "2026-11-16", "곡 검색 미리듣기 빠짐 줄이기", [
       "Last.fm·MusicBrainz에서만 확인된 곡은 거기서 알아낸 정확한 가수·곡명으로 Apple·Deezer를 다시 찾아 미리듣기·앨범 표지를 채움",
       "정확히 맞는지 애매하거나 미리듣기가 없으면 ▶ 미리듣기가 달린 후보(최대 3곡)를 보여 주고 직접 고르게 함 (고른 곡은 기기에 저장)",
