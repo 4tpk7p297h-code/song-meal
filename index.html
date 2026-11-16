@@ -478,10 +478,16 @@
   .modal.hidden { display: none; }
   .modalbox { width: 100%; max-width: 640px; max-height: 86vh; overflow: auto; background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); }
   .modalbox h2 small { font-size: 13px; color: var(--muted); font-family: inherit; }
-  .logv { border-top: 2px dashed var(--line); padding: 10px 0 4px; }
-  .logv h3 { margin: 0 0 4px; font-size: 16px; }
-  .logv h3 small { color: var(--muted); font-weight: 400; font-size: 12px; }
-  .logv ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+  .loghint { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+  .logg { border: 2px solid var(--line); border-radius: 12px; padding: 0 12px; margin-bottom: 10px; }
+  .logg > summary { cursor: pointer; padding: 12px 0; font-weight: 700; font-size: 17px; }
+  .logg > summary small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+  .logg[open] > summary { border-bottom: 2px dashed var(--line); }
+  .logv { border-top: 1px dashed var(--line); padding: 2px 0 2px 8px; }
+  .logg > summary + .logv { border-top: 0; }
+  .logv > summary { cursor: pointer; padding: 8px 0; font-size: 15px; font-weight: 600; }
+  .logv > summary small { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .logv ul { margin: 0 0 8px; padding-left: 20px; font-size: 14px; line-height: 1.6; }
   .vtag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 13px; margin-right: 4px; }
   #me .leave input { margin-top: 8px; }
 
@@ -4088,8 +4094,12 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.13";
+  const APP_VERSION = "v2.14";
   const CHANGELOG = [
+    ["v2.14", "2026-11-16", "업데이트 내역을 큰 버전별로 접어서 보기", [
+      "관리패널 '📋 업데이트 내역'을 v2·v1·v0 묶음으로 나누고, 그 안에 v2.1·v2.2… 세부 버전을 눌러서 펼치게 바꿈",
+      "처음에는 지금 쓰는 큰 버전과 가장 최근 세부 버전만 펼쳐져 있어 스크롤이 끝없이 길어지지 않음",
+    ]],
     ["v2.13", "2026-11-16", "지금 날씨·기온, 역·학교 이름으로 위치 찾기", [
       "날씨 칸에 '🌡️ 지금 날씨 가져오기' 버튼: 입력한 위치의 지금 하늘·기온·체감 온도를 받아 날씨 칸에 자동 체크 (Open-Meteo, 무료)",
       "기온(°C)을 직접 써도 됨: 28°C 이상은 '더움', 5°C 이하는 '추움'으로 체크",
@@ -4290,9 +4300,28 @@ JJ Lin|林俊傑|임준걸`;
     ]],
   ];
   $("adm-ver").textContent = `현재 ${APP_VERSION}`;
-  $("adm-log").innerHTML = CHANGELOG.map(([v, d, t, items]) => `
-    <section class="logv"><h3><span class="vtag">${esc(v)}</span> ${esc(t)} <small>${esc(d)}</small></h3>
-    <ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
+  // 큰 버전(v2, v1, v0)별로 묶고, 그 안에 v2.1·v2.2… 하위 버전을 접어서 보여 줌 (v2.14)
+  (() => {
+    const groups = [];
+    CHANGELOG.forEach((e) => {
+      const m = (e[0].match(/^v(\d+)/) || [, "?"])[1];
+      let g = groups.find((x) => x.m === m);
+      if (!g) groups.push(g = { m, list: [] });
+      g.list.push(e);
+    });
+    const name = { "0": "첫 웹사이트·추천·지도", "1": "Cloudflare 이전·회원·후기·스토리", "2": "곡 검색·로그인·화면 다듬기" };
+    $("adm-log").innerHTML = `<p class="loghint">큰 버전을 누르면 그 안의 세부 버전(v2.1, v2.2…)이 펼쳐져요.</p>` +
+      groups.map((g, gi) => {
+        const last = g.list[g.list.length - 1], first = g.list[0];
+        return `<details class="logg"${gi === 0 ? " open" : ""}>
+        <summary><span class="vtag">v${esc(g.m)}</span> ${esc(name[g.m] || "")}
+        <small>${esc(last[0])} ~ ${esc(first[0])} · ${g.list.length}개 · ${esc(last[1] === first[1] ? first[1] : last[1] + " ~ " + first[1])}</small></summary>
+        ${g.list.map(([v, d, t, items], i) => `
+          <details class="logv"${gi === 0 && i === 0 ? " open" : ""}><summary><span class="vtag">${esc(v)}</span> ${esc(t)} <small>${esc(d)}</small></summary>
+          <ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>`).join("")}
+        </details>`;
+      }).join("");
+  })();
 
   // 결과 화면의 '내 정보에서 켜기' → 내 정보의 선택 동의 관리를 열어 줌
   $("result").addEventListener("click", (e) => {
