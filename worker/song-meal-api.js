@@ -1,4 +1,4 @@
-// 음식점 커뮤니티 API (Cloudflare Workers + D1)
+// 비트밥스 커뮤니티 API (Cloudflare Workers + D1)
 // 회원가입·로그인, 후기(노래 + 음식 사진) 올리기, 좋아요, 코너별 순위, 신고, 회원 탈퇴
 //
 // 설정 (Cloudflare 대시보드)

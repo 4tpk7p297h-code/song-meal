@@ -1,4 +1,4 @@
-// 음식점 사이트용 네이버 검색 프록시 (Cloudflare Workers)
+// 비트밥스 사이트용 네이버 검색 프록시 (Cloudflare Workers)
 //
 // 왜 필요한가: 네이버 검색 API는 Client Secret이 필요하고 브라우저에서 직접 부를 수 없어서(CORS),
 // Secret을 서버 쪽(이 Worker의 환경 변수)에만 두고 사이트는 이 Worker를 부릅니다.
