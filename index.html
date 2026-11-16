@@ -553,6 +553,11 @@
     body.wide #map { height: 60vh; }
     body:not(.wide) main { margin-left: 0; max-width: calc(env(viewport-segment-width 0 0)); }
   }
+  /* 지금 날씨·기온 (v2.13) */
+  .wxrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .wxrow button { margin: 0; width: auto; padding: 9px 14px; font-size: 14px; }
+  .wxtemp { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; }
+  .wxtemp input { width: 76px; margin: 0; padding: 8px 10px; text-align: right; }
   /* 회원가입 비밀번호 확인 안내: 크게, 바로 아래에 */
   .pwcheck { margin: 6px 0 2px; font-size: 15px; font-weight: 700; color: var(--muted); }
   .pwcheck.bad { color: var(--danger); }
@@ -611,9 +616,9 @@
       <label class="check"><input type="checkbox" class="c-opt" id="c-abroad"> [선택] 개인정보 국외 이전 동의</label>
       <details><summary>내용 보기</summary>
         <table class="ptable">
-          <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우)</td></tr>
-          <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
-          <tr><th>이전 목적</th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계</td></tr>
+          <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨)</td></tr>
+          <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보</td></tr>
+          <tr><th>이전 목적</th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Open-Meteo: 입력한 위치의 지금 날씨·기온 조회 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계</td></tr>
           <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
           <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
         </table>
@@ -674,10 +679,15 @@
       <label><input type="checkbox" value="더움"><span>🥵 더움</span></label>
       <label><input type="checkbox" value="추움"><span>🥶 추움</span></label>
     </div>
+    <div class="wxrow">
+      <button type="button" class="ghost" id="wx-now">🌡️ 지금 날씨 가져오기</button>
+      <label class="wxtemp"><span>기온</span><input type="number" id="wx-temp" inputmode="decimal" step="1" min="-30" max="45" placeholder="예: 3"><span>°C</span></label>
+    </div>
+    <p class="hint" id="wx-msg">위치를 입력하고 누르면 그곳의 지금 날씨·기온을 칸에 넣어 줘요. 기온을 직접 써도 돼요 (28°C 이상 더움, 5°C 이하 추움).</p>
 
     <label for="loc">📍 위치</label>
     <div class="locrow">
-      <input type="text" id="loc" placeholder="동네·지역명 (예: 성수동)">
+      <input type="text" id="loc" placeholder="동네·역·학교 이름 (예: 성수동, 강남역, 서울대)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
     </div>
     <div id="geo-ask" class="geoask hidden">
@@ -861,8 +871,8 @@
         <label class="check"><input type="checkbox" class="su-opt" id="su-xfer"> [선택] 곡·식당 검색을 위한 국외 이전 동의</label>
         <details><summary>내용 보기</summary>
           <table class="ptable">
-            <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우)</td></tr>
-            <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
+            <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨)</td></tr>
+            <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보</td></tr>
             <tr><th>이전 목적</th><td>곡 정보·앨범 이미지·미리듣기 조회, 여러 음악 정보 서비스의 곡 정보 비교, 네이버 지역·블로그 검색 중계(주변 음식점 표시, 혼밥 후기 확인)</td></tr>
             <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
             <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
@@ -2539,19 +2549,42 @@ JJ Lin|林俊傑|임준걸`;
     const msg = (t) => { const el = $("mapmsg"); if (el) el.textContent = t; };
     const hideMap = (t) => { const m = $("map"); if (m) m.style.display = "none"; msg(t); };
     if (!mapsReady()) { hideMap(MAP_FAIL); return finish(); }
-    naver.maps.Service.geocode({ query: loc }, (status, res) => {
-      const a = status === naver.maps.Service.Status.OK && res.v2 && res.v2.addresses && res.v2.addresses[0];
-      if (!a) { hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름이나 도로명 주소로 입력하면 지도가 표시돼요.`); return finish(); }
-      M.ll = { lat: +a.y, lng: +a.x };
+    resolveLoc(loc).then((a) => {
+      if (!a) { hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름, 도로명 주소, 역·학교 이름으로 입력하면 지도가 표시돼요.`); return finish(); }
+      M.ll = { lat: a.lat, lng: a.lng };
       M.locName = loc;
-      M.center = new naver.maps.LatLng(+a.y, +a.x);
+      M.center = new naver.maps.LatLng(a.lat, a.lng);
       M.map = new naver.maps.Map("map", { center: M.center, zoom: 15 });
       new naver.maps.Marker({ position: M.center, map: M.map });
       M.info = new naver.maps.InfoWindow({ content: "", borderWidth: 1, anchorSize: new naver.maps.Size(10, 10) });
-      msg((a.roadAddress || a.jibunAddress || "") + " · 추천 키워드를 누르면 이 지도에 식당이 표시돼요.");
+      msg((a.place ? `📍 ${a.place} · ` : "") + (a.addr || "") + " · 추천 키워드를 누르면 이 지도에 식당이 표시돼요.");
       finish();
       setTimeout(() => { if (window.NAVER_MAP_AUTH_FAILED) hideMap(MAP_FAIL); }, 1500);
     });
+  }
+
+  // 위치 글자 → 좌표. 먼저 주소(동·도로명)로 찾고, 없으면 네이버 장소 검색으로 역·학교·건물 이름을 찾음
+  const locCache = {};
+  function resolveLoc(loc) {
+    const key = (loc || "").trim();
+    if (!key) return Promise.resolve(null);
+    if (locCache[key]) return locCache[key];
+    return (locCache[key] = (async () => {
+      const geo = mapsReady() ? await new Promise((res) => {
+        try {
+          naver.maps.Service.geocode({ query: key }, (status, r) => {
+            const a = status === naver.maps.Service.Status.OK && r.v2 && r.v2.addresses && r.v2.addresses[0];
+            res(a ? { lat: +a.y, lng: +a.x, addr: a.roadAddress || a.jibunAddress || "" } : null);
+          });
+        } catch { res(null); }
+      }) : null;
+      if (geo) return geo;
+      if (!SEARCH_PROXY || !CONSENT.abroad) return null;
+      const list = await searchPlaces(key, "").catch(() => null);
+      const k0 = key.replace(/\s+/g, "");
+      const best = list && (list.find((p) => p.name.replace(/\s+/g, "").includes(k0)) || list[0]);
+      return best ? { lat: best.lat, lng: best.lng, addr: best.addr, place: best.name } : null;
+    })().then((x) => { if (!x) delete locCache[key]; return x; }));
   }
 
   const stripTags = (s) => String(s || "").replace(/<[^>]*>/g, "");
@@ -2645,7 +2678,7 @@ JJ Lin|林俊傑|임준걸`;
     const key = loc + "|" + kw;
     if (!(key in searchCache)) searchCache[key] = (async () => {
       try {
-        const r = await fetch(`${SEARCH_PROXY}?query=${encodeURIComponent(loc + " " + kw)}`);
+        const r = await fetch(`${SEARCH_PROXY}?query=${encodeURIComponent(kw ? loc + " " + kw : loc)}`);
         if (!r.ok) return null;
         const d = await r.json();
         return (d.items || []).map((it) => ({
@@ -3029,6 +3062,45 @@ JJ Lin|林俊傑|임준걸`;
         $("loc").value = regionName(r);
       });
     }, (e) => { done(); showLocHelp(e.code, e.message); }, { timeout: 15000, maximumAge: 60000 });
+  });
+
+  // ---------- 지금 날씨 (Open-Meteo, 키 없음) ----------
+  // 위치의 좌표(소수 둘째 자리까지, 약 1km 단위로 줄여서)만 보내고 지금 기온·날씨를 받아 날씨 칸에 체크
+  const WX_CODE = (c) => c <= 1 ? "맑음" : (c <= 3 || c === 45 || c === 48) ? "흐림" : ((c >= 71 && c <= 77) || c === 85 || c === 86) ? "눈" : "비";
+  const wxBox = (val) => document.querySelector(`#wx input[value="${val}"]`);
+  function applyTemp(t) {
+    if (!isFinite(t)) return;
+    wxBox("더움").checked = t >= 28; wxBox("추움").checked = t <= 5;
+  }
+  $("wx-temp").addEventListener("input", () => {
+    const t = parseFloat($("wx-temp").value);
+    if (!isFinite(t)) return;
+    applyTemp(t);
+    $("wx-msg").textContent = t >= 28 ? `${t}°C: '더움'으로 넣었어요.` : t <= 5 ? `${t}°C: '추움'으로 넣었어요.` : `${t}°C: 덥지도 춥지도 않은 날씨로 볼게요.`;
+  });
+  $("wx-now").addEventListener("click", async () => {
+    const msg = (t) => ($("wx-msg").textContent = t);
+    if (!CONSENT.abroad) return msg("지금 날씨는 '곡·식당 검색을 위한 국외 이전'(선택)에 동의해야 가져올 수 있어요. 날씨를 직접 골라 주세요.");
+    const loc = $("loc").value.trim();
+    if (!loc) { msg("먼저 아래 위치 칸에 동네·역·학교 이름을 입력해 주세요."); $("loc").focus(); return; }
+    const b = $("wx-now"); b.disabled = true; b.textContent = "가져오는 중...";
+    try {
+      const a = await resolveLoc(loc);
+      if (!a) return msg(`'${loc}'의 위치를 찾지 못했어요. 다른 이름으로 써 보거나 날씨를 직접 골라 주세요.`);
+      const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 6000);
+      const q = new URLSearchParams({ latitude: a.lat.toFixed(2), longitude: a.lng.toFixed(2), current: "temperature_2m,apparent_temperature,weather_code", timezone: "Asia/Seoul" });
+      const r = await fetch("https://api.open-meteo.com/v1/forecast?" + q, { signal: ac.signal }).finally(() => clearTimeout(timer));
+      const d = await r.json();
+      const c = d && d.current;
+      if (!r.ok || !c || !isFinite(c.temperature_2m)) return msg("날씨 정보를 받지 못했어요. 날씨를 직접 골라 주세요.");
+      const t = Math.round(c.temperature_2m), feel = Math.round(isFinite(c.apparent_temperature) ? c.apparent_temperature : c.temperature_2m), sky = WX_CODE(+c.weather_code);
+      ["맑음", "흐림", "비", "눈"].forEach((w) => (wxBox(w).checked = w === sky));
+      applyTemp(feel);
+      $("wx-temp").value = t;
+      const extra = feel >= 28 ? "·더움" : feel <= 5 ? "·추움" : "";
+      msg(`지금 ${a.place || loc}: ${sky}, ${t}°C (체감 ${feel}°C) → 날씨 칸에 '${sky}${extra}'을 체크했어요. 다르면 칸을 눌러 고치면 돼요.`);
+    } catch { msg("날씨 정보를 받지 못했어요. 날씨를 직접 골라 주세요."); }
+    finally { b.disabled = false; b.textContent = "🌡️ 지금 날씨 가져오기"; }
   });
 
   function picksHTML(v, r) {
@@ -4016,8 +4088,13 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.12";
+  const APP_VERSION = "v2.13";
   const CHANGELOG = [
+    ["v2.13", "2026-11-16", "지금 날씨·기온, 역·학교 이름으로 위치 찾기", [
+      "날씨 칸에 '🌡️ 지금 날씨 가져오기' 버튼: 입력한 위치의 지금 하늘·기온·체감 온도를 받아 날씨 칸에 자동 체크 (Open-Meteo, 무료)",
+      "기온(°C)을 직접 써도 됨: 28°C 이상은 '더움', 5°C 이하는 '추움'으로 체크",
+      "위치에 동네 이름뿐 아니라 강남역·서울대 같은 역·학교·건물 이름도 입력 가능 (주소로 못 찾으면 네이버 장소 검색으로 찾음)",
+    ]],
     ["v2.12", "2026-11-16", "Last.fm 태그로 곡 분위기 분석", [
       "곡이 정해진 뒤 Last.fm에서 사람들이 붙인 태그(sad, chill, upbeat, rock…)를 받아 에너지·분위기를 판단 (곡 검색·곡 선택 방식은 그대로)",
       "곡 태그가 적으면 가수 태그로 대신, 관련 태그가 없으면 예전처럼 장르로 추정",
