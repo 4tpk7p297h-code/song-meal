@@ -297,6 +297,13 @@
   .chead h2 { margin: 0 !important; }
   button.mini { width: auto; margin: 0; padding: 8px 14px; font-size: 14px; flex: none; }
   button.danger { background: var(--danger); }
+  button.kakao { background: #FEE500; color: rgba(0,0,0,.85); border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  button.kakao svg { width: 18px; height: 18px; flex: none; }
+  .orline { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin: 14px 0 10px; }
+  .orline::before, .orline::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .kbanner { background: #FFF9C4; color: #3c3200; border-radius: 12px; padding: 10px 12px; margin: 10px 0; font-size: 14px; }
+  .kbanner a { color: inherit; }
+  #signup-form.kmode .idpw { display: none; }
   .center { text-align: center; }
   .subh { font-size: 16px; margin: 16px 0 8px; }
   .seg { display: inline-flex; padding: 3px; gap: 2px; border: 2px solid var(--line); border-radius: 999px; background: var(--field); margin-bottom: 12px; }
@@ -703,6 +710,11 @@
       <img src="mascot.png" alt="" class="mascot-hello">
       <div class="bubble" id="auth-bubble">가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!</div>
     </div>
+    <div id="kakao-box" class="hidden">
+      <button type="button" class="kakao" id="kakao-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7l-1 3.6c-.1.3.3.6.6.4l4.3-2.8c.5.1.9.1 1.4.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>카카오로 시작하기</button>
+      <p class="hint center">처음이면 닉네임과 동의만 받고 바로 가입돼요. 카카오에서는 <b>회원번호만</b> 받아요 (카카오 계정 1개당 1명).</p>
+      <div class="orline">또는 아이디로</div>
+    </div>
     <div class="seg" id="auth-tab">
       <button type="button" data-tab="signup" class="on">회원가입</button>
       <button type="button" data-tab="login">로그인</button>
@@ -720,25 +732,28 @@
         <h3>🔒 회원가입 개인정보 안내</h3>
         <p>음식점은 후기 올리기·좋아요에 꼭 필요한 정보만 받아요. <b>이메일, 전화번호, 실명, 생년월일은 받지 않아요.</b></p>
         <table class="ptable">
-          <tr><th>받는 정보</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임 / 후기를 올리면 노래, 메뉴, 식당 이름, 음식 사진, 후기 글 / 좋아요·신고 기록</td></tr>
+          <tr><th>받는 정보</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임 (카카오로 가입하면 아이디·비밀번호 대신 카카오 회원번호) / 후기를 올리면 노래, 메뉴, 식당 이름, 음식 사진, 후기 글 / 좋아요·신고 기록</td></tr>
           <tr><th>쓰는 곳</th><td>로그인, 후기 게시, 좋아요와 코너별 순위, 신고 처리, 메뉴 추천</td></tr>
           <tr><th>추천 입력 정보</th><td>메뉴 추천에 입력하는 노래·위치·날씨 등은 저장하지 않고, 추천이 끝나면 바로 지워요</td></tr>
           <tr><th>보관 기간</th><td>회원 탈퇴 시 바로 삭제 (로그인 기록은 30일 뒤 자동 삭제)</td></tr>
           <tr><th>보관 장소</th><td>Cloudflare, Inc.(미국)의 클라우드 데이터베이스 (국외 이전)</td></tr>
-          <tr><th>공개 범위</th><td>닉네임과 올린 후기는 모든 방문자에게 공개 / 아이디·비밀번호는 비공개</td></tr>
+          <tr><th>공개 범위</th><td>닉네임과 올린 후기는 모든 방문자에게 공개 / 아이디·비밀번호·카카오 회원번호는 비공개</td></tr>
           <tr><th>내 권리</th><td>언제든 '내 정보'에서 후기 삭제·회원 탈퇴 가능. 동의를 거부할 수 있지만, 그러면 가입할 수 없어요 (메뉴 추천과 스토리·순위 보기는 가입 없이 이용 가능)</td></tr>
         </table>
         <p class="hint">만 14세 미만은 가입할 수 없어요. 자세한 내용은 <a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인해 주세요.</p>
       </div>
+      <div class="kbanner hidden" id="k-banner">✅ 카카오 확인이 끝났어요. <b>닉네임</b>을 정하고 아래 항목에 동의하면 가입돼요. <a href="#" id="k-cancel">아이디로 가입할래요</a></div>
+      <div class="idpw">
       <label for="su-id">아이디 <span class="opt">(영문 소문자·숫자·_ 4~20자)</span></label>
       <input type="text" id="su-id" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20">
       <label for="su-pw">비밀번호 <span class="opt">(8자 이상)</span></label>
       <input type="password" id="su-pw" autocomplete="new-password" maxlength="72">
       <label for="su-pw2">비밀번호 확인</label>
       <input type="password" id="su-pw2" autocomplete="new-password" maxlength="72">
+      </div>
       <label for="su-nick">닉네임 <span class="opt">(2~12자, 후기에 "○○님의"로 보여요)</span></label>
       <input type="text" id="su-nick" maxlength="12">
-      <p class="hint">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요.</p>
+      <p class="hint idpw">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요. (카카오로 시작하면 비밀번호를 기억할 필요가 없어요)</p>
 
       <label class="check all"><input type="checkbox" id="su-all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></label>
       <div class="agreebox">
@@ -747,7 +762,7 @@
         <details><summary>내용 보기</summary>
           <table class="ptable">
             <tr><th>수집·이용 목적</th><td>회원 식별과 로그인 유지, 후기 게시·좋아요·코너별 순위 제공, 신고 처리와 부정 이용 방지</td></tr>
-            <tr><th>수집 항목</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임, 작성한 후기(노래, 메뉴, 식당 이름, 음식 사진, 후기 글), 좋아요·신고 기록, 로그인 기록</td></tr>
+            <tr><th>수집 항목</th><td>아이디, 비밀번호(암호화해서 저장), 닉네임 (카카오로 가입 시 아이디·비밀번호 대신 카카오 회원번호), 작성한 후기(노래, 메뉴, 식당 이름, 음식 사진, 후기 글), 좋아요·신고 기록, 로그인 기록</td></tr>
             <tr><th>보유 및 이용 기간</th><td><b>회원 탈퇴 시 즉시 파기</b> (내 후기·좋아요 포함). 로그인 기록은 30일 뒤 자동 삭제</td></tr>
           </table>
           <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다. 가입하지 않아도 메뉴 추천과 스토리·순위 보기는 이용할 수 있습니다.</p>
@@ -826,7 +841,7 @@
       <p class="hint" id="pf-when"></p>
       <button type="button" id="pf-btn">저장하기</button>
     </details>
-    <details class="leave"><summary>비밀번호 변경</summary>
+    <details class="leave" id="pw-box"><summary>비밀번호 변경</summary>
       <input type="password" id="pw-old" placeholder="현재 비밀번호" autocomplete="current-password">
       <input type="password" id="pw-new" placeholder="새 비밀번호 (8자 이상)" autocomplete="new-password">
       <input type="password" id="pw-new2" placeholder="새 비밀번호 확인" autocomplete="new-password">
@@ -836,6 +851,7 @@
     <details class="leave" id="leave-box"><summary>회원 탈퇴</summary>
       <p class="hint">탈퇴하면 계정과 내가 올린 후기, 누른 좋아요가 모두 바로 지워지고 되돌릴 수 없어요.</p>
       <input type="password" id="leave-pw" placeholder="비밀번호를 입력해 확인" autocomplete="current-password">
+      <label class="check hidden" id="leave-kakao"><input type="checkbox" id="leave-ok"> 위 내용을 확인했고 탈퇴할게요 (카카오 연결도 함께 끊어요)</label>
       <button type="button" class="danger" id="leave-btn">탈퇴하기</button>
     </details>
   </section>
@@ -3056,6 +3072,10 @@ JJ Lin|林俊傑|임준걸`;
     $("nav-admin").classList.toggle("hidden", !(AUTH.user && AUTH.user.admin));
     $("nav-logout").classList.toggle("hidden", !AUTH.user);
     $("leave-box").classList.toggle("hidden", !!(AUTH.user && AUTH.user.admin));
+    const kk = !!(AUTH.user && AUTH.user.kakao);
+    $("pw-box").classList.toggle("hidden", kk);
+    $("leave-pw").classList.toggle("hidden", kk);
+    $("leave-kakao").classList.toggle("hidden", !kk);
     applyPrefs();
   }
   // 회원의 선택 동의(곡·식당 검색, 위치)를 추천 화면에 적용
@@ -3065,6 +3085,9 @@ JJ Lin|林俊傑|임준걸`;
     syncGeo();
   }
   setAuth(AUTH.token, AUTH.user);
+  // 카카오 로그인에서 돌아온 표(#kakao=...)는 읽고 바로 주소창에서 지움
+  const KAKAO_BACK = location.hash.startsWith("#kakao=") ? location.hash : "";
+  if (KAKAO_BACK) history.replaceState(history.state, "", location.pathname + location.search);
   setTimeout(() => route(history.state), 0);
 
   // ---------- 홈 화면 앱 (PWA) ----------
@@ -3521,10 +3544,37 @@ JJ Lin|林俊傑|임준걸`;
     $("login-form").classList.toggle("hidden", tab !== "login");
     $("signup-form").classList.toggle("hidden", tab !== "signup");
   }
+  // ---------- 카카오로 시작하기 ----------
+  // 서버(/health)에서 카카오가 켜져 있을 때만 버튼을 보여 줌. 누르면 카카오 → 서버 → 이 페이지(#kakao=...)로 돌아옴
+  let K_TICKET = "";
+  function kakaoMode(t) {
+    K_TICKET = t || "";
+    $("signup-form").classList.toggle("kmode", !!K_TICKET);
+    $("k-banner").classList.toggle("hidden", !K_TICKET);
+    $("su-btn").textContent = K_TICKET ? "동의하고 카카오로 가입하기" : "동의하고 가입하기";
+  }
+  $("k-cancel").addEventListener("click", (e) => { e.preventDefault(); kakaoMode(""); authErr(""); });
+  fetch(API + "/health").then((r) => r.json()).then((h) => { if (/^켜짐/.test(h.kakao || "")) $("kakao-box").classList.remove("hidden"); }).catch(() => {});
+  $("kakao-btn").addEventListener("click", () => {
+    const back = location.origin + location.pathname;
+    $("kakao-btn").disabled = true;
+    location.href = `${API}/auth/kakao/start?back=${encodeURIComponent(back)}`;
+    setTimeout(() => ($("kakao-btn").disabled = false), 5000);
+  });
+  if (/^#kakao=/.test(KAKAO_BACK)) setTimeout(async () => {
+    const h = new URLSearchParams(KAKAO_BACK.slice(1)), kind = h.get("kakao"), t = h.get("t") || "";
+    if (kind === "login") {
+      try { loggedIn(await api("/auth/kakao/login", { method: "POST", body: { ticket: t } }), "카카오로 로그인했어요!"); }
+      catch (er) { showComm("auth"); authErr(er.message); }
+    } else if (kind === "signup") {
+      showComm("auth"); pickAuthTab("signup"); kakaoMode(t);
+      setTimeout(() => { $("k-banner").scrollIntoView({ block: "start" }); $("su-nick").focus({ preventScroll: true }); }, 50);
+    } else { showComm("auth"); authErr(h.get("m") || "카카오 로그인에 실패했어요."); }
+  }, 30);
   function loggedIn(d, msg) {
     try { localStorage.setItem("food.member", "1"); } catch {}
     setAuth(d.token, d.user);
-    $("login-form").reset(); $("signup-form").reset(); suSync(); authErr("");
+    $("login-form").reset(); $("signup-form").reset(); kakaoMode(""); suSync(); authErr("");
     toast(msg);
     const next = afterLogin; afterLogin = null;
     const atStart = !history.state || !history.state.d;
@@ -3541,6 +3591,13 @@ JJ Lin|林俊傑|임준걸`;
   $("signup-form").addEventListener("submit", async (e) => {
     e.preventDefault(); authErr("");
     const login = $("su-id").value.trim().toLowerCase(), pw = $("su-pw").value, nick = $("su-nick").value.trim();
+    const consents = { agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: $("su-xfer").checked, geo: $("su-geo").checked } };
+    if (K_TICKET) {
+      if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
+      try { loggedIn(await api("/signup/kakao", { method: "POST", body: { ticket: K_TICKET, nick, ...consents } }), `${nick}님, 카카오로 가입했어요! 🎉`); }
+      catch (er) { authErr(er.message); if (er.status === 409 || /시간이 지났/.test(er.message)) kakaoMode(""); }
+      return;
+    }
     if (!/^[a-z0-9_]{4,20}$/.test(login)) return authErr("아이디는 영문 소문자·숫자·_ 4~20자로 만들어 주세요.");
     if (pw.length < 8) return authErr("비밀번호는 8자 이상으로 만들어 주세요.");
     if (pw !== $("su-pw2").value) return authErr("비밀번호 확인이 일치하지 않아요.");
@@ -3553,7 +3610,7 @@ JJ Lin|林俊傑|임준걸`;
   // ---------- 내 정보 ----------
   let MINE = [];
   async function loadMe() {
-    $("me-title").textContent = `👤 ${AUTH.user.nick}님 (${AUTH.user.login})`;
+    $("me-title").textContent = `👤 ${AUTH.user.nick}님 (${AUTH.user.kakao ? "카카오 계정" : AUTH.user.login})`;
     $("me-grid").innerHTML = ""; $("me-msg").textContent = "불러오는 중...";
     try {
       const d = await api("/me");
@@ -3579,13 +3636,14 @@ JJ Lin|林俊傑|임준걸`;
     history.replaceState({ ...(history.state || {}), screen: "auth" }, ""); showComm("auth");
   });
   $("leave-btn").addEventListener("click", async () => {
+    const kk = !!(AUTH.user && AUTH.user.kakao);
     const pw = $("leave-pw").value;
-    if (!pw) { toast("비밀번호를 입력해 주세요."); return; }
+    if (kk ? !$("leave-ok").checked : !pw) { toast(kk ? "탈퇴 확인에 체크해 주세요." : "비밀번호를 입력해 주세요."); return; }
     const b = $("leave-btn");
     if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "정말 탈퇴할까요? 한 번 더 누르기"; setTimeout(() => { b.dataset.sure = ""; b.textContent = "탈퇴하기"; }, 4000); return; }
     try {
-      await api("/me", { method: "DELETE", body: { pw } });
-      setAuth("", null); $("leave-pw").value = "";
+      await api("/me", { method: "DELETE", body: kk ? { confirm: true } : { pw } });
+      setAuth("", null); $("leave-pw").value = ""; $("leave-ok").checked = false;
       try { localStorage.removeItem("food.member"); } catch {}
       toast("탈퇴했어요. 모든 정보를 지웠어요.");
       history.replaceState({ ...(history.state || {}), screen: "rank" }, ""); showComm("rank");
@@ -3709,8 +3767,15 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.6";
+  const APP_VERSION = "v2.7";
   const CHANGELOG = [
+    ["v2.7", "2026-11-16", "카카오로 시작하기", [
+      "가입·로그인 화면에 노란 '카카오로 시작하기' 버튼 추가 (기존 아이디·비밀번호 가입·로그인도 그대로)",
+      "처음 누르면 닉네임과 동의만 받고 가입, 다음부터는 버튼 한 번으로 로그인",
+      "카카오에서는 회원번호만 받음 (이메일·이름·사진 안 받음). 카카오 계정 1개당 사이트 계정 1개만 만들 수 있음",
+      "카카오 회원은 비밀번호 변경 대신 탈퇴 확인 체크로 탈퇴, 탈퇴하면 카카오 연결도 함께 끊음",
+      "서버에 카카오 키가 없으면 버튼이 안 보임 (관리패널 현황에서 켜짐/꺼짐 확인)",
+    ]],
     ["v2.6", "2026-11-16", "홈 화면 앱으로 설치", [
       "안드로이드·아이폰 홈 화면에 '음식점' 앱 아이콘으로 추가 가능 (주소창 없이 전체 화면으로 열림)",
       "헤더 '📲 앱 설치' 버튼: 안드로이드는 설치 창, 아이폰은 '공유 → 홈 화면에 추가' 안내 (이미 앱으로 열면 숨김)",
@@ -4006,12 +4071,24 @@ JJ Lin|林俊傑|임준걸`;
         <h3 class="subh">코너별 후기</h3>
         <table class="ptable">${KINDS.map((k) => `<tr><th>${KIND_EMO[k]} ${esc(k)}</th><td>후기 ${(byKind[k] && byKind[k].n) || 0}개 · 좋아요 ${(byKind[k] && byKind[k].likes) || 0}</td></tr>`).join("")}</table>
         ${d.reported ? `<button type="button" class="ghost" id="adm-goreport">🚩 신고된 후기 ${d.reported}개 보러 가기</button>` : ""}
+        <h3 class="subh">커뮤니티 서버 (song-meal-api)</h3>
+        <p class="hint" id="adm-ahealth">확인 중...</p>
         <h3 class="subh">식당 검색 서버 (naver-search)</h3>
         <p class="hint" id="adm-nhealth">확인 중...</p>`;
-      admNaverHealth();
+      admNaverHealth(); admApiHealth();
       const g = $("adm-goreport");
       if (g) g.addEventListener("click", () => { ADM.pf = "reported"; markSeg("adm-pf", "f", "reported"); admTab("posts"); });
     } catch (e) { $("adm-stats").innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  // 커뮤니티 서버 버전과 카카오 로그인 켜짐 여부
+  async function admApiHealth() {
+    const box = $("adm-ahealth"); if (!box) return;
+    let d = null;
+    try { d = await (await fetch(API + "/health")).json(); } catch {}
+    if (!d) { box.textContent = "⚠️ 커뮤니티 서버에 연결하지 못했어요."; return; }
+    const k = d.kakao || "";
+    box.innerHTML = `🔌 v${esc(d.version || "?")} · DB ${esc(d.db || "?")} · ` + (!k ? "⚠️ 카카오 로그인: 서버가 옛 버전이에요 (새 song-meal-api.js로 Deploy 필요)"
+      : /^켜짐/.test(k) ? "✅ 카카오 로그인 켜짐" : "⚪ 카카오 로그인 꺼짐 (Worker Secret에 KAKAO_REST_KEY·KAKAO_CLIENT_SECRET을 넣으면 켜져요)");
   }
   // 식당 검색 서버가 새 버전인지, 네이버 지역·블로그 검색이 실제로 되는지 (혼밥 후기는 블로그 검색이 켜져 있어야 함)
   async function admNaverHealth() {

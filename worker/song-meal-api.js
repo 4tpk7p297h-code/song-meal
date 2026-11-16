@@ -9,6 +9,10 @@
 //        SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET (Spotify),  LASTFM_API_KEY (Last.fm)
 //      키가 없어도 MusicBrainz·Wikidata(키 필요 없음)는 항상 함께 비교함 → 맨 아래 '곡 정보' 부분
 //
+//   5) (선택) 카카오 로그인: Secret 으로 KAKAO_REST_KEY(REST API 키), KAKAO_CLIENT_SECRET(보안 → Client Secret 코드)
+//        두 개가 모두 있으면 켜짐. KAKAO_ADMIN_KEY(어드민 키)도 넣으면 탈퇴할 때 카카오 연결도 함께 끊음
+//        카카오 개발자 콘솔 Redirect URI: 이 Worker 주소 + /auth/kakao/callback
+//
 // 설정 확인: 브라우저에서 이 Worker 주소 뒤에 /health 를 붙여 열면 DB 연결과 곡 검색 서비스 상태가 보임
 //
 // 비밀번호는 PBKDF2-SHA256(사용자별 무작위 salt)으로 해시해서 저장하고, 원래 비밀번호는 저장하지 않습니다.
@@ -104,7 +108,12 @@ export default {
         MusicBrainz: "켜짐", Wikidata: "켜짐",
         Spotify: k.spotify ? "켜짐" : "꺼짐 (SPOTIFY_CLIENT_ID·SPOTIFY_CLIENT_SECRET 없음)",
         "Last.fm": k.lastfm ? "켜짐" : "꺼짐 (LASTFM_API_KEY 없음)",
-      } });
+      }, kakao: kakaoOn(env) ? "켜짐" : "꺼짐 (KAKAO_REST_KEY·KAKAO_CLIENT_SECRET 없음)" });
+    }
+    // 카카오 로그인 시작·돌아오기 (브라우저가 페이지째 이동하므로 Origin 이 없음 → 허용 사이트 검사보다 먼저)
+    if (pathname === "/auth/kakao/start" || pathname === "/auth/kakao/callback") {
+      try { return await kakaoPage(request, env, pathname); }
+      catch (e) { console.log("kakao", e && e.stack); return new Response("카카오 로그인 중 문제가 생겼어요.", { status: 500, headers: { "Content-Type": "text/plain; charset=utf-8" } }); }
     }
     if (!isAllowed(origin, env)) return json({ error: "허용되지 않은 사이트예요." }, 403);
     // 곡 정보 검색은 DB 없이도 동작
@@ -139,7 +148,7 @@ async function currentUser(request, env, required) {
     const row = await env.DB.prepare(
       "SELECT u.id, u.login, u.nick FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires > ?"
     ).bind(await sha256(m[1]), now()).first();
-    if (row) return { ...row, admin: isAdmin(row.login) };
+    if (row) return { ...row, admin: isAdmin(row.login), kakao: isKakao(row.login) };
   }
   if (required) fail(401, "로그인이 필요해요.");
   return null;
@@ -258,8 +267,9 @@ async function admin(request, env, me, path, M, url) {
     const u = await DB.prepare("SELECT id, login, nick FROM users WHERE id = ?").bind(uid).first();
     if (!u) fail(404, "없는 회원이에요.");
     if (isAdmin(u.login) && act !== "/nick") fail(400, "관리자 계정은 여기서 바꿀 수 없어요. 내 비밀번호 변경을 이용해 주세요.");
-    if (act === "" && M === "DELETE") { await deleteAccount(DB, uid); return { ok: true }; }
+    if (act === "" && M === "DELETE") { await deleteAccount(DB, uid); if (isKakao(u.login)) await kakaoUnlink(env, u.login); return { ok: true }; }
     if (act === "/reset-password" && M === "POST") {
+      if (isKakao(u.login)) fail(400, "카카오로 가입한 회원은 비밀번호가 없어요. 카카오로 로그인하면 돼요.");
       const temp = tempPassword(), salt = randHex(16);
       await DB.batch([
         DB.prepare("UPDATE users SET salt = ?, hash = ?, fails = 0, locked_until = 0 WHERE id = ?").bind(salt, await pbkdf2(temp, salt), uid),
@@ -277,6 +287,85 @@ async function admin(request, env, me, path, M, url) {
     }
   }
   fail(404, "없는 관리자 기능이에요.");
+}
+
+// ---------- 카카오 로그인 ----------
+// 카카오에서 받는 것은 회원번호(숫자) 하나뿐. 아이디는 "kakao:회원번호"로 저장 → 카카오 계정 1개당 사이트 계정 1개
+const isKakao = (login) => typeof login === "string" && login.startsWith("kakao:");
+const kakaoOn = (env) => !!(env.KAKAO_REST_KEY && env.KAKAO_CLIENT_SECRET);
+const b64u = (s) => btoa(String.fromCharCode(...enc.encode(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0)));
+async function hmac(env, s) {
+  const key = await crypto.subtle.importKey("raw", enc.encode("kakao|" + env.KAKAO_CLIENT_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return hex(await crypto.subtle.sign("HMAC", key, enc.encode(s)));
+}
+// 서버만 만들 수 있는 짧은 표 (위조·기간 지난 표는 거절)
+async function seal(env, obj, ms) {
+  const p = b64u(JSON.stringify({ ...obj, exp: now() + ms }));
+  return p + "." + await hmac(env, p);
+}
+async function unseal(env, t, use) {
+  if (!kakaoOn(env) || typeof t !== "string" || t.length > 2000) return null;
+  const [p, sig] = t.split(".");
+  if (!p || !sig || !sameHex(await hmac(env, p), sig)) return null;
+  try { const o = JSON.parse(unb64u(p)); return o.exp > now() && o.use === use ? o : null; } catch { return null; }
+}
+async function kakaoUnlink(env, login) {
+  if (!env.KAKAO_ADMIN_KEY) return;
+  try {
+    await fetch("https://kapi.kakao.com/v1/user/unlink", { method: "POST",
+      headers: { Authorization: "KakaoAK " + env.KAKAO_ADMIN_KEY, "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: new URLSearchParams({ target_id_type: "user_id", target_id: login.slice(6) }) });
+  } catch {}
+}
+async function kakaoPage(request, env, pathname) {
+  const url = new URL(request.url);
+  const redirectUri = url.origin + "/auth/kakao/callback";
+  const go = (to, cookie) => new Response(null, { status: 302, headers: { Location: to, "Cache-Control": "no-store",
+    "Set-Cookie": cookie || "ks=; Path=/auth/kakao; Max-Age=0; HttpOnly; Secure; SameSite=Lax" } });
+  const text = (msg, st = 400) => new Response(msg, { status: st, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  const siteBack = (b) => { try { const u = new URL(b); u.hash = ""; return isAllowed(u.origin, env) ? u.href : null; } catch { return null; } };
+
+  if (pathname === "/auth/kakao/start") {
+    const back = siteBack(url.searchParams.get("back") || "");
+    if (!back) return text("허용되지 않은 사이트예요.", 403);
+    if (!kakaoOn(env)) return go(back + "#kakao=error&m=" + encodeURIComponent("카카오 로그인이 아직 켜지지 않았어요."));
+    const n = randHex(16);
+    const state = await seal(env, { use: "state", back, n }, 10 * 60e3);
+    const q = new URLSearchParams({ client_id: env.KAKAO_REST_KEY, redirect_uri: redirectUri, response_type: "code", state });
+    return go("https://kauth.kakao.com/oauth/authorize?" + q, `ks=${n}; Path=/auth/kakao; Max-Age=600; HttpOnly; Secure; SameSite=Lax`);
+  }
+
+  // /auth/kakao/callback
+  const st = await unseal(env, url.searchParams.get("state") || "", "state");
+  if (!st) return text("카카오 로그인 시간이 지났어요. 사이트로 돌아가서 다시 시도해 주세요.");
+  const back = siteBack(st.back);
+  if (!back) return text("허용되지 않은 사이트예요.", 403);
+  const err = (m) => go(back + "#kakao=error&m=" + encodeURIComponent(m));
+  const ck = /(?:^|;\s*)ks=([0-9a-f]{32})/.exec(request.headers.get("Cookie") || "");
+  if (!ck || !sameHex(ck[1], st.n)) return err("같은 브라우저에서 다시 시도해 주세요.");
+  if (url.searchParams.get("error")) return err("카카오 로그인을 취소했어요.");
+  const code = url.searchParams.get("code");
+  if (!code) return err("카카오에서 확인 코드를 받지 못했어요.");
+  let kid;
+  try {
+    const tr = await fetch("https://kauth.kakao.com/oauth/token", { method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: new URLSearchParams({ grant_type: "authorization_code", client_id: env.KAKAO_REST_KEY, client_secret: env.KAKAO_CLIENT_SECRET, redirect_uri: redirectUri, code }) });
+    const tk = await tr.json().catch(() => ({}));
+    if (!tr.ok || !tk.access_token) { console.log("kakao token", tr.status, tk.error, tk.error_code); return err("카카오 확인에 실패했어요. (" + (tk.error_code || tk.error || tr.status) + ")"); }
+    const mr = await fetch("https://kapi.kakao.com/v2/user/me", { headers: { Authorization: "Bearer " + tk.access_token } });
+    const me = await mr.json().catch(() => ({}));
+    if (!mr.ok || !me.id) return err("카카오 회원 정보를 받지 못했어요.");
+    kid = String(me.id);
+    // 사이트는 카카오 토큰을 보관하지 않으므로 바로 로그아웃 처리
+    fetch("https://kapi.kakao.com/v1/user/logout", { method: "POST", headers: { Authorization: "Bearer " + tk.access_token } }).catch(() => {});
+  } catch (e) { console.log("kakao", e && e.stack); return err("카카오 서버에 연결하지 못했어요."); }
+  if (!/^\d{1,20}$/.test(kid)) return err("카카오 회원 정보가 올바르지 않아요.");
+  if (!env.DB) return err("서버에 데이터베이스(DB)가 연결되지 않았어요.");
+  const u = await env.DB.prepare("SELECT id FROM users WHERE login = ?").bind("kakao:" + kid).first();
+  if (u) return go(back + "#kakao=login&t=" + await seal(env, { use: "login", kid }, 2 * 60e3));
+  return go(back + "#kakao=signup&t=" + await seal(env, { use: "signup", kid }, 15 * 60e3));
 }
 
 async function route(request, env) {
@@ -309,9 +398,40 @@ async function route(request, env) {
     return { token: await newSession(env, id), user: { id, login, nick, admin: false, prefs } };
   }
 
+  // 카카오로 처음 가입: 돌아올 때 받은 표(ticket) + 닉네임 + 동의
+  if (path === "/signup/kakao" && M === "POST") {
+    if (!kakaoOn(env)) fail(400, "카카오 로그인이 아직 켜지지 않았어요.");
+    const b = await body(request);
+    const t = await unseal(env, b.ticket, "signup");
+    if (!t) fail(400, "카카오 확인 시간이 지났어요. 카카오로 시작하기를 다시 눌러 주세요.");
+    const nick = str(b.nick, 40), login = "kakao:" + t.kid;
+    if (!b.agreeAge || !b.agreeCollect || !b.agreeAbroad || b.agreeRec === false) fail(400, "필수 항목에 모두 동의해 주세요.");
+    if (nick.length < 2 || nick.length > 12) fail(400, "닉네임은 2~12자로 만들어 주세요.");
+    if (RESERVED_NICK.test(nick)) fail(400, "이 닉네임은 쓸 수 없어요. 다른 닉네임을 골라 주세요.");
+    if (await DB.prepare("SELECT 1 FROM users WHERE login = ?").bind(login).first()) fail(409, "이 카카오 계정으로 이미 가입했어요. 카카오로 시작하기를 다시 누르면 로그인돼요.");
+    // 비밀번호가 없는 계정: 아무도 모르는 무작위 해시를 넣어 아이디·비밀번호 로그인은 불가능
+    const res = await DB.prepare("INSERT INTO users (login, nick, salt, hash, created) VALUES (?, ?, ?, ?, ?)")
+      .bind(login, nick, randHex(16), "kakao-" + randHex(32), now()).run();
+    const id = res.meta.last_row_id;
+    const prefs = cleanPrefs(b.prefs || {});
+    await setPrefs(DB, id, prefs);
+    return { token: await newSession(env, id), user: { id, login, nick, admin: false, kakao: true, prefs } };
+  }
+
+  // 카카오로 이미 가입한 사람: 돌아올 때 받은 표로 로그인 토큰 받기 (토큰이 주소창에 남지 않게)
+  if (path === "/auth/kakao/login" && M === "POST") {
+    const b = await body(request);
+    const t = await unseal(env, b.ticket, "login");
+    if (!t) fail(400, "카카오 확인 시간이 지났어요. 카카오로 시작하기를 다시 눌러 주세요.");
+    const u = await DB.prepare("SELECT id, login, nick FROM users WHERE login = ?").bind("kakao:" + t.kid).first();
+    if (!u) fail(404, "가입 정보가 없어요. 카카오로 시작하기를 다시 눌러 주세요.");
+    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: false, kakao: true, prefs: await getPrefs(DB, u.id) } };
+  }
+
   if (path === "/login" && M === "POST") {
     const b = await body(request);
     const login = str(b.login, 40).toLowerCase(), pw = typeof b.pw === "string" ? b.pw : "";
+    if (isKakao(login)) fail(401, "아이디 또는 비밀번호가 맞지 않아요.");
     const u = await DB.prepare("SELECT * FROM users WHERE login = ?").bind(login).first();
     if (!u) fail(401, "아이디 또는 비밀번호가 맞지 않아요.");
     if (u.locked_until > now()) fail(429, "로그인을 여러 번 실패해서 5분 동안 잠겼어요. 잠시 후 다시 시도해 주세요.");
@@ -322,7 +442,7 @@ async function route(request, env) {
       fail(401, "아이디 또는 비밀번호가 맞지 않아요.");
     }
     await DB.prepare("UPDATE users SET fails = 0, locked_until = 0 WHERE id = ?").bind(u.id).run();
-    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: isAdmin(u.login), prefs: await getPrefs(DB, u.id) } };
+    return { token: await newSession(env, u.id), user: { id: u.id, login: u.login, nick: u.nick, admin: isAdmin(u.login), kakao: false, prefs: await getPrefs(DB, u.id) } };
   }
 
   if (path === "/logout" && M === "POST") {
@@ -350,6 +470,7 @@ async function route(request, env) {
     const me = await currentUser(request, env, true);
     const b = await body(request);
     const pw = typeof b.pw === "string" ? b.pw : "", np = typeof b.newPw === "string" ? b.newPw : "";
+    if (me.kakao) fail(400, "카카오로 가입한 계정은 비밀번호가 없어요.");
     const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
     if (!sameHex(await pbkdf2(pw, u.salt), u.hash)) fail(401, "현재 비밀번호가 맞지 않아요.");
     if (np.length < 8 || np.length > 72) fail(400, "새 비밀번호는 8자 이상으로 만들어 주세요.");
@@ -367,10 +488,15 @@ async function route(request, env) {
   if (path === "/me" && M === "DELETE") {
     const me = await currentUser(request, env, true);
     const b = await body(request);
-    const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
-    if (!sameHex(await pbkdf2(typeof b.pw === "string" ? b.pw : "", u.salt), u.hash)) fail(401, "비밀번호가 맞지 않아요.");
+    if (me.kakao) {
+      if (b.confirm !== true) fail(400, "탈퇴 확인에 체크해 주세요.");
+    } else {
+      const u = await DB.prepare("SELECT salt, hash FROM users WHERE id = ?").bind(me.id).first();
+      if (!sameHex(await pbkdf2(typeof b.pw === "string" ? b.pw : "", u.salt), u.hash)) fail(401, "비밀번호가 맞지 않아요.");
+    }
     if (me.admin) fail(400, "관리자 계정은 탈퇴할 수 없어요.");
     await deleteAccount(DB, me.id);
+    if (me.kakao) await kakaoUnlink(env, me.login);
     return { ok: true };
   }
 
@@ -543,7 +669,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.2";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "2.7";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),

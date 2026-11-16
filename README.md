@@ -33,5 +33,12 @@ NCP 콘솔의 Web 서비스 URL에 `https://4tpk7p297h-code.github.io`가 등록
 
 Secret은 이 저장소에 절대 넣지 마세요. 연결이 잘 됐는지는 관리패널 📊 현황 맨 아래 '식당 검색 서버'에서 볼 수 있어요.
 
+## 카카오로 시작하기 (선택, v2.7)
+1. [카카오 개발자](https://developers.kakao.com)에서 앱 만들기 → 카카오 로그인 > 사용 설정 > 상태 ON
+2. 앱 > 플랫폼 키 > REST API 키: 리다이렉트 URI `https://song-meal-api.fare1451.workers.dev/auth/kakao/callback` 등록, 클라이언트 시크릿 활성화(새 키는 기본 켜짐) 확인
+3. Worker `song-meal-api` → Settings → Variables and Secrets에 `KAKAO_REST_KEY`(REST API 키), `KAKAO_CLIENT_SECRET`(클라이언트 시크릿) Secret으로 추가. 선택: `KAKAO_ADMIN_KEY`(앱 > 어드민 키, 탈퇴 시 카카오 연결 끊기)
+
+카카오에서는 회원번호만 받습니다(동의 항목 없음). 켜졌는지는 관리패널 📊 현황의 '커뮤니티 서버'에서 볼 수 있어요.
+
 ## 배포
 GitHub 저장소 Settings → Pages → Source: `Deploy from a branch`, Branch: `main` / `(root)`.

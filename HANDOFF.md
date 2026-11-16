@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.6, 업로드 zip 20261116_rev1, Worker song-meal-api v2.2 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.7, 업로드 zip 20261116_rev2, Worker song-meal-api v2.7 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -58,7 +58,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - 호스팅: **Cloudflare Pages** `song-meal.pages.dev` (대시보드에 zip 직접 업로드, GitHub 연동 없음). GitHub Pages는 예비 주소
 - API: Worker `song-meal-api` (`worker/song-meal-api.js`) + D1 `song-meal-db` (`worker/schema.sql`), 바인딩 이름 `DB`
   - 주소: https://song-meal-api.fare1451.workers.dev (index.html의 `API` 상수), `/health`로 DB 상태 확인
-  - 가입: 아이디+비밀번호+닉네임(이메일 없음), PBKDF2-SHA256 10,000회(무료 플랜 CPU 10ms 한도 때문), 토큰은 해시만 저장, 30일
+  - 가입: 아이디+비밀번호+닉네임(이메일 없음) 또는 카카오로 시작하기(v2.7), PBKDF2-SHA256 10,000회(무료 플랜 CPU 10ms 한도 때문), 토큰은 해시만 저장, 30일
   - 사진: 브라우저에서 긴 변 1080px JPEG(<650KB data URL) + 300x400 썸네일로 줄여 D1에 텍스트로 저장 (R2 안 씀)
   - 좋아요 계정당 1회, 신고 3건이면 자동 숨김, 하루 20개 글 제한, 로그인 5회 실패 시 5분 잠금, 탈퇴 시 전부 삭제
 - 화면: 헤더 📸스토리 / 🏆순위 / 👤로그인, 결과 화면의 "이 조합으로 후기 올리기"(노래·메뉴·식당 자동 채움)
@@ -71,6 +71,10 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v2.7: 카카오로 시작하기 (기존 아이디 가입·로그인 유지). 카카오에서는 회원번호만 받고 users.login = "kakao:회원번호"로 저장(스키마 변경 없음, UNIQUE라 카카오 계정 1개당 1명, 비밀번호 해시는 무작위라 아이디 로그인 불가)
+  - Worker: GET /auth/kakao/start?back=사이트주소 → 카카오 → GET /auth/kakao/callback(state 서명 + ks 쿠키 확인, 토큰 교환, /v2/user/me) → 사이트#kakao=login|signup|error&t=서명된 표(2분/15분). 사이트가 POST /auth/kakao/login 또는 /signup/kakao 로 표를 로그인 토큰으로 바꿈(토큰이 주소창에 안 남음)
+  - Secret: KAKAO_REST_KEY, KAKAO_CLIENT_SECRET(둘 다 있어야 켜짐, /health의 kakao), 선택 KAKAO_ADMIN_KEY(탈퇴 때 unlink). 카카오 개발자 콘솔 Redirect URI: https://song-meal-api.fare1451.workers.dev/auth/kakao/callback
+  - 카카오 회원: 비밀번호 변경 숨김, 탈퇴는 확인 체크(confirm:true), 관리자 비번 초기화 불가. 관리패널 현황에 '커뮤니티 서버' 줄(카카오 켜짐/꺼짐). 시험: 스크래치패드 dev4.mjs(가짜 카카오) + t29.js
 - v2.6: 홈 화면 앱(PWA). manifest.webmanifest(아이콘 icon-192/512, icon-maskable-512), sw.js(같은 사이트 파일만 네트워크 우선 + 오프라인 때 캐시, CACHE 이름을 버전마다 바꿈), 헤더 #nav-install(안드로이드 beforeinstallprompt 설치 창, 아이폰은 공유 → 홈 화면에 추가 안내, standalone이면 숨김). 업로드 zip에 manifest.webmanifest·sw.js·icon-512.png·icon-maskable-512.png 포함 필수. 스토어 출시(플레이 12명 14일 테스트, 앱스토어 99달러·4.2 거절 위험)는 검토만 하고 보류
 - v2.5: 곡 검색 개선 (lookupSong·score). comboScore: 한 칸에 '가수 곡명'/'곡명 가수'를 써도 띄어쓰기로 나눠 곡명+가수로 맞춤, 확정 못 하면 2단계에서 사전 가수를 떼어(split1) 영어 표기로 Deezer·Apple 다시. artistOnly: 사전에 있는 가수 이름만 쓰면 2점 → 인기 순으로 대표곡. isVariant는 곡명의 괄호·' - ' 꼬리(deco)만 봄. 1단계는 Apple·Deezer가 확실하면(두 곳 확인, 또는 곡명·가수 정확히 같음 7점, 또는 곡명만 검색) 서버를 0.8초까지만 기다림. 사전에 없는 한글 가수는 Deezer를 track:"곡명"으로. 시험: 스크래치패드 lktest3(기존 61건)·lktest4(새 18건) 모두 통과
 - v2.4: 아이폰 배달 버튼이 앱스토어 대신 baemin:// · coupangeats://로 앱을 바로 엶 (2026-11-14 사용자 아이폰에서 두 주소 모두 '열기' 확인 후 앱 열림). 앱이 없으면 사파리 오류 창이 뜨므로 안내 창(toast, html)에 앱스토어 설치 링크
