@@ -1,7 +1,7 @@
 # 비트밥스 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.16, 업로드 zip 20261116_rev13, Worker song-meal-api v2.8 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.17, 업로드 zip 20261116_rev14, Worker song-meal-api v2.8 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -75,6 +75,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - v2.14: 관리패널 업데이트 내역을 버튼식으로(사용자 요청: 펼치지 말고 스크롤 없이). .logmaj 큰 버전 버튼(v2·v1·v0) → .logsub 세부 버전 버튼 → .logv에 고른 버전 하나만 표시. CHANGELOG 데이터 형식은 그대로라 새 항목은 맨 위에 넣으면 자동으로 묶임(큰 버전 이름은 렌더러의 name 표). rev9의 접기 방식은 폐기. 시험: t35.js
 - v2.15: '지금 날씨 가져오기'가 위치 칸 없이도 동작. 순서: 위치 칸 resolveLoc → wxHere()(CONSENT.geo일 때 기기 GPS 좌표만, 주소 변환·위치 칸 채우기 없음) → 서울(37.57,126.98) 기준 + 안내. 국외 이전 동의(abroad)는 여전히 필요. 시험: t35w.js
 - v2.16: 사이트 이름 '비트밥스'(2026-11-16 사용자 요청; 주소 song-meal.pages.dev·저장소·Worker 이름은 그대로, og.png 다시 만듦). 회원가입·로그인 화면 다국어(ko·en·ja·zh): #langbar 버튼, [data-i18n] 요소는 원래 한국어를 I18N_KO에 기억해 두고 I18N[키]=[en,ja,zh]로 바꿈, 스크립트 문구는 tt(키, 한국어, vars), 서버·검사 오류는 한국어로 받아 ttErr()로 표시만 번역(I18N_ERR). LANG_HOOKS로 nav-me·가입 버튼·비밀번호 안내·말풍선·오류 다시 그림. localStorage food.lang. 외국어 표기 이름 BeatBobs(영어·중국어)/ビートバプス. 다른 화면(입력·결과·순위 등)은 아직 한국어. 시험: t36.js
+- v2.17: 사이트 전체 다국어. lang.js = 화면 번역 엔진(MutationObserver로 새로 그려지는 글자를 바꿈. 앱 로직은 계속 한국어로 돌고, 보이는 글자만 번역). 글자 노드는 TR[한국어]=[en,ja,zh]로 정확히 일치, 안쪽에 b·span 등만 있는 요소는 TR_HTML[innerHTML], placeholder·title·aria-label·alt도 번역, 숫자·이름이 섞인 문장은 RULES(정규식+함수). 원래 한국어는 WeakMap에 기억해 한국어로 돌아가면 복원. translate="no"·textarea·.notr 안은 건드리지 않음(업데이트 내역 #adm-log는 한국어 유지). 못 바꾼 글자는 window.__i18nMiss에 모임. API: I18.set(lang)/I18.t(ko), applyLang 끝에서 호출. lang-data.js = 번역 사전(window.I18N_DATA={TR,TR_HTML,RULES}); 세션 밖 스크립트로 만들었지만 직접 고쳐도 됨. 화면 문구를 바꾸거나 새로 넣으면 lang-data.js TR에 같은 한국어 키로 [en,ja,zh]를 추가해야 번역됨. 가게 이름·주소·후기·닉네임·곡 제목은 번역 안 함. 배포 zip에 lang.js·lang-data.js 꼭 포함.
 - v2.12: Last.fm 분위기 태그는 분석에만 (사용자 지시: 곡 검색·결과 도출 로직은 절대 건드리지 말 것). Worker GET /music/mood?a=가수|별칭&t=곡명|다른표기 → track.getTopTags(태그 3개 이상) 아니면 artist.getTopTags, 30분 메모. 사이트: 곡이 정해진 뒤 lastfmMood() → moodFromTags(MOOD_RE eLow/eHigh/vNeg/vPos, count 비중) → v.energy/v.valence 덮어씀(관련 태그 없으면 장르 추정 유지). 시험: 스크래치패드 mood.mjs(Worker), t33.js(화면)
 - v2.11: 화면 비율 (style 끝 'v2.11' 블록). viewport-fit=cover + safe-area 여백, max-width 360px 좁은 화면(.row 한 줄, 테마 .tl 숨김), 700~959px 또는 960+ 높이 559 이하에서 결과 2칸, 기존 3칸은 min-height 560 이상만, horizontal-viewport-segments: 2(듀얼 스크린) 경첩 피하기. 가입 비밀번호 실시간 안내 #su-pwcheck/#su-pw2check(pwSync), #auth-err 상자+흔들기. 시험: 스크래치패드 t31.js(9개 화면 크기 가로넘침 검사), t32.js
 - v2.10: 사용자 브라우저의 실제 응답(Deezer '싸이 예술이야' → Psy "Fantastic Duo 2 Part.4 '예술이야'", 싸이 (PSY) "It's Art" / Apple 미국 'PSY 예술이야' → It's Art (Live), It's Art, I LUV IT …, Apple 한국은 0곡)으로 재현(스크래치패드 lktest6.mjs). 합치기는 pick 묶음 대신 pool에서 직접: hit 표시 + 서버 확정 곡의 가수 + 라이브·MR 제외 원곡이 Apple·Deezer 2곳에서 sameSong이면 확정. 한 칸·곡명만 입력도 됨. 점검 로그에 검색 결과 맨 위 3곡(top3)
