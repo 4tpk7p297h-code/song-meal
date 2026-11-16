@@ -126,6 +126,12 @@ export default {
         return json({ error: "곡 정보 서버에서 문제가 생겼어요." }, 500);
       }
     }
+    // 곡 분위기 태그 (Last.fm): 곡이 정해진 뒤 분석에만 씀. 곡 검색과는 따로
+    if (pathname === "/music/mood" && request.method === "GET") {
+      if (tooMany(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "너무 자주 요청했어요. 1분 뒤에 다시 해 주세요." }, 429);
+      try { return json(await musicMood(new URL(request.url).searchParams, env)); }
+      catch (e) { console.log("mood", e && e.stack); return json({ tags: [], error: "분위기 태그를 가져오지 못했어요." }); }
+    }
     if (!env.DB) return json({ error: "서버에 데이터베이스(DB)가 연결되지 않았어요." }, 500);
 
     try {
@@ -669,7 +675,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.7";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "2.8";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -831,6 +837,35 @@ async function lastfm(env, t, names, until) {
   if (!Array.isArray(list)) list = [list];
   return { tracks: list.filter((x) => x && x.name).map((x) => ({ source: "Last.fm", trackId: "lf" + nk(x.artist) + "|" + nk(x.name),
     artistName: x.artist || "", trackName: x.name, collectionName: "", listeners: +x.listeners || 0 })) };
+}
+
+// ---------- 곡 분위기 태그 (Last.fm) ----------
+// a: 가수 이름 후보들, t: 곡명 후보들 ('|'로 구분). 곡 태그가 적으면 가수 태그로 대신함
+// 결과: { from: "track" | "artist" | "", tags: [{ name, count }] }  (count: Last.fm 태그 비중 0~100)
+async function musicMood(q, env) {
+  if (!musicKeys(env).lastfm) return { off: true, tags: [] };
+  const as = uniqNames(str(q.get("a"), 240).split("|").map((x) => x.trim())).slice(0, 3);
+  const ts = uniqNames(str(q.get("t"), 240).split("|").map((x) => x.trim())).slice(0, 2);
+  if (!as.length || !ts.length) return { tags: [] };
+  const key = "mood|" + as.map(nk).join(",") + "|" + ts.map(nk).join(",");
+  const hit = memo(key); if (hit) return { ...hit, cached: true };
+  const base = `https://ws.audioscrobbler.com/2.0/?format=json&autocorrect=1&api_key=${encodeURIComponent(env.LASTFM_API_KEY)}`;
+  const until = Date.now() + 4500;
+  const clean = (d) => ((d && d.toptags && d.toptags.tag) || []).filter((g) => g && g.name).map((g) => ({ name: String(g.name).slice(0, 40), count: +g.count || 0 })).filter((g) => g.count >= 5).slice(0, 12);
+  let artistTags = [];
+  for (const a of as) {
+    for (const t of ts) {
+      if (Date.now() > until) break;
+      const d = await getJSON(`${base}&method=track.getTopTags&artist=${encodeURIComponent(a)}&track=${encodeURIComponent(t)}`, {}, left(until, 2500));
+      const tags = clean(d);
+      if (tags.length >= 3) return memo(key, { from: "track", artist: a, track: t, tags });
+    }
+    if (!artistTags.length && Date.now() < until) {
+      const d = await getJSON(`${base}&method=artist.getTopTags&artist=${encodeURIComponent(a)}`, {}, left(until, 2000));
+      artistTags = clean(d);
+    }
+  }
+  return memo(key, artistTags.length ? { from: "artist", tags: artistTags } : { from: "", tags: [] });
 }
 
 // a: 가수(선택), t: 곡 제목, k: 사이트가 이미 아는 가수의 영어 표기들('|'로 구분)

@@ -611,9 +611,9 @@
       <label class="check"><input type="checkbox" class="c-opt" id="c-abroad"> [선택] 개인정보 국외 이전 동의</label>
       <details><summary>내용 보기</summary>
         <table class="ptable">
-          <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata)</td></tr>
-          <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
-          <tr><th>이전 목적</th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계</td></tr>
+          <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우)</td></tr>
+          <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
+          <tr><th>이전 목적</th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계</td></tr>
           <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
           <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
         </table>
@@ -861,8 +861,8 @@
         <label class="check"><input type="checkbox" class="su-opt" id="su-xfer"> [선택] 곡·식당 검색을 위한 국외 이전 동의</label>
         <details><summary>내용 보기</summary>
           <table class="ptable">
-            <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata)</td></tr>
-            <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
+            <tr><th>이전받는 자 (국가)</th><td>Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우)</td></tr>
+            <tr><th>이전 항목</th><td>Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음)</td></tr>
             <tr><th>이전 목적</th><td>곡 정보·앨범 이미지·미리듣기 조회, 여러 음악 정보 서비스의 곡 정보 비교, 네이버 지역·블로그 검색 중계(주변 음식점 표시, 혼밥 후기 확인)</td></tr>
             <tr><th>이전 일시·방법</th><td>추천받기·지도 검색 시 네트워크를 통해 전송</td></tr>
             <tr><th>보유 및 이용 기간</th><td>운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</td></tr>
@@ -2497,9 +2497,10 @@ JJ Lin|林俊傑|임준걸`;
       </div>
       ${bpmBlock}
       <p class="synopsis">${esc(SYNOPSIS[type])}</p>
+      ${v.moodTags && v.moodTags.length ? `<div class="songmeta" style="margin:-4px 0 8px">🏷️ Last.fm ${v.moodFrom === "artist" ? "가수" : "곡"} 태그: ${v.moodTags.slice(0, 6).map((t) => esc(t.name)).join(", ")}</div>` : ""}
       <div class="stats">
-        <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyGuessed ? " (장르 추정)" : ""}</span>
-        <span class="stat">분위기 ${V_LABEL[v.valence]}${v.energyGuessed ? " (장르 추정)" : ""}</span>
+        <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
+        <span class="stat">분위기 ${V_LABEL[v.valence]}${v.valenceBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
         <span class="stat">${esc(tex)}</span>
       </div>
       <div class="sects">
@@ -3131,6 +3132,39 @@ JJ Lin|林俊傑|임준걸`;
     });
   }
 
+  // ---------- Last.fm 분위기 태그 → 에너지·분위기 (분석에만 사용) ----------
+  // 사람들이 곡에 붙인 태그(sad, upbeat, chill…)를 태그 비중(count)만큼 더해 판단. 관련 태그가 없으면 장르 추정을 그대로 둠
+  const MOOD_RE = {
+    eLow: /sad|melanchol|mellow|chill|calm|ballad|acoustic|slow|sleep|ambient|soft|dream|lo-?fi|piano|relax|quiet|gentle|sooth|downtempo|folk|jazz|bossa|발라드|잔잔|감성|슬픈|어쿠스틱|새벽/i,
+    eHigh: /energetic|upbeat|dance|party|rock|punk|metal|edm|hype|workout|fast|powerful|aggressive|electro|house|hip.?hop|rap|trap|anthem|festival|신나는|댄스|락|록|파티/i,
+    vNeg: /sad|melanchol|dark|depress|heartbreak|lonely|gloom|angst|emo\b|breakup|bittersweet|tear|cry|moody|haunting|nostalg|despair|슬픈|우울|이별|그리움|쓸쓸/i,
+    vPos: /happy|upbeat|fun\b|cheer|feel ?good|summer|sunny|sweet|cute|bright|joy|uplifting|party|love song|행복|신나는|밝은|귀여운|설레/i,
+  };
+  function moodFromTags(tags) {
+    const sum = (re) => tags.reduce((n, t) => n + (re.test(t.name) ? Math.max(0.1, t.count / 100) : 0), 0);
+    const judge = (lo, hi) => {
+      const tot = lo + hi;
+      if (tot < 0.3) return 0;                    // 관련 태그가 거의 없음 → 장르 추정 유지
+      const d = (hi - lo) / tot;
+      return d >= 0.35 ? 3 : d <= -0.35 ? 1 : 2;
+    };
+    return { e: judge(sum(MOOD_RE.eLow), sum(MOOD_RE.eHigh)), v: judge(sum(MOOD_RE.vNeg), sum(MOOD_RE.vPos)) };
+  }
+  async function lastfmMood(info) {
+    if (!CONSENT.abroad) return null;
+    const as = [info.artistName, ...aliasForms(info.artistName).filter((f) => !isKo(f))].filter(Boolean).slice(0, 3);
+    const ts = [info.trackName, ...titleForms(info.trackName).filter((f) => isKo(f) !== isKo(info.trackName))].filter(Boolean).slice(0, 2);
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 5000);
+    try {
+      const r = await fetch(`${API}/music/mood?a=${encodeURIComponent(as.join("|"))}&t=${encodeURIComponent(ts.join("|"))}`, { signal: ac.signal });
+      if (!r.ok) return null;
+      const d = await r.json();
+      if (!d.tags || !d.tags.length) return null;
+      const m = moodFromTags(d.tags);
+      return { ...m, tags: d.tags, from: d.from };
+    } catch { return null; } finally { clearTimeout(timer); }
+  }
+
   // 장르로 곡 분위기 추정 (1 어둡고 차분 ~ 3 밝고 경쾌)
   function valenceFromGenre(g) {
     if (!g) return 2;
@@ -3201,6 +3235,17 @@ JJ Lin|林俊傑|임준걸`;
     v.valence = valenceFromGenre(info && info.primaryGenreName);
     v.energyGuessed = !!(info && info.primaryGenreName);
     v.songWhy = lookupSong.last ? lookupSong.last.reason : "";
+    // 곡이 정해진 뒤, 분석에만 Last.fm 분위기 태그를 씀 (곡 검색·곡 선택은 그대로)
+    if (info) {
+      $("loading").classList.remove("hidden"); $("load-sub").textContent = "Last.fm에서 곡 분위기 태그를 확인하는 중";
+      const mood = await lastfmMood(info);
+      $("loading").classList.add("hidden");
+      if (mood) {
+        v.moodTags = mood.tags; v.moodFrom = mood.from;
+        if (mood.e) { v.energy = mood.e; v.energyBy = "tag"; }
+        if (mood.v) { v.valence = mood.v; v.valenceBy = "tag"; }
+      }
+    }
     $("form").classList.add("hidden");
     render(v, recommend(v), info);
     go("result", 2);
@@ -3971,8 +4016,13 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.11";
+  const APP_VERSION = "v2.12";
   const CHANGELOG = [
+    ["v2.12", "2026-11-16", "Last.fm 태그로 곡 분위기 분석", [
+      "곡이 정해진 뒤 Last.fm에서 사람들이 붙인 태그(sad, chill, upbeat, rock…)를 받아 에너지·분위기를 판단 (곡 검색·곡 선택 방식은 그대로)",
+      "곡 태그가 적으면 가수 태그로 대신, 관련 태그가 없으면 예전처럼 장르로 추정",
+      "결과 화면에 '🏷️ Last.fm 태그'와 에너지·분위기 옆에 '(Last.fm 태그)' 표시",
+    ]],
     ["v2.11", "2026-11-16", "접는 폰·특이한 화면 비율 최적화, 비밀번호 안내 크게", [
       "폴드 바깥 화면처럼 아주 좁은 화면(360px 이하): 입력 칸을 한 줄에 하나씩, 테마 버튼은 아이콘만, 여백 줄임",
       "펼친 폴드·정사각형 화면·태블릿 세로: 결과를 두 칸(곡 분석 | 추천 메뉴) + 아래 지도로",
