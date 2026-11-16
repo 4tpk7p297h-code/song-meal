@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-15 (사이트 v2.5, 업로드 zip 20261115_rev1, Worker song-meal-api v2.2 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.6, 업로드 zip 20261116_rev1, Worker song-meal-api v2.2 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -71,6 +71,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v2.6: 홈 화면 앱(PWA). manifest.webmanifest(아이콘 icon-192/512, icon-maskable-512), sw.js(같은 사이트 파일만 네트워크 우선 + 오프라인 때 캐시, CACHE 이름을 버전마다 바꿈), 헤더 #nav-install(안드로이드 beforeinstallprompt 설치 창, 아이폰은 공유 → 홈 화면에 추가 안내, standalone이면 숨김). 업로드 zip에 manifest.webmanifest·sw.js·icon-512.png·icon-maskable-512.png 포함 필수. 스토어 출시(플레이 12명 14일 테스트, 앱스토어 99달러·4.2 거절 위험)는 검토만 하고 보류
 - v2.5: 곡 검색 개선 (lookupSong·score). comboScore: 한 칸에 '가수 곡명'/'곡명 가수'를 써도 띄어쓰기로 나눠 곡명+가수로 맞춤, 확정 못 하면 2단계에서 사전 가수를 떼어(split1) 영어 표기로 Deezer·Apple 다시. artistOnly: 사전에 있는 가수 이름만 쓰면 2점 → 인기 순으로 대표곡. isVariant는 곡명의 괄호·' - ' 꼬리(deco)만 봄. 1단계는 Apple·Deezer가 확실하면(두 곳 확인, 또는 곡명·가수 정확히 같음 7점, 또는 곡명만 검색) 서버를 0.8초까지만 기다림. 사전에 없는 한글 가수는 Deezer를 track:"곡명"으로. 시험: 스크래치패드 lktest3(기존 61건)·lktest4(새 18건) 모두 통과
 - v2.4: 아이폰 배달 버튼이 앱스토어 대신 baemin:// · coupangeats://로 앱을 바로 엶 (2026-11-14 사용자 아이폰에서 두 주소 모두 '열기' 확인 후 앱 열림). 앱이 없으면 사파리 오류 창이 뜨므로 안내 창(toast, html)에 앱스토어 설치 링크
 - v2.3: 혼밥 가능한 식당 찾기 (index.html의 '혼밥 확인' 블록: SOLO, searchBlog, blogSolo, soloJudge, soloOf, passSolo, soloTag, candidates)
@@ -116,7 +117,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 ## 9. 인수인계 묶음 사용법 (새 Claude에게)
 - 이 zip 안: HANDOFF.md(이 문서), site/(사이트 파일, Pages에 올리는 것과 같음), worker/(song-meal-api.js, naver-search.js, schema.sql, comments-setup.sql)
 - 지금 서비스는 이미 Cloudflare(Pages·Worker·D1)에서 돌아가고 있음. 새로 만들 필요 없이, 고친 파일을 사용자에게 주면 사용자가 대시보드에서 직접 올림
-  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261115_rev1)
+  - 사이트 변경: site/ 파일을 zip으로 묶어 song-meal-pages_YYYYMMDD_rev[n].zip으로 전달 (마지막: 20261116_rev1)
   - 서버 변경: song-meal-api.js(또는 naver-search.js) 전체를 그 Worker 편집기에 붙여 넣고 Deploy
   - DB 변경: 주석 없는 SQL을 D1 Console에 붙여 넣기 (주석이 있으면 "No SQL statements detected")
 - 회원·후기 데이터는 D1 안에 있어서 이 zip에는 없음 (백업은 D1 → Export)
