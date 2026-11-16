@@ -3087,15 +3087,21 @@ JJ Lin|林俊傑|임준걸`;
     applyTemp(t);
     $("wx-msg").textContent = t >= 28 ? `${t}°C: '더움'으로 넣었어요.` : t <= 5 ? `${t}°C: '추움'으로 넣었어요.` : `${t}°C: 덥지도 춥지도 않은 날씨로 볼게요.`;
   });
+  // 날씨용 기기 위치: 주소로 바꾸지 않고 좌표만 씀 (위치정보 동의한 경우만, 실패하면 null)
+  const wxHere = () => (!CONSENT.geo || !navigator.geolocation) ? Promise.resolve(null) : new Promise((res) =>
+    navigator.geolocation.getCurrentPosition((p) => res({ lat: p.coords.latitude, lng: p.coords.longitude, place: "계신 곳" }),
+      () => res(null), { timeout: 8000, maximumAge: 600000 }));
   $("wx-now").addEventListener("click", async () => {
     const msg = (t) => ($("wx-msg").textContent = t);
     if (!CONSENT.abroad) return msg("지금 날씨는 '곡·식당 검색을 위한 국외 이전'(선택)에 동의해야 가져올 수 있어요. 날씨를 직접 골라 주세요.");
     const loc = $("loc").value.trim();
-    if (!loc) { msg("먼저 아래 위치 칸에 동네·역·학교 이름을 입력해 주세요."); $("loc").focus(); return; }
     const b = $("wx-now"); b.disabled = true; b.textContent = "가져오는 중...";
     try {
-      const a = await resolveLoc(loc);
-      if (!a) return msg(`'${loc}'의 위치를 찾지 못했어요. 다른 이름으로 써 보거나 날씨를 직접 골라 주세요.`);
+      // 위치 칸과 상관없이 동작 (v2.15): ① 위치 칸에 쓴 곳 → ② 기기 위치(GPS, 위치 칸은 그대로 둠) → ③ 서울 기준
+      let a = null, note = "";
+      if (loc) { try { a = await resolveLoc(loc); } catch {} if (!a) note = ` ('${loc}'은 못 찾아서 대신 썼어요)`; }
+      if (!a) a = await wxHere();
+      if (!a) { a = { lat: 37.57, lng: 126.98, place: "서울" }; note = " (위치를 몰라 서울 기준이에요. 위치 칸에 동네를 쓰면 그곳 날씨로 바꿔요)"; }
       const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 6000);
       const q = new URLSearchParams({ latitude: a.lat.toFixed(2), longitude: a.lng.toFixed(2), current: "temperature_2m,apparent_temperature,weather_code", timezone: "Asia/Seoul" });
       const r = await fetch("https://api.open-meteo.com/v1/forecast?" + q, { signal: ac.signal }).finally(() => clearTimeout(timer));
@@ -3107,7 +3113,7 @@ JJ Lin|林俊傑|임준걸`;
       applyTemp(feel);
       $("wx-temp").value = t;
       const extra = feel >= 28 ? "·더움" : feel <= 5 ? "·추움" : "";
-      msg(`지금 ${a.place || loc}: ${sky}, ${t}°C (체감 ${feel}°C) → 날씨 칸에 '${sky}${extra}'을 체크했어요. 다르면 칸을 눌러 고치면 돼요.`);
+      msg(`지금 ${a.place || loc}${note}: ${sky}, ${t}°C (체감 ${feel}°C) → 날씨 칸에 '${sky}${extra}'을 체크했어요. 다르면 칸을 눌러 고치면 돼요.`);
     } catch { msg("날씨 정보를 받지 못했어요. 날씨를 직접 골라 주세요."); }
     finally { b.disabled = false; b.textContent = "🌡️ 지금 날씨 가져오기"; }
   });
@@ -4097,8 +4103,12 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.14";
+  const APP_VERSION = "v2.15";
   const CHANGELOG = [
+    ["v2.15", "2026-11-16", "지금 날씨를 위치 칸 없이도 가져오기", [
+      "'🌡️ 지금 날씨 가져오기'가 위치 칸을 먼저 채우지 않아도 바로 동작",
+      "위치 칸에 쓴 곳이 있으면 그곳, 없으면 기기 위치(위치정보 동의 시, 위치 칸은 건드리지 않음), 둘 다 안 되면 서울 기준 날씨",
+    ]],
     ["v2.14", "2026-11-16", "업데이트 내역을 버전 버튼으로 골라 보기", [
       "관리패널 '📋 업데이트 내역'을 버튼식으로 바꿈: 위에 v2·v1·v0 큰 버전 버튼, 그 아래 v2.0~v2.14 같은 세부 버전 버튼",
       "버튼을 누르면 고른 버전 하나의 내용만 보여서 버전이 늘어나도 스크롤이 길어지지 않음",
