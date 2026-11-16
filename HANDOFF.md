@@ -1,7 +1,7 @@
 # 음식점 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.7, 업로드 zip 20261116_rev2, Worker song-meal-api v2.7 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-16 (사이트 v2.8, 업로드 zip 20261116_rev3, Worker song-meal-api v2.7 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -71,6 +71,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - **사이트를 바꿀 때마다 CHANGELOG에 새 버전을 맨 위에 추가하고 APP_VERSION을 올릴 것**
 - 업로드 zip 이름: releases/song-meal-pages_YYYYMMDD_rev[n].zip
 - v1.4: 회원은 가입할 때 서비스 동의를 함께 받고(필수: 메뉴 추천, 선택: 국외 이전 검색·위치), 로그인 뒤에는 동의 화면을 건너뜀. 선택 동의는 users.prefs(JSON)에 저장, 내 정보에서 변경. '가입 없이 이용'일 때만 예전 동의 화면 표시
+- v2.8: 곡 검색 미리듣기 빠짐 줄이기 (lookupSong). 2단계까지 Apple·Deezer 곡을 못 찾고 서버(Last.fm·MusicBrainz 등)에서만 확인되면 fill(): 그 곡의 가수·곡명으로 Deezer artist:/track:, Apple 한국, Deezer 일반, Apple 미국 순으로 다시 찾음. 그래도 애매하면(미리듣기 없음·mismatch·unverified) lookupSong.last.cands(pick.groups 중 미리듣기 있는 상위 3개) → 제출 화면에서 askSong() 후보 창(#songpick), 고르면 chooseSong()이 기기에 저장. Deezer 미리듣기 주소의 exp가 지났으면 freshPreview()로 새 주소(곡 번호 /track/ 또는 검색), 스토리 재생 오류 때도 1번 갱신. 미리듣기 없는 결과는 기기에 1시간만 저장. 시험: 스크래치패드 lktest5.mjs(7건), t30.js
 - v2.7: 카카오로 시작하기 (기존 아이디 가입·로그인 유지). 카카오에서는 회원번호만 받고 users.login = "kakao:회원번호"로 저장(스키마 변경 없음, UNIQUE라 카카오 계정 1개당 1명, 비밀번호 해시는 무작위라 아이디 로그인 불가)
   - Worker: GET /auth/kakao/start?back=사이트주소 → 카카오 → GET /auth/kakao/callback(state 서명 + ks 쿠키 확인, 토큰 교환, /v2/user/me) → 사이트#kakao=login|signup|error&t=서명된 표(2분/15분). 사이트가 POST /auth/kakao/login 또는 /signup/kakao 로 표를 로그인 토큰으로 바꿈(토큰이 주소창에 안 남음)
   - Secret: KAKAO_REST_KEY, KAKAO_CLIENT_SECRET(둘 다 있어야 켜짐, /health의 kakao), 선택 KAKAO_ADMIN_KEY(탈퇴 때 unlink). 카카오 개발자 콘솔 Redirect URI: https://song-meal-api.fare1451.workers.dev/auth/kakao/callback

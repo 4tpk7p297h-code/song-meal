@@ -283,6 +283,15 @@
   .loading p { margin: 0; color: var(--text); font-weight: 700; font-size: 16px; }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
   .loading.hidden { display: none; }
+  .spbox { width: min(420px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 20px 18px 16px; box-shadow: var(--shadow); }
+  .spbox h3 { margin: 0 0 4px; font-size: 18px; }
+  .spc { display: grid; grid-template-columns: 56px 1fr; gap: 6px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .spc img, .spc .noart { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--field); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .spc b { display: block; font-size: 15px; line-height: 1.3; word-break: keep-all; }
+  .spc small { color: var(--muted); font-size: 13px; }
+  .spc audio { grid-column: 1 / -1; width: 100%; height: 36px; }
+  .spc button { grid-column: 1 / -1; margin: 0; padding: 9px 12px; font-size: 15px; }
+  #sp-none { margin-top: 8px; }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
   @media (prefers-reduced-motion: reduce) { .mascot-hello, .loading img { animation: none; } }
   @media (max-width: 420px) { .mascot-hello { width: 80px; } .bubble { font-size: 14px; } .bubble br { display: none; } }
@@ -937,6 +946,16 @@
       <img src="mascot.png" alt="">
       <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
       <small id="load-sub" class="hint" style="margin:0"></small>
+    </div>
+  </div>
+
+  <!-- 곡이 애매할 때: 미리듣기가 있는 후보 중에서 고르기 -->
+  <div id="songpick" class="loading hidden" role="dialog" aria-modal="true" aria-labelledby="sp-title">
+    <div class="spbox">
+      <h3 id="sp-title">🎧 어떤 곡인가요?</h3>
+      <p class="hint" id="sp-why" style="margin:0 0 6px"></p>
+      <div id="sp-list"></div>
+      <button type="button" class="ghost" id="sp-none">여기에 없어요</button>
     </div>
   </div>
 
@@ -1973,6 +1992,7 @@ JJ Lin|林俊傑|임준걸`;
       const g = groups.find((x) => sameSong(x.items[0].r, r));
       if (g) g.items.push(c); else groups.push({ items: [c] });
     }
+    pick.groups = groups;
     if (!groups.length) return null;
     groups.forEach((g, i) => {
       g.sc = Math.max(...g.items.map((c) => c.sc));
@@ -2105,12 +2125,38 @@ JJ Lin|林俊傑|임준걸`;
     return out;
   }
 
+  // 후보 화면에서 고른 곡을 결과로 확정하고 이 기기에 저장
+  async function chooseSong(g) {
+    const L = lookupSong.last, r = await finish(g);
+    if (L) { L.reason = "found"; L.how = "후보에서 직접 고름"; L.sources = r.sources; L.cands = null; if (L.ck) songCache(L.ck, r); }
+    return r;
+  }
+
+  // Deezer 미리듣기 주소는 시간이 지나면 만료됨(주소 안의 exp) → 재생 직전·재생 오류 때 Deezer에서 새 주소를 받음
+  const isDz = (u) => /(^|\.)dzcdn\.net\//.test(String(u || "").replace(/^https?:\/\//, ""));
+  const dzExpired = (u) => { const m = /\bexp=(\d+)/.exec(u || ""); return isDz(u) && !!m && +m[1] * 1000 < Date.now() + 60e3; };
+  async function freshPreview(u, { trackId, artist, title } = {}) {
+    if (u && !isDz(u)) return u;
+    try {
+      if (/^dz\d+$/.test(trackId || "")) { const d = await jsonp(`https://api.deezer.com/track/${trackId.slice(2)}?output=jsonp`, 5000); if (d && d.preview) return d.preview; }
+      if (title) {
+        const d = await jsonp(`https://api.deezer.com/search?output=jsonp&limit=10&q=${encodeURIComponent(artist ? `artist:"${artist}" track:"${title}"` : title)}`, 5000);
+        const x = d && (d.data || []).find((y) => y.preview && titleSame(y.title, title) && (!artist || artistMatch(y.artist && y.artist.name, artist) >= 3));
+        if (x) return x.preview;
+      }
+    } catch {}
+    return u;
+  }
+  // 후기의 노래 '가수 - 곡명' → [가수, 곡명]
+  const songParts = (s) => { const i = String(s || "").indexOf(" - "); return i > 0 ? [s.slice(0, i), s.slice(i + 3)] : ["", String(s || "")]; };
+
   // 찾은 곡은 이 기기에 7일 동안 저장 (같은 곡을 다시 찾을 때 Apple 검색을 아낌)
   const SONG_KEEP = ["trackId", "artistName", "trackName", "collectionName", "artworkUrl100", "previewUrl", "primaryGenreName", "releaseDate", "trackViewUrl", "spotifyUrl", "source", "sources", "tags"];
   function songCache(k, r) {
     try {
       const c = JSON.parse(localStorage.getItem("food.songs") || "{}");
-      if (r === undefined) return c[k] && Date.now() - c[k].t < 7 * 864e5 ? c[k].r : null;
+      // 미리듣기가 없는 결과는 1시간만 저장 (다음에 다시 찾아 미리듣기를 채울 기회)
+      if (r === undefined) return c[k] && Date.now() - c[k].t < (c[k].r.previewUrl ? 7 * 864e5 : 3600e3) ? c[k].r : null;
       c[k] = { t: Date.now(), r: Object.fromEntries(SONG_KEEP.filter((x) => r[x] !== undefined).map((x) => [x, r[x]])) };
       Object.keys(c).sort((a, b) => c[b].t - c[a].t).slice(80).forEach((x) => delete c[x]);
       localStorage.setItem("food.songs", JSON.stringify(c));
@@ -2123,12 +2169,16 @@ JJ Lin|林俊傑|임준걸`;
   // 1단계: Apple Music(한국)·Deezer·우리 서버(MusicBrainz·Wikidata…)에 한꺼번에 물어보고 같은 곡이 나온 곳을 비교
   // 2단계: 1단계에서 확정 못 하면 영어 표기·다른 곡명·곡 목록으로 하나씩 더 찾음
   async function lookupSong(term, opt = {}) {
-    const L = (lookupSong.last = { term, reason: "none", how: "", calls: 0, errors: 0, itErr: 0, busy: false, log: [], server: null, sources: [] });
+    const L = (lookupSong.last = { term, cands: null, reason: "none", how: "", calls: 0, errors: 0, itErr: 0, busy: false, log: [], server: null, sources: [] });
     const step = (x) => { if (opt.onStep) try { opt.onStep(x); } catch {} };
     if (!term || /^https?:\/\//.test(term)) return null;
     if (!CONSENT.abroad && !opt.force) { L.reason = "off"; return null; }
     const ck = deacc(term).toLowerCase().replace(/\s+/g, " ").trim();
-    if (!opt.fresh) { const c = songCache(ck); if (c) { L.reason = "found"; L.how = "이 기기에 저장된 결과"; L.sources = c.sources || []; return c; } }
+    if (!opt.fresh) { const c = songCache(ck); if (c) {
+      L.reason = "found"; L.how = "이 기기에 저장된 결과"; L.sources = c.sources || [];
+      if (dzExpired(c.previewUrl)) c.previewUrl = await freshPreview(c.previewUrl, { trackId: c.trackId, artist: c.artistName, title: c.trackName });
+      return c;
+    } }
 
     const parts = splitSong(term), two = parts.length > 1;
     const [a, t] = two ? parts : ["", parts[0]];
@@ -2167,6 +2217,20 @@ JJ Lin|林俊傑|임준걸`;
     add(await srv);
     m = pick([...pool.values()], parts);
     if (ok(m) && playable(m)) return done(m, `동시 검색 (${m.srcs.length}곳에서 확인)`);
+    // Last.fm·MusicBrainz 등에서만 확인된 곡은 음원이 없음 → 거기서 알아낸 정확한 가수·곡명으로 Apple·Deezer를 다시 찾아 미리듣기·표지를 채움
+    let filled = false;
+    const fill = async () => {
+      if (filled || !m || playable(m)) return false;
+      filled = true;
+      const fa = m.r.artistName, ft = String(m.r.trackName).replace(/\s*[([].*$|\s+[-–]\s+.*$/, "").trim() || m.r.trackName;
+      step(`'${fa} - ${ft}'(으)로 미리듣기 찾는 중`);
+      (await Promise.all([deezer(L, `artist:"${fa}" track:"${ft}"`), itunes(L, `${fa} ${ft}`, "kr")])).forEach(add);
+      let n = pick([...pool.values()], parts);
+      if (!(n && playable(n))) { add(await deezer(L, `${fa} ${ft}`)); n = pick([...pool.values()], parts); }
+      if (!(n && playable(n))) { add(await itunes(L, `${fa} ${ft}`, "us")); n = pick([...pool.values()], parts); }
+      m = n;
+      return !!(ok(m) && playable(m));
+    };
 
     // 2단계
     latin = latinOf();
@@ -2206,7 +2270,11 @@ JJ Lin|林俊傑|임준걸`;
       m = pick([...pool.values()], parts);
       if (ok(m) && playable(m)) return done(m, name);
     }
-    if (ok(m)) return done(m, `${m.srcs.join("·")}에서만 찾음`);
+    if (ok(m) && await fill()) return done(m, `${m.srcs.join("·")}에서 확인한 이름으로 미리듣기까지 찾음`);
+    // 확실하지 않거나 미리듣기가 없으면: 미리듣기가 있는 후보(최대 3곡)를 남겨 두고 화면에서 고르게 함
+    L.ck = ck;
+    L.cands = (pick.groups || []).filter((g) => playable(g) && g.sc >= 2).sort((x, y) => y.rank - x.rank).slice(0, 3);
+    if (ok(m)) return done(m, `${m.srcs.join("·")}에서만 찾음 (미리듣기 없음)`);
     if (m) {   // 확정은 못 했지만 곡명이 같은 곡
       L.reason = "partial"; L.how = "곡명만 같은 곡";
       const unverified = isKo(a) && !latin.length && !isKo(m.r.artistName);
@@ -3041,8 +3109,13 @@ JJ Lin|林俊傑|임준걸`;
     btn.disabled = true; btn.textContent = "곡을 분석하는 중...";
     $("loading").classList.remove("hidden");
     $("load-sub").textContent = "";
-    const info = await lookupSong(v.song, { onStep: (x) => { $("load-sub").textContent = x; } });
+    let info = await lookupSong(v.song, { onStep: (x) => { $("load-sub").textContent = x; } });
     $("loading").classList.add("hidden");
+    const cands = lookupSong.last && lookupSong.last.cands;
+    if (cands && cands.length && (!info || !info.previewUrl || info.mismatch || info.unverified)) {
+      const g = await askSong(cands, info);
+      if (g) info = await chooseSong(g);
+    }
     btn.disabled = false; btn.textContent = "추천받기";
     v.energy = energyFromGenre(info && info.primaryGenreName);
     v.valence = valenceFromGenre(info && info.primaryGenreName);
@@ -3053,6 +3126,40 @@ JJ Lin|林俊傑|임준걸`;
     go("result", 2);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+
+  // 곡이 애매할 때 후보 고르기 → 고른 묶음(g) 또는 null(그대로 진행)
+  function askSong(cands, info) {
+    $("sp-why").textContent = !info ? "정확히 같은 곡을 찾지 못했어요. 비슷한 곡 중에 있으면 골라 주세요."
+      : !info.previewUrl ? `'${info.artistName} - ${info.trackName}'은(는) 미리듣기가 없어요. 아래에 같은 곡이 있으면 골라 주세요.`
+      : "입력한 곡과 정확히 맞는지 확인하지 못했어요. ▶로 들어 보고 골라 주세요.";
+    $("sp-list").innerHTML = cands.map((g, i) => {
+      const it = g.items.map((c) => c.r), get = (k) => (it.find((x) => x[k]) || {})[k] || "";
+      const art = get("artworkUrl100"), pv = get("previewUrl");
+      return `<div class="spc">
+        ${art ? `<img src="${esc(art)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'noart',textContent:'🎵'}))">` : `<span class="noart">🎵</span>`}
+        <div><b>${esc(g.r.trackName)}</b><small>${esc(g.r.artistName)}${get("collectionName") ? " · " + esc(get("collectionName")) : ""}</small></div>
+        ${pv ? `<audio controls preload="none" src="${esc(pv)}"></audio>` : ""}
+        <button type="button" data-i="${i}">이 곡이에요</button>
+      </div>`;
+    }).join("");
+    $("sp-none").textContent = info ? "여기에 없어요 (그대로 진행)" : "여기에 없어요 (곡 정보 없이 추천받기)";
+    $("songpick").classList.remove("hidden");
+    // 하나를 재생하면 다른 미리듣기는 멈춤
+    $("sp-list").querySelectorAll("audio").forEach((a) => a.addEventListener("play", () => $("sp-list").querySelectorAll("audio").forEach((b) => b !== a && b.pause())));
+    return new Promise((res) => {
+      const end = (g) => {
+        $("sp-list").querySelectorAll("audio").forEach((a) => a.pause());
+        $("songpick").classList.add("hidden"); $("sp-list").innerHTML = "";
+        $("sp-list").onclick = $("sp-none").onclick = null; document.removeEventListener("keydown", esc1);
+        res(g);
+      };
+      const esc1 = (e) => { if (e.key === "Escape") end(null); };
+      document.addEventListener("keydown", esc1);
+      $("sp-list").onclick = (e) => { const b = e.target.closest("button[data-i]"); if (b) end(cands[+b.dataset.i]); };
+      $("sp-none").onclick = () => end(null);
+      setTimeout(() => { const b = $("sp-list").querySelector("button"); if (b) b.focus({ preventScroll: true }); }, 30);
+    });
+  }
 
   // ================= 커뮤니티: 회원·후기·좋아요·코너별 순위 =================
   // 서버: worker/song-meal-api.js (Cloudflare Workers + D1)
@@ -3333,7 +3440,7 @@ JJ Lin|林俊傑|임준걸`;
   }
   function stopAudio() {
     clearTimeout(ST.timer); ST.pending = false;
-    ST.el.onended = ST.el.ontimeupdate = null; ST.el.pause();
+    ST.el.onended = ST.el.ontimeupdate = ST.el.onerror = null; ST.el.pause();
   }
   const curBar = () => $("story").querySelector(".bars i.cur b");
   function autoNext() {
@@ -3344,11 +3451,15 @@ JJ Lin|林俊傑|임준걸`;
     const b = curBar(); if (b) { b.style.transition = "none"; b.style.width = "0"; void b.offsetWidth; b.style.transition = `width ${ms}ms linear`; b.style.width = "100%"; }
     ST.timer = setTimeout(autoNext, ms);
   }
-  function startPlay(p) {
+  async function startPlay(p) {
     stopAudio();
     const pb = $("story").querySelector(".play");
     if (!p.preview) { runTimer(NOSONG_MS); return; }
     const a = ST.el;
+    const [sa, st] = songParts(p.song), renew = async () => { p.fresh = true; const n = await freshPreview(p.preview, { artist: sa, title: st }); const ch = n !== p.preview; p.preview = n; return ch; };
+    if (dzExpired(p.preview) && !p.fresh) { await renew(); if (ST.list[ST.i] !== p || $("story").classList.contains("hidden")) return; }
+    // 주소가 만료돼 재생이 안 되면 한 번만 새 주소를 받아 다시 재생
+    a.onerror = async () => { if (p.fresh || !isDz(p.preview)) return; if (await renew() && ST.list[ST.i] === p && !$("story").classList.contains("hidden")) startPlay(p); };
     a.src = p.preview; a.currentTime = 0;
     a.ontimeupdate = () => { const b = curBar(); if (b && a.duration) b.style.width = (a.currentTime / a.duration) * 100 + "%"; };
     a.onended = () => { if (pb) pb.textContent = "▶"; autoNext(); };
@@ -3767,8 +3878,14 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.7";
+  const APP_VERSION = "v2.8";
   const CHANGELOG = [
+    ["v2.8", "2026-11-16", "곡 검색 미리듣기 빠짐 줄이기", [
+      "Last.fm·MusicBrainz에서만 확인된 곡은 거기서 알아낸 정확한 가수·곡명으로 Apple·Deezer를 다시 찾아 미리듣기·앨범 표지를 채움",
+      "정확히 맞는지 애매하거나 미리듣기가 없으면 ▶ 미리듣기가 달린 후보(최대 3곡)를 보여 주고 직접 고르게 함 (고른 곡은 기기에 저장)",
+      "시간이 지나 만료된 Deezer 미리듣기 주소는 재생할 때 새 주소를 받아 재생 (예전에 올린 후기 스토리 포함)",
+      "미리듣기가 없는 검색 결과는 7일이 아니라 1시간만 저장해서 다음에 다시 찾아봄",
+    ]],
     ["v2.7", "2026-11-16", "카카오로 시작하기", [
       "가입·로그인 화면에 노란 '카카오로 시작하기' 버튼 추가 (기존 아이디·비밀번호 가입·로그인도 그대로)",
       "처음 누르면 닉네임과 동의만 받고 가입, 다음부터는 버튼 한 번으로 로그인",
