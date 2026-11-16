@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>음식점</title>
 <meta name="description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
 <meta name="application-name" content="음식점">
@@ -197,7 +197,7 @@
   body.wide main { max-width: 1440px; padding: 12px 16px 16px; }
   body.wide h1 { font-size: 20px; margin-bottom: 10px; }
   body.wide .sub, body.wide footer { display: none; }
-  @media (min-width: 960px) {
+  @media (min-width: 960px) and (min-height: 560px) {
     body.wide #result { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr); gap: 16px; height: calc(100vh - 76px); }
     body.wide #result > .card { margin: 0; overflow: auto; min-height: 0; }
     body.wide #mapcard { display: flex; flex-direction: column; }
@@ -512,6 +512,55 @@
   .aacts button.mini { padding: 6px 10px; font-size: 13px; }
   .mono { font-family: ui-monospace, Menlo, monospace; font-size: 16px; letter-spacing: .05em; }
   @media (max-width: 520px) { .arow { flex-wrap: wrap; } .aacts { flex-direction: row; flex-wrap: wrap; width: 100%; } }
+
+  /* ===== 접는 폰·듀얼 화면·특이한 화면 비율 (v2.11) ===== */
+  /* 노치·다이내믹 아일랜드·둥근 모서리 안쪽으로 (가로로 돌렸을 때 포함) */
+  body main, body.wide main { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  .toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .skipbtn { bottom: calc(16px + env(safe-area-inset-bottom)); right: calc(16px + env(safe-area-inset-right)); }
+  /* 접는 폰 바깥 화면처럼 아주 좁은 화면 (갤럭시 폴드 1~4 커버 등 360px 이하) */
+  @media (max-width: 360px) {
+    body main, body.wide main { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+    .card { padding: 14px; border-radius: 18px; }
+    .row { grid-template-columns: 1fr; }
+    .top h1 { font-size: 22px; }
+    .theme .tl { display: none; }
+    .theme button { padding: 5px 9px; }
+    .cnav { gap: 4px; }
+    .cnav button { padding: 5px 9px; font-size: 12.5px; }
+    .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+    .ptable th, .ptable td { padding: 6px; font-size: 12px; word-break: break-all; }
+    .locrow { flex-wrap: wrap; } .locrow button { padding: 8px 12px; }
+  }
+  /* 펼친 폴드·정사각형에 가까운 화면·태블릿 세로 (700~959px), 또는 넓지만 높이가 낮은 화면: 결과를 두 칸으로 */
+  @media (min-width: 700px) and (max-width: 959px), (min-width: 960px) and (max-height: 559px) {
+    body.wide #result { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    body.wide #result > .card { margin: 0; }
+    body.wide #mapcard { grid-column: 1 / -1; }
+    body.wide #map { height: min(48vh, 420px); }
+    main { max-width: 720px; }
+  }
+  /* 화면 두 개가 나란히인 기기(듀얼 스크린, 펼친 상태로 경첩을 사이에 둔 화면): 경첩을 피해 왼쪽·오른쪽 화면에 나눠 보여 줌 */
+  @media (horizontal-viewport-segments: 2) {
+    body.wide main { max-width: none; padding: 12px 0; }
+    body.wide .top { padding: 0 12px; max-width: calc(env(viewport-segment-width 0 0) - 24px); }
+    body.wide #result { display: grid; height: auto; grid-template-columns: env(viewport-segment-width 0 0) env(viewport-segment-width 1 0);
+      column-gap: calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0)); row-gap: 12px; align-items: start; }
+    body.wide #result > .card { margin: 0 12px; overflow: visible; }
+    body.wide #analysis { grid-column: 1; grid-row: 1; }
+    body.wide #pickscard { grid-column: 1; grid-row: 2; }
+    body.wide #mapcard { grid-column: 2; grid-row: 1 / span 2; position: sticky; top: 12px; }
+    body.wide #map { height: 60vh; }
+    body:not(.wide) main { margin-left: 0; max-width: calc(env(viewport-segment-width 0 0)); }
+  }
+  /* 회원가입 비밀번호 확인 안내: 크게, 바로 아래에 */
+  .pwcheck { margin: 6px 0 2px; font-size: 15px; font-weight: 700; color: var(--muted); }
+  .pwcheck.bad { color: var(--danger); }
+  .pwcheck.good { color: var(--mint); }
+  #auth-err { font-size: 16px; font-weight: 700; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--danger) 12%, transparent); border: 2px solid var(--danger); }
+  @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake .3s ease-in-out 2; }
+  @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
 </style>
 </head>
 <body>
@@ -528,9 +577,9 @@
       <button type="button" id="nav-install" class="hidden" title="홈 화면에 앱으로 추가">📲 앱 설치</button>
     </nav>
     <div class="theme" role="radiogroup" aria-label="화면 테마">
-      <button type="button" data-theme="light" title="라이트 모드">☀️ 라이트</button>
-      <button type="button" data-theme="dark" title="다크 모드">🌙 다크</button>
-      <button type="button" data-theme="system" title="기기 설정 따르기">🖥️ 시스템</button>
+      <button type="button" data-theme="light" title="라이트 모드" aria-label="라이트 모드">☀️<span class="tl"> 라이트</span></button>
+      <button type="button" data-theme="dark" title="다크 모드" aria-label="다크 모드">🌙<span class="tl"> 다크</span></button>
+      <button type="button" data-theme="system" title="기기 설정 따르기" aria-label="기기 설정 따르기">🖥️<span class="tl"> 시스템</span></button>
     </div>
     </div>
   </header>
@@ -756,9 +805,11 @@
       <label for="su-id">아이디 <span class="opt">(영문 소문자·숫자·_ 4~20자)</span></label>
       <input type="text" id="su-id" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20">
       <label for="su-pw">비밀번호 <span class="opt">(8자 이상)</span></label>
-      <input type="password" id="su-pw" autocomplete="new-password" maxlength="72">
+      <input type="password" id="su-pw" autocomplete="new-password" maxlength="72" aria-describedby="su-pwcheck">
+      <p class="pwcheck" id="su-pwcheck" aria-live="polite">비밀번호는 8자 이상이어야 해요.</p>
       <label for="su-pw2">비밀번호 확인</label>
-      <input type="password" id="su-pw2" autocomplete="new-password" maxlength="72">
+      <input type="password" id="su-pw2" autocomplete="new-password" maxlength="72" aria-describedby="su-pw2check">
+      <p class="pwcheck hidden" id="su-pw2check" aria-live="polite"></p>
       </div>
       <label for="su-nick">닉네임 <span class="opt">(2~12자, 후기에 "○○님의"로 보여요)</span></label>
       <input type="text" id="su-nick" maxlength="12">
@@ -3666,7 +3717,20 @@ JJ Lin|林俊傑|임준걸`;
 
   // ---------- 로그인 / 회원가입 ----------
   let afterLogin = null;
-  const authErr = (m) => { $("auth-err").textContent = m; $("auth-err").classList.toggle("hidden", !m); };
+  const authErr = (m) => {
+    const e = $("auth-err"); e.textContent = m; e.classList.toggle("hidden", !m);
+    if (m) { e.classList.remove("shake"); void e.offsetWidth; e.classList.add("shake"); e.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  };
+  // 비밀번호 칸 아래에 바로 보여 주는 안내 (8자 이상, 확인 일치)
+  function pwSync() {
+    const pw = $("su-pw").value, pw2 = $("su-pw2").value, c = $("su-pwcheck"), c2 = $("su-pw2check");
+    c.className = "pwcheck" + (!pw ? "" : pw.length < 8 ? " bad" : " good");
+    c.textContent = !pw ? "비밀번호는 8자 이상이어야 해요." : pw.length < 8 ? `✗ 8자 이상이어야 해요 (지금 ${pw.length}자)` : "✓ 8자 이상이에요";
+    c2.classList.toggle("hidden", !pw2);
+    c2.className = "pwcheck" + (!pw2 ? " hidden" : pw2 === pw ? " good" : " bad");
+    c2.textContent = pw2 === pw ? "✓ 비밀번호가 같아요" : "✗ 위 비밀번호와 달라요";
+  }
+  $("su-pw").addEventListener("input", pwSync); $("su-pw2").addEventListener("input", pwSync);
   $("auth-tab").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     $("auth-tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
@@ -3714,7 +3778,7 @@ JJ Lin|林俊傑|임준걸`;
   function loggedIn(d, msg) {
     try { localStorage.setItem("food.member", "1"); } catch {}
     setAuth(d.token, d.user);
-    $("login-form").reset(); $("signup-form").reset(); kakaoMode(""); suSync(); authErr("");
+    $("login-form").reset(); $("signup-form").reset(); kakaoMode(""); suSync(); pwSync(); authErr("");
     toast(msg);
     const next = afterLogin; afterLogin = null;
     const atStart = !history.state || !history.state.d;
@@ -3739,8 +3803,8 @@ JJ Lin|林俊傑|임준걸`;
       return;
     }
     if (!/^[a-z0-9_]{4,20}$/.test(login)) return authErr("아이디는 영문 소문자·숫자·_ 4~20자로 만들어 주세요.");
-    if (pw.length < 8) return authErr("비밀번호는 8자 이상으로 만들어 주세요.");
-    if (pw !== $("su-pw2").value) return authErr("비밀번호 확인이 일치하지 않아요.");
+    if (pw.length < 8) { pwSync(); $("su-pw").focus({ preventScroll: true }); return authErr(`비밀번호는 8자 이상으로 만들어 주세요. (지금 ${pw.length}자)`); }
+    if (pw !== $("su-pw2").value) { pwSync(); $("su-pw2").focus({ preventScroll: true }); return authErr("비밀번호 확인이 일치하지 않아요."); }
     if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
     try {
       loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: $("su-xfer").checked, geo: $("su-geo").checked } } }), `${nick}님, 가입을 환영해요! 🎉`);
@@ -3907,8 +3971,15 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.10";
+  const APP_VERSION = "v2.11";
   const CHANGELOG = [
+    ["v2.11", "2026-11-16", "접는 폰·특이한 화면 비율 최적화, 비밀번호 안내 크게", [
+      "폴드 바깥 화면처럼 아주 좁은 화면(360px 이하): 입력 칸을 한 줄에 하나씩, 테마 버튼은 아이콘만, 여백 줄임",
+      "펼친 폴드·정사각형 화면·태블릿 세로: 결과를 두 칸(곡 분석 | 추천 메뉴) + 아래 지도로",
+      "넓지만 높이가 낮은 화면(가로로 돌린 폰)은 세 칸 대신 두 칸으로, 노치·둥근 모서리 안쪽으로 내용 배치",
+      "화면 두 개가 나란히인 기기(듀얼 스크린)는 경첩을 피해 왼쪽에 곡·메뉴, 오른쪽에 지도",
+      "회원가입: 비밀번호 칸 바로 아래에 '8자 이상' 안내를 크게 보여 주고 지금 몇 자인지 표시, 오류 상자를 크게 + 흔들어 알림",
+    ]],
     ["v2.10", "2026-11-16", "다른 언어 제목 곡 인식 보완", [
       "실제 Apple·Deezer 응답(싸이 '예술이야' = It's Art)으로 다시 맞춤: 곡명 칸만 쓰거나 한 칸에 '싸이 예술이야'로 써도 원곡 미리듣기를 붙임",
       "같은 곡의 라이브·MR·반주 버전보다 원곡을 먼저 고름",
