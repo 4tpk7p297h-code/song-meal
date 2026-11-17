@@ -12,17 +12,17 @@
 <meta property="og:title" content="비트밥스">
 <meta property="og:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
 <meta property="og:url" content="https://4tpk7p297h-code.github.io/song-meal/">
-<meta property="og:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png">
+<meta property="og:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="비트밥스">
 <meta name="twitter:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
-<meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=2">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ff7a59">
 <meta name="mobile-web-app-capable" content="yes">
@@ -584,7 +584,7 @@
 <body>
 <main>
   <header class="top">
-    <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=2" alt="">비트밥스</a></h1>
+    <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=3" alt="">비트밥스</a></h1>
     <div class="topr">
     <nav class="cnav" aria-label="커뮤니티">
       <button type="button" id="nav-music"><span data-i18n="nav.music">🎵 음악찾기</span></button>
@@ -606,7 +606,7 @@
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
     <div class="hello">
-      <img src="mascot.png" alt="비트밥스 캐릭터" class="mascot-hello">
+      <img src="mascot.png?v=3" alt="비트밥스 캐릭터" class="mascot-hello">
       <div class="bubble">안녕하세요! 좋아하는 노래를 알려 주시면<br>그 분위기에 딱 맞는 메뉴를 골라 드릴게요 🎶</div>
     </div>
     <h2>서비스 이용 동의</h2>
@@ -780,7 +780,7 @@
     </div>
     <p class="hint" id="corner-hint" style="margin:-4px 0 12px"></p>
     <div class="grid" id="corner-grid"></div>
-    <div class="rempty hidden" id="corner-empty"><img src="icon-192.png?v=2" alt=""><span></span></div>
+    <div class="rempty hidden" id="corner-empty"><img src="icon-192.png?v=3" alt=""><span></span></div>
     <p class="hint center" id="corner-msg"></p>
     <button type="button" class="ghost hidden" id="corner-more">더 보기</button>
   </section>
@@ -791,7 +791,7 @@
       <span aria-hidden="true">🌐</span><button type="button" data-lang="ko" lang="ko">한국어</button><button type="button" data-lang="en" lang="en">English</button><button type="button" data-lang="ja" lang="ja">日本語</button><button type="button" data-lang="zh" lang="zh">中文</button>
     </div>
     <div class="hello small">
-      <img src="mascot.png" alt="" class="mascot-hello">
+      <img src="mascot.png?v=3" alt="" class="mascot-hello">
       <div class="bubble" id="auth-bubble">가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!</div>
     </div>
     <div id="kakao-box" class="hidden">
@@ -1021,7 +1021,7 @@
 
   <div id="loading" class="loading hidden" role="status" aria-live="polite">
     <div class="loadbox">
-      <img src="mascot.png" alt="">
+      <img src="mascot.png?v=3" alt="">
       <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
       <small id="load-sub" class="hint" style="margin:0"></small>
     </div>
@@ -4160,8 +4160,13 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.17";
+  const APP_VERSION = "v2.18";
   const CHANGELOG = [
+    ["v2.18", "2026-11-17", "새 캐릭터 디자인", [
+      "사이트 캐릭터를 새로 그림: 토마토 꼭지 + 헤드폰 쓴 빨간 버섯 갓 + 바삭한 돈가스 몸, 한 손엔 뒤집개, 한 손은 락 손 모양",
+      "헤더 로고, 첫 화면 인사, 로딩 화면, 브라우저 탭·홈 화면 앱 아이콘을 새 캐릭터로 교체",
+      "링크 공유 미리보기 이미지를 새 캐릭터와 '비트밥스 · BeatBobs' 이름으로 다시 만들고, 메신저가 예전 이미지를 다시 쓰지 않도록 주소를 바꿈",
+    ]],
     ["v2.17", "2026-11-16", "사이트 전체를 고른 언어로 보기", [
       "회원가입 화면에서 고른 언어(English·日本語·中文)가 입력 화면, 추천 결과, 곡 분석, 메뉴 설명, 지도 카드, 순위·스토리, 후기 올리기, 내 정보, 관리패널까지 모두 적용",
       "추천 메뉴 이름·추천 이유·분위기 해설·안내 문구·오류 메시지도 그 언어로 표시 (추천 계산 자체는 그대로)",
