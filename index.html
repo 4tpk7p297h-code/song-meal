@@ -12,17 +12,17 @@
 <meta property="og:title" content="비트밥스">
 <meta property="og:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
 <meta property="og:url" content="https://4tpk7p297h-code.github.io/song-meal/">
-<meta property="og:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=3">
+<meta property="og:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=4">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="비트밥스">
 <meta name="twitter:description" content="좋아하는 노래 분위기로 오늘의 메뉴와 주변 음식점을 추천해요.">
-<meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=3">
-<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=3">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
+<meta name="twitter:image" content="https://4tpk7p297h-code.github.io/song-meal/og.png?v=4">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png?v=4">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=4">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ff7a59">
 <meta name="mobile-web-app-capable" content="yes">
@@ -264,11 +264,11 @@
   .places .go a { border-radius: 999px; }
   /* ===== 캐릭터 ===== */
   .top h1 a { display: inline-flex; align-items: center; gap: 8px; }
-  .logo { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.12)); transition: transform .2s; }
+  .logo { width: auto; height: 48px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.12)); transition: transform .2s; }
   .top h1 a:hover .logo { transform: rotate(-8deg) scale(1.06); }
-  body.wide .logo { width: 32px; height: 32px; }
+  body.wide .logo { width: auto; height: 36px; }
   .hello { display: flex; align-items: center; gap: 12px; margin: -4px 0 14px; }
-  .mascot-hello { width: 104px; height: auto; flex: none; animation: bob 2.4s ease-in-out infinite; }
+  .mascot-hello { width: 200px; height: auto; flex: none; animation: bob 2.4s ease-in-out infinite; }
   .bubble { position: relative; background: var(--accent-weak); color: var(--text); border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.5; font-weight: 600; }
   .bubble::before { content: ""; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: var(--accent-weak); }
   .loading {
@@ -279,7 +279,7 @@
   :root[data-theme="dark"] .loading { background: rgba(28, 23, 21, .5); }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .loading { background: rgba(28, 23, 21, .5); } }
   .loadbox { display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--line); border-radius: 28px; padding: 26px 30px 22px; box-shadow: var(--shadow); text-align: center; }
-  .loading img { width: 140px; animation: bob .8s ease-in-out infinite; }
+  .loading img { width: 260px; max-width: 70vw; animation: bob .8s ease-in-out infinite; }
   .loading p { margin: 0; color: var(--text); font-weight: 700; font-size: 16px; }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
   .loading.hidden { display: none; }
@@ -294,7 +294,7 @@
   #sp-none { margin-top: 8px; }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }
   @media (prefers-reduced-motion: reduce) { .mascot-hello, .loading img { animation: none; } }
-  @media (max-width: 420px) { .mascot-hello { width: 80px; } .bubble { font-size: 14px; } .bubble br { display: none; } }
+  @media (max-width: 420px) { .hello { flex-direction: column; } .mascot-hello, .hello.small .mascot-hello { width: 210px; } .bubble { font-size: 14px; } .bubble br { display: none; } .bubble::before { left: 50%; top: -8px; margin: 0 0 0 -8px; border: 8px solid transparent; border-top: 0; border-bottom-color: var(--accent-weak); } }
 
   /* ===== 커뮤니티 (스토리·순위·회원) ===== */
   .top { row-gap: 8px; }
@@ -376,7 +376,7 @@
   .places li.hidnote { cursor: default; color: var(--muted); font-size: 13px; }
   .badge.solo { display: none; color: var(--mint); }
   #result.solo .badge.solo { display: inline-block; }
-  .hello.small .mascot-hello { width: 80px; }
+  .hello.small .mascot-hello { width: 160px; }
   input[type=password], textarea {
     width: 100%; padding: 13px 16px; font-size: 16px; color: var(--text); background: var(--field);
     border: 2px solid var(--line); border-radius: 16px; font-family: inherit; resize: vertical;
@@ -584,7 +584,7 @@
 <body>
 <main>
   <header class="top">
-    <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="icon-192.png?v=3" alt="">비트밥스</a></h1>
+    <h1><a href="#" id="home" title="처음 화면으로"><img class="logo" src="mascot.png?v=4" alt="">비트밥스</a></h1>
     <div class="topr">
     <nav class="cnav" aria-label="커뮤니티">
       <button type="button" id="nav-music"><span data-i18n="nav.music">🎵 음악찾기</span></button>
@@ -606,7 +606,7 @@
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
     <div class="hello">
-      <img src="mascot.png?v=3" alt="비트밥스 캐릭터" class="mascot-hello">
+      <img src="mascot.png?v=4" alt="비트밥스 캐릭터" class="mascot-hello">
       <div class="bubble">안녕하세요! 좋아하는 노래를 알려 주시면<br>그 분위기에 딱 맞는 메뉴를 골라 드릴게요 🎶</div>
     </div>
     <h2>서비스 이용 동의</h2>
@@ -780,7 +780,7 @@
     </div>
     <p class="hint" id="corner-hint" style="margin:-4px 0 12px"></p>
     <div class="grid" id="corner-grid"></div>
-    <div class="rempty hidden" id="corner-empty"><img src="icon-192.png?v=3" alt=""><span></span></div>
+    <div class="rempty hidden" id="corner-empty"><img src="icon-192.png?v=4" alt=""><span></span></div>
     <p class="hint center" id="corner-msg"></p>
     <button type="button" class="ghost hidden" id="corner-more">더 보기</button>
   </section>
@@ -791,7 +791,7 @@
       <span aria-hidden="true">🌐</span><button type="button" data-lang="ko" lang="ko">한국어</button><button type="button" data-lang="en" lang="en">English</button><button type="button" data-lang="ja" lang="ja">日本語</button><button type="button" data-lang="zh" lang="zh">中文</button>
     </div>
     <div class="hello small">
-      <img src="mascot.png?v=3" alt="" class="mascot-hello">
+      <img src="mascot.png?v=4" alt="" class="mascot-hello">
       <div class="bubble" id="auth-bubble">가입하면 나만의 음식 × 노래 조합을 올리고 좋아요를 누를 수 있어요!</div>
     </div>
     <div id="kakao-box" class="hidden">
@@ -1021,7 +1021,7 @@
 
   <div id="loading" class="loading hidden" role="status" aria-live="polite">
     <div class="loadbox">
-      <img src="mascot.png?v=3" alt="">
+      <img src="mascot.png?v=4" alt="">
       <p>노래를 듣고 메뉴를 고르는 중이에요...</p>
       <small id="load-sub" class="hint" style="margin:0"></small>
     </div>
@@ -4160,8 +4160,13 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.18";
+  const APP_VERSION = "v2.19";
   const CHANGELOG = [
+    ["v2.19", "2026-11-17", "캐릭터를 세 친구 단체 그림으로", [
+      "v2.18의 합친 캐릭터 대신, 사용자가 준 세 캐릭터(헤드폰 토마토·헤드폰 버섯·뒤집개 든 돈가스 셰프)를 그대로 살려 나란히 선 단체 그림으로 바꿈",
+      "헤더 로고·첫 화면 인사·로딩 화면·링크 공유 이미지는 셋이 나란히, 홈 화면 앱 아이콘은 셋이 삼각형으로 모인 모양 (작은 탭 아이콘은 버섯만)",
+      "좁은 화면에서는 캐릭터 아래에 말풍선이 오도록 배치",
+    ]],
     ["v2.18", "2026-11-17", "새 캐릭터 디자인", [
       "사이트 캐릭터를 새로 그림: 토마토 꼭지 + 헤드폰 쓴 빨간 버섯 갓 + 바삭한 돈가스 몸, 한 손엔 뒤집개, 한 손은 락 손 모양",
       "헤더 로고, 첫 화면 인사, 로딩 화면, 브라우저 탭·홈 화면 앱 아이콘을 새 캐릭터로 교체",
