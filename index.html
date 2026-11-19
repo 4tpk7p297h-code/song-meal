@@ -268,6 +268,36 @@
   .top h1 a:hover .logo { transform: rotate(-8deg) scale(1.06); }
   body.wide .logo { width: auto; height: 36px; }
   .hello { display: flex; align-items: center; gap: 12px; margin: -4px 0 14px; }
+  #hub .langbar { justify-content: center; margin-bottom: 8px; }
+  .hubhead { text-align: center; margin: 4px 0 14px; }
+  .hubmascot { width: 260px; max-width: 80%; animation: bob 2.4s ease-in-out infinite; }
+  .hubhead h2 { margin: 6px 0 0; }
+  .hubgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 22px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  .hubcard { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; min-height: 340px; padding: 28px 20px; color: #fff; transition: filter .2s; }
+  .hubcard.song { background: linear-gradient(160deg, #3f51d8, #6a3fd0); }
+  .hubcard.menu { background: linear-gradient(160deg, #ff7a59, #f2453d); }
+  .hubcard:hover, .hubcard:focus-visible { filter: brightness(1.08); }
+  .hubcard:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+  .hubicon { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; font-size: 32px; }
+  .hubcard b { font-size: 26px; }
+  .hubtag { background: rgba(255,255,255,.22); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; }
+  .hubdesc { font-size: 14px; line-height: 1.55; opacity: .95; max-width: 260px; }
+  .hubgo { margin-top: 8px; border: 2px solid #fff; border-radius: 10px; padding: 8px 22px; font-weight: 700; }
+  @media (max-width: 560px) { .hubgrid { grid-template-columns: 1fr; } .hubcard { min-height: 220px; } }
+  .shopdrop { display: grid; place-items: center; min-height: 150px; border: 2px dashed var(--line); border-radius: 16px; background: var(--field); cursor: pointer; overflow: hidden; color: var(--muted); font-weight: 600; }
+  .shopdrop img { max-width: 100%; max-height: 260px; display: block; }
+  .shopgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; margin-top: 16px; align-items: start; }
+  @media (max-width: 860px) { .shopgrid { grid-template-columns: 1fr; } }
+  .shopimg { width: 100%; max-height: 240px; object-fit: cover; border-radius: 14px; margin: 8px 0; }
+  .palette { display: flex; gap: 6px; margin: 6px 0; } .palette i { flex: 1; height: 22px; border-radius: 6px; border: 1px solid var(--line); }
+  .shopsrc { display: inline-block; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 3px 12px; background: var(--chip); }
+  .shopsrc.ai { background: linear-gradient(90deg, #4f7cff, #a35cff); color: #fff; }
+  .shoplist { padding-left: 22px; margin: 6px 0; } .shoplist li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .shoptop b { font-size: 16px; } .shopwhy { margin: 6px 0; font-size: 14px; }
+  .shopacts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+  .shopacts .listen { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .shoppv audio { width: 100%; margin-top: 6px; } .shoppvrow { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; } .shoppvrow img { width: 40px; height: 40px; border-radius: 6px; }
+  .volrow { display: flex; align-items: center; gap: 10px; } .volrow input[type=range] { flex: 1; } #vol-n { min-width: 44px; text-align: right; font-weight: 700; }
   .mascot-hello { width: 200px; height: auto; flex: none; animation: bob 2.4s ease-in-out infinite; }
   .bubble { position: relative; background: var(--accent-weak); color: var(--text); border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.5; font-weight: 600; }
   .bubble::before { content: ""; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: var(--accent-weak); }
@@ -479,8 +509,8 @@
   .modalbox { width: 100%; max-width: 640px; max-height: 86vh; overflow: auto; background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 20px; box-shadow: var(--shadow); }
   .modalbox h2 small { font-size: 13px; color: var(--muted); font-family: inherit; }
   .langbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px; margin: -4px 0 8px; font-size: 14px; }
-  #auth .langbar button { width: auto; margin: 0; min-height: 0; box-shadow: none; transform: none; padding: 4px 10px; border: 1.5px solid var(--line); border-radius: 999px; background: transparent; color: inherit; font-size: 13px; font-weight: 600; font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Hiragino Sans", "Microsoft YaHei", sans-serif; }
-  #auth .langbar button.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+  #auth .langbar button, #hub .langbar button { width: auto; margin: 0; min-height: 0; box-shadow: none; transform: none; padding: 4px 10px; border: 1.5px solid var(--line); border-radius: 999px; background: transparent; color: inherit; font-size: 13px; font-weight: 600; font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Hiragino Sans", "Microsoft YaHei", sans-serif; }
+  #auth .langbar button.on, #hub .langbar button.on { border-color: var(--accent); background: var(--accent); color: #fff; }
   html:not([lang="ko"]) #auth, html:not([lang="ko"]) header.top .cnav, html:not([lang="ko"]) .skipbtn { font-family: -apple-system, "Hiragino Sans", "Microsoft YaHei", "Apple SD Gothic Neo", sans-serif; }
   .logmaj { display: flex; gap: 6px; margin-bottom: 8px; }
   .logmaj button { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid var(--line); border-radius: 12px; background: var(--card); color: inherit; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer; }
@@ -603,6 +633,11 @@
   </header>
   <p class="sub"><span data-i18n="sub">노래 분위기 → 오늘의 메뉴와 주변 식당</span></p>
 
+  <!-- 0. 첫 화면: 노래 추천 | 메뉴 추천 -->
+  <section id="hub" class="hidden notr"></section>
+  <!-- 0-1. 노래 추천 (사장님용) -->
+  <section id="shop" class="hidden notr"></section>
+
   <!-- 1. 개인정보 동의 -->
   <section id="consent" class="card">
     <div class="hello">
@@ -610,35 +645,35 @@
       <div class="bubble">안녕하세요! 좋아하는 노래를 알려 주시면<br>그 분위기에 딱 맞는 메뉴를 골라 드릴게요 🎶</div>
     </div>
     <h2>서비스 이용 동의</h2>
-    <p class="hint" style="margin:0 0 12px">메뉴 추천은 회원가입 없이 이용하며, 추천에 입력하신 정보는 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리합니다. 후기 올리기·좋아요는 선택 사항이며, 원할 때 회원가입 화면에서 따로 동의를 받습니다.</p>
+    <p class="hint" style="margin:0 0 12px">메뉴 추천은 회원가입 없이 이용하며, 추천에 입력하신 정보와 가게 사진은 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리하며, 아래 항목은 모두 필수입니다. 후기 올리기·좋아요는 선택 사항이며, 원할 때 회원가입 화면에서 따로 동의를 받습니다.</p>
 
-    <label class="check all"><input type="checkbox" id="c-all"><span data-i18n="su.all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></span></label>
+    <label class="check all"><input type="checkbox" id="c-all"><span data-i18n="su.all"> <b>전체 동의</b></span></label>
     <div class="agreebox">
       <label class="check"><input type="checkbox" class="c-req" id="c-age"><span data-i18n="a.age"> [필수] 만 14세 이상입니다.</span></label>
 
       <label class="check"><input type="checkbox" class="c-req" id="c-collect"> [필수] 개인정보 수집·이용 동의</label>
       <details><summary><span data-i18n="more">내용 보기</span></summary>
         <table class="ptable">
-          <tr><th><span data-i18n="c.purpose">수집·이용 목적</span></th><td><span data-i18n="r.purpose.v">노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시</span></td></tr>
-          <tr><th><span data-i18n="c.items">수집 항목</span></th><td><span data-i18n="r.items.v">노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</span></td></tr>
+          <tr><th><span data-i18n="c.purpose">수집·이용 목적</span></th><td><span data-i18n="r.purpose.v">노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시, 가게 분위기 기반 노래 추천</span></td></tr>
+          <tr><th><span data-i18n="c.items">수집 항목</span></th><td><span data-i18n="r.items.v">노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건 / 노래 추천: 가게 사진, 가게 이름·종류·위치</span></td></tr>
           <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><b>추천 화면을 닫거나 페이지를 떠날 때 즉시 파기</b> (브라우저 안에서만 처리하며 운영자 서버에 저장하지 않음)</td></tr>
         </table>
         <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.</p>
       </details>
 
-      <label class="check"><input type="checkbox" class="c-opt" id="c-abroad"> [선택] 개인정보 국외 이전 동의</label>
+      <label class="check"><input type="checkbox" class="c-req" id="c-abroad"> [필수] 개인정보 국외 이전 동의</label>
       <details><summary><span data-i18n="more">내용 보기</span></summary>
         <table class="ptable">
-          <tr><th><span data-i18n="x.to">이전받는 자 (국가)</span></th><td><span data-i18n="x2.to.v">Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨)</span></td></tr>
-          <tr><th><span data-i18n="x.items">이전 항목</span></th><td><span data-i18n="x2.items.v">Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보</span></td></tr>
-          <tr><th><span data-i18n="x.purpose">이전 목적</span></th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Open-Meteo: 입력한 위치의 지금 날씨·기온 조회 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계</td></tr>
+          <tr><th><span data-i18n="x.to">이전받는 자 (국가)</span></th><td><span data-i18n="x2.to.v">Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨), Google LLC (미국, Gemini AI 가게 사진 분석)</span></td></tr>
+          <tr><th><span data-i18n="x.items">이전 항목</span></th><td><span data-i18n="x2.items.v">Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보 / Google: 노래 추천에서 올린 가게 사진(줄인 사본)과 가게 이름·종류·위치, Cloudflare 서버를 거쳐 전달 (IP는 전달하지 않음)</span></td></tr>
+          <tr><th><span data-i18n="x.purpose">이전 목적</span></th><td>Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Open-Meteo: 입력한 위치의 지금 날씨·기온 조회 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계 / Google: 가게 사진 분위기 분석과 노래 목록 작성(Gemini)</td></tr>
           <tr><th><span data-i18n="x.when">이전 일시·방법</span></th><td><span data-i18n="x2.when.v">추천받기·지도 검색 시 네트워크를 통해 전송</span></td></tr>
-          <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="x2.period.v">운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</span></td></tr>
+          <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="x2.period.v">운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리 (Google Gemini 무료 이용 조건상 Google이 서비스 개선에 쓸 수 있음)</span></td></tr>
         </table>
-        <p class="hint">동의하지 않아도 메뉴 추천은 이용할 수 있으나, 곡 정보 검색과 주변 음식점 검색이 제공되지 않습니다.</p>
+        <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.</p>
       </details>
 
-      <label class="check"><input type="checkbox" class="c-opt" id="c-geo"><span data-i18n="a.geo"> [선택] 위치정보 이용 동의</span></label>
+      <label class="check"><input type="checkbox" class="c-req" id="c-geo"><span data-i18n="a.geo"> [필수] 위치정보 이용 동의</span></label>
       <details><summary><span data-i18n="more">내용 보기</span></summary>
         <table class="ptable">
           <tr><th><span data-i18n="g.purpose">이용 목적</span></th><td><span data-i18n="g.purpose.v">'현재 위치' 버튼을 누를 때 기기 위치로 동네 이름 자동 입력</span></td></tr>
@@ -646,7 +681,7 @@
           <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="g.period.v">동네 이름으로 변환한 즉시 파기, 저장하지 않음</span></td></tr>
           <tr><th><span data-i18n="g.entrust">처리 위탁</span></th><td><span data-i18n="g.entrust.v">NAVER Cloud(주): 좌표 → 주소 변환</span></td></tr>
         </table>
-        <p class="hint">동의하지 않아도 위치를 직접 입력하거나 지도에서 골라 이용할 수 있습니다.</p>
+        <p class="hint">동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.</p>
       </details>
     </div>
 
@@ -842,7 +877,7 @@
       <input type="text" id="su-nick" maxlength="12">
       <p class="hint idpw"><span data-i18n="su.hint">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요. (카카오로 시작하면 비밀번호를 기억할 필요가 없어요)</span></p>
 
-      <label class="check all"><input type="checkbox" id="su-all"><span data-i18n="su.all"> <b>전체 동의</b> <span class="opt">(선택 항목 포함)</span></span></label>
+      <label class="check all"><input type="checkbox" id="su-all"><span data-i18n="su.all"> <b>전체 동의</b></span></label>
       <div class="agreebox">
         <label class="check"><input type="checkbox" class="su-req" id="su-age"><span data-i18n="a.age"> [필수] 만 14세 이상입니다.</span></label>
         <label class="check"><input type="checkbox" class="su-req" id="su-collect"><span data-i18n="a.collect"> [필수] 회원 개인정보 수집·이용 동의</span></label>
@@ -868,8 +903,8 @@
         <label class="check"><input type="checkbox" class="su-req" id="su-rec"><span data-i18n="a.rec"> [필수] 메뉴 추천 서비스 이용 동의</span></label>
         <details><summary><span data-i18n="more">내용 보기</span></summary>
           <table class="ptable">
-            <tr><th><span data-i18n="c.purpose">수집·이용 목적</span></th><td><span data-i18n="r.purpose.v">노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시</span></td></tr>
-            <tr><th><span data-i18n="c.items">수집 항목</span></th><td><span data-i18n="r.items.v">노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건</span></td></tr>
+            <tr><th><span data-i18n="c.purpose">수집·이용 목적</span></th><td><span data-i18n="r.purpose.v">노래 분위기 기반 메뉴 추천, 입력 위치 주변 지도 표시, 가게 분위기 기반 노래 추천</span></td></tr>
+            <tr><th><span data-i18n="c.items">수집 항목</span></th><td><span data-i18n="r.items.v">노래(가수·곡명), 인원, 날씨, 위치(동네·지역명), 식사 시간, 음식 종류, 음식 조건 / 노래 추천: 가게 사진, 가게 이름·종류·위치</span></td></tr>
             <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="r.period.v"><b>추천 화면을 닫거나 페이지를 떠날 때 즉시 파기</b> (브라우저 안에서만 처리하며 서버에 저장하지 않음)</span></td></tr>
           </table>
           <p class="hint"><span data-i18n="r.refuse">동의를 거부할 권리가 있으며, 거부하시면 회원가입을 할 수 없습니다. (가입 없이 '음식만 추천받기'로 이용할 수 있어요)</span></p>
@@ -885,18 +920,18 @@
             <li><span data-i18n="rule6">권리 침해 신고나 문의는 개인정보 처리방침의 연락처로 해 주세요.</span></li>
           </ol>
         </details>
-        <label class="check"><input type="checkbox" class="su-opt" id="su-xfer"><span data-i18n="a.xfer"> [선택] 곡·식당 검색을 위한 국외 이전 동의</span></label>
+        <label class="check"><input type="checkbox" class="su-req" id="su-xfer"><span data-i18n="a.xfer"> [필수] 곡·식당 검색과 AI 분석을 위한 국외 이전 동의</span></label>
         <details><summary><span data-i18n="more">내용 보기</span></summary>
           <table class="ptable">
-            <tr><th><span data-i18n="x.to">이전받는 자 (국가)</span></th><td><span data-i18n="x2.to.v">Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨)</span></td></tr>
-            <tr><th><span data-i18n="x.items">이전 항목</span></th><td><span data-i18n="x2.items.v">Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보</span></td></tr>
-            <tr><th><span data-i18n="x.purpose">이전 목적</span></th><td><span data-i18n="x2.purpose.v">곡 정보·앨범 이미지·미리듣기 조회, 여러 음악 정보 서비스의 곡 정보 비교, 네이버 지역·블로그 검색 중계(주변 음식점 표시, 혼밥 후기 확인)</span></td></tr>
+            <tr><th><span data-i18n="x.to">이전받는 자 (국가)</span></th><td><span data-i18n="x2.to.v">Apple Inc. (미국), Deezer S.A. (프랑스), Cloudflare, Inc. (미국), MetaBrainz Foundation·Wikimedia Foundation (미국, MusicBrainz·Wikidata), Last.fm Ltd. (영국, 운영자가 연결한 경우), Open-Meteo (스위스, 날씨), Google LLC (미국, Gemini AI 가게 사진 분석)</span></td></tr>
+            <tr><th><span data-i18n="x.items">이전 항목</span></th><td><span data-i18n="x2.items.v">Apple·Deezer: 노래(가수·곡명)와 접속 IP 등 통신 정보 / Cloudflare: 노래(가수·곡명), 위치(지역명), 메뉴 검색어와 통신 정보 / MusicBrainz·Wikidata·Last.fm: Cloudflare 서버를 거쳐 노래(가수·곡명)만 (IP는 전달하지 않음) / Open-Meteo: '지금 날씨 가져오기'를 누를 때 위치 좌표(약 1km 단위로 줄임)와 통신 정보 / Google: 노래 추천에서 올린 가게 사진(줄인 사본)과 가게 이름·종류·위치, Cloudflare 서버를 거쳐 전달 (IP는 전달하지 않음)</span></td></tr>
+            <tr><th><span data-i18n="x.purpose">이전 목적</span></th><td><span data-i18n="x2.purpose.v">곡 정보·앨범 이미지·미리듣기 조회, 여러 음악 정보 서비스의 곡 정보 비교, 네이버 지역·블로그 검색 중계(주변 음식점 표시, 혼밥 후기 확인), 가게 사진 분위기 분석과 노래 목록 작성(Google Gemini)</span></td></tr>
             <tr><th><span data-i18n="x.when">이전 일시·방법</span></th><td><span data-i18n="x2.when.v">추천받기·지도 검색 시 네트워크를 통해 전송</span></td></tr>
-            <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="x2.period.v">운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리</span></td></tr>
+            <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="x2.period.v">운영자는 저장하지 않으며, 각 회사는 자체 개인정보 처리방침에 따라 처리 (Google Gemini 무료 이용 조건상 Google이 서비스 개선에 쓸 수 있음)</span></td></tr>
           </table>
-          <p class="hint"><span data-i18n="x2.hint">동의하지 않아도 가입과 메뉴 추천은 되지만, 곡 정보 검색과 주변 음식점 검색이 제공되지 않아요. 가입 후 '내 정보'에서 언제든 바꿀 수 있어요.</span></p>
+          <p class="hint"><span data-i18n="x2.hint">동의를 거부할 권리가 있으며, 거부하시면 가입할 수 없어요.</span></p>
         </details>
-        <label class="check"><input type="checkbox" class="su-opt" id="su-geo"><span data-i18n="a.geo"> [선택] 위치정보 이용 동의</span></label>
+        <label class="check"><input type="checkbox" class="su-req" id="su-geo"><span data-i18n="a.geo"> [필수] 위치정보 이용 동의</span></label>
         <details><summary><span data-i18n="more">내용 보기</span></summary>
           <table class="ptable">
             <tr><th><span data-i18n="g.purpose">이용 목적</span></th><td><span data-i18n="g.purpose.v">'현재 위치' 버튼을 누를 때 기기 위치로 동네 이름 자동 입력</span></td></tr>
@@ -904,7 +939,7 @@
             <tr><th><span data-i18n="c.period">보유 및 이용 기간</span></th><td><span data-i18n="g.period.v">동네 이름으로 변환한 즉시 파기, 저장하지 않음</span></td></tr>
             <tr><th><span data-i18n="g.entrust">처리 위탁</span></th><td><span data-i18n="g.entrust.v">NAVER Cloud(주): 좌표 → 주소 변환</span></td></tr>
           </table>
-          <p class="hint"><span data-i18n="g.hint">동의하지 않아도 위치를 직접 입력하거나 지도에서 골라 이용할 수 있어요.</span></p>
+          <p class="hint"><span data-i18n="g.hint">동의를 거부할 권리가 있으며, 거부하시면 가입할 수 없어요.</span></p>
         </details>
       </div>
       <p class="hint"><span data-i18n="entrust.p">개인정보 처리 위탁: Cloudflare, Inc.(웹사이트 호스팅·데이터 보관), NAVER Cloud(주)(지도·주소 변환·지역 검색·블로그 검색)</span></p>
@@ -922,6 +957,11 @@
     <h3 class="subh">내가 올린 후기</h3>
     <div class="grid" id="me-grid"></div>
     <p class="hint center" id="me-msg"></p>
+    <details class="leave" id="vol-box" open><summary>🔊 음악 소리</summary>
+      <div class="volrow"><span aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="100" step="5" value="100" aria-label="음악 소리 크기"><span id="vol-n">100%</span></div>
+      <p class="hint">미리듣기와 후기 스토리 음악의 소리 크기예요. 이 기기에 저장돼요.</p>
+      <button type="button" class="mini ghost" id="vol-test">🔔 소리 확인</button>
+    </details>
     <details class="leave" id="pf-box"><summary>선택 동의 관리</summary>
       <label class="check"><input type="checkbox" id="pf-abroad"> [선택] 곡·식당 검색을 위한 국외 이전 (Apple, Deezer, Cloudflare, MusicBrainz, Wikidata)</label>
       <label class="check"><input type="checkbox" id="pf-geo"> [선택] 위치정보 이용 ('현재 위치' 버튼)</label>
@@ -1066,8 +1106,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=2.17"></script>
-<script src="lang.js?v=2.17"></script>
+<script src="lang-data.js?v=2.20"></script>
+<script src="lang.js?v=2.20"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -1081,7 +1121,7 @@
   // ---------- 언어 (회원가입·로그인 화면부터, v2.16) ----------
   // 화면 글자: [data-i18n] 요소의 원래(한국어) 내용을 기억해 두고 언어에 맞게 바꿈. 스크립트 문구: tt(키, 한국어)
   const LANGS = ["ko", "en", "ja", "zh"];
-  const I18N = {"nav.music": ["🎵 Find music", "🎵 音楽をさがす", "🎵 找音乐"], "nav.rank": ["🏆 Ranking·Stories", "🏆 ランキング·ストーリー", "🏆 排行·故事"], "nav.logout": ["🚪 Log out", "🚪 ログアウト", "🚪 退出登录"], "nav.install": ["📲 Install app", "📲 アプリを追加", "📲 安装应用"], "sub": ["Song mood → today's menu and restaurants nearby", "曲の雰囲気 → 今日のメニューと近くのお店", "歌曲氛围 → 今日菜单和附近餐厅"], "skip": ["🍽️ Just get food picks without signing up →", "🍽️ 登録せずにメニューだけ見る →", "🍽️ 不注册，直接推荐美食 →"], "k.btn": ["Continue with Kakao", "カカオではじめる", "使用 Kakao 开始"], "k.hint": ["First time? Just pick a nickname and agree, and you're in. We only receive your <b>Kakao member number</b> (one person per Kakao account).", "初めての方はニックネームと同意だけですぐ登録できます。カカオからは<b>会員番号のみ</b>受け取ります（カカオアカウント1つにつき1人）。", "首次使用只需设置昵称并同意即可注册。我们只从 Kakao 获取<b>会员编号</b>（每个 Kakao 账号限 1 人）。"], "k.or": ["or with a username", "またはIDで", "或使用账号"], "tab.signup": ["Sign up", "新規登録", "注册"], "tab.login": ["Log in", "ログイン", "登录"], "f.id": ["Username", "ID", "账号"], "f.pw": ["Password", "パスワード", "密码"], "li.hint": ["Not a member yet? Tap the <b>Sign up</b> tab above.", "まだ会員でない方は、上の<b>新規登録</b>タブを押してください。", "还不是会员？请点击上方的<b>注册</b>标签。"], "pn.h": ["🔒 Privacy notice for sign-up", "🔒 会員登録の個人情報に関するご案内", "🔒 注册个人信息说明"], "pn.p": ["BeatBobs only collects what's needed for posting reviews and likes. <b>We never ask for your email, phone number, real name or date of birth.</b>", "ビートバプスはレビュー投稿・いいねに必要な情報だけを受け取ります。<b>メールアドレス、電話番号、本名、生年月日は受け取りません。</b>", "BeatBobs 只收集发布评价和点赞所必需的信息。<b>不收集邮箱、电话号码、真实姓名和出生日期。</b>"], "t.recv": ["What we collect", "受け取る情報", "收集的信息"], "t.recv.v": ["Username, password (stored encrypted), nickname (Kakao member number instead of username/password if you sign up with Kakao) / when you post a review: song, menu, restaurant name, food photo, review text / like and report history", "ID、パスワード（暗号化して保存）、ニックネーム（カカオで登録した場合はID・パスワードの代わりにカカオ会員番号）／レビュー投稿時は曲、メニュー、店名、料理の写真、レビュー本文／いいね・通報の記録", "账号、密码（加密保存）、昵称（使用 Kakao 注册时以 Kakao 会员编号代替账号和密码）／发布评价时：歌曲、菜单、餐厅名称、美食照片、评价内容／点赞和举报记录"], "t.use": ["How we use it", "利用目的", "用途"], "t.use.v": ["Login, posting reviews, likes and corner rankings, handling reports, menu recommendations", "ログイン、レビュー掲載、いいねとコーナー別ランキング、通報対応、メニューのおすすめ", "登录、发布评价、点赞和分区排行、处理举报、菜单推荐"], "t.rin": ["Recommendation inputs", "おすすめ用の入力情報", "推荐输入信息"], "t.rin.v": ["The song, location, weather etc. you enter for recommendations are not stored and are deleted as soon as the recommendation is done", "おすすめのために入力した曲・場所・天気などは保存せず、おすすめが終わるとすぐに削除します", "为推荐输入的歌曲、位置、天气等不会保存，推荐结束后立即删除"], "t.keep": ["Retention", "保管期間", "保存期限"], "t.keep.v": ["Deleted immediately when you leave (login records are auto-deleted after 30 days)", "退会するとすぐに削除（ログイン記録は30日後に自動削除）", "注销后立即删除（登录记录 30 天后自动删除）"], "t.where": ["Storage location", "保管場所", "保存位置"], "t.where.v": ["Cloud database of Cloudflare, Inc. (USA) (transfer outside Korea)", "Cloudflare, Inc.（米国）のクラウドデータベース（国外移転）", "Cloudflare, Inc.（美国）的云数据库（跨境转移）"], "t.pub": ["Visibility", "公開範囲", "公开范围"], "t.pub.v": ["Your nickname and reviews are public to all visitors / username, password and Kakao member number are private", "ニックネームと投稿したレビューはすべての訪問者に公開／ID・パスワード・カカオ会員番号は非公開", "昵称和发布的评价对所有访客公开／账号、密码、Kakao 会员编号不公开"], "t.right": ["Your rights", "あなたの権利", "您的权利"], "t.right.v": ["You can delete reviews or leave anytime in 'My info'. You may refuse consent, but then you can't sign up (menu picks, stories and rankings work without an account)", "「マイ情報」からいつでもレビュー削除・退会ができます。同意を拒否することもできますが、その場合は登録できません（メニューのおすすめとストーリー・ランキングの閲覧は登録なしで利用できます）", "可随时在“我的信息”中删除评价或注销。您可以拒绝同意，但将无法注册（菜单推荐、故事和排行无需注册即可使用）"], "pn.age": ["Children under 14 can't sign up. See the <a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">Privacy Policy</a> (in Korean) for details.", "14歳未満の方は登録できません。詳しくは<a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">個人情報処理方針</a>（韓国語）をご確認ください。", "未满 14 周岁不能注册。详情请查看<a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">隐私政策</a>（韩文）。"], "kb.cancel": ["Sign up with a username instead", "IDで登録する", "改用账号注册"], "su.id": ["Username <span class=\"opt\">(4–20 lowercase letters, numbers, _)</span>", "ID <span class=\"opt\">（英小文字・数字・_ 4〜20文字）</span>", "账号 <span class=\"opt\">（小写英文字母、数字、_，4~20 位）</span>"], "su.pw": ["Password <span class=\"opt\">(8+ characters)</span>", "パスワード <span class=\"opt\">（8文字以上）</span>", "密码 <span class=\"opt\">（至少 8 位）</span>"], "su.pw2": ["Confirm password", "パスワード（確認）", "确认密码"], "su.nick": ["Nickname <span class=\"opt\">(2–12 characters, shown on your reviews)</span>", "ニックネーム <span class=\"opt\">（2〜12文字、レビューに表示されます）</span>", "昵称 <span class=\"opt\">（2~12 个字，会显示在评价上）</span>"], "su.hint": ["We don't collect email or phone numbers, so a forgotten password can't be recovered by yourself. Please remember it. (With Kakao you don't need a password.)", "メールアドレス・電話番号は受け取りません。そのためパスワードを忘れると自分で再設定できないので、必ず覚えておいてください。（カカオではじめるとパスワードは不要です）", "我们不收集邮箱和电话号码，忘记密码后无法自行找回，请务必牢记。（使用 Kakao 开始则无需记住密码）"], "su.all": [" <b>Agree to all</b> <span class=\"opt\">(including optional items)</span>", " <b>すべてに同意</b> <span class=\"opt\">（任意項目を含む）</span>", " <b>全部同意</b> <span class=\"opt\">（包括可选项）</span>"], "a.age": [" [Required] I am 14 or older.", " [必須] 14歳以上です。", " [必选] 我已年满 14 周岁。"], "a.collect": [" [Required] Consent to collection and use of member personal information", " [必須] 会員の個人情報の収集・利用への同意", " [必选] 同意收集和使用会员个人信息"], "more": ["View details", "内容を見る", "查看详情"], "c.purpose": ["Purpose of collection and use", "収集・利用目的", "收集和使用目的"], "c.purpose.v": ["Identifying members and keeping you logged in, providing reviews, likes and corner rankings, handling reports and preventing abuse", "会員の識別とログイン維持、レビュー掲載・いいね・コーナー別ランキングの提供、通報対応と不正利用の防止", "识别会员并保持登录，提供评价、点赞和分区排行，处理举报并防止滥用"], "c.items": ["Items collected", "収集項目", "收集项目"], "c.items.v": ["Username, password (stored encrypted), nickname (Kakao member number instead of username/password when signing up with Kakao), reviews you write (song, menu, restaurant name, food photo, review text), like and report history, login records", "ID、パスワード（暗号化して保存）、ニックネーム（カカオで登録した場合はID・パスワードの代わりにカカオ会員番号）、投稿したレビュー（曲、メニュー、店名、料理の写真、レビュー本文）、いいね・通報の記録、ログイン記録", "账号、密码（加密保存）、昵称（使用 Kakao 注册时以 Kakao 会员编号代替账号和密码）、发布的评价（歌曲、菜单、餐厅名称、美食照片、评价内容）、点赞和举报记录、登录记录"], "c.period": ["Retention and use period", "保有・利用期間", "保存和使用期限"], "c.period.v": ["<b>Destroyed immediately when you leave</b> (including your reviews and likes). Login records are auto-deleted after 30 days", "<b>退会時に即時破棄</b>（自分のレビュー・いいねを含む）。ログイン記録は30日後に自動削除", "<b>注销时立即销毁</b>（包括您的评价和点赞）。登录记录 30 天后自动删除"], "c.refuse": ["You have the right to refuse consent, but if you refuse you cannot sign up. Menu picks, stories and rankings are available without signing up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。登録しなくてもメニューのおすすめとストーリー・ランキングの閲覧は利用できます。", "您有权拒绝同意，但拒绝后将无法注册。不注册也可以使用菜单推荐以及浏览故事和排行。"], "a.abroad": [" [Required] Consent to transfer (storage) of member information outside Korea", " [必須] 会員情報の国外移転（保管）への同意", " [必选] 同意会员信息跨境转移（存储）"], "x.to": ["Recipient (country)", "移転先（国）", "接收方（国家）"], "x.to.v1": ["Cloudflare, Inc. (USA) · contact privacyquestions@cloudflare.com", "Cloudflare, Inc.（米国）· 連絡先 privacyquestions@cloudflare.com", "Cloudflare, Inc.（美国）· 联系方式 privacyquestions@cloudflare.com"], "x.items": ["Items transferred", "移転項目", "转移项目"], "x.items.v1": ["All member personal information items listed above", "上記の会員個人情報の収集項目すべて", "上述全部会员个人信息收集项目"], "x.purpose": ["Purpose of transfer", "移転目的", "转移目的"], "x.purpose.v1": ["Storage in the cloud database (Cloudflare D1) that holds member info and reviews", "会員情報とレビューを保存するクラウドデータベース（Cloudflare D1）での保管", "存储于保存会员信息和评价的云数据库（Cloudflare D1）"], "x.when": ["When and how", "移転の時期・方法", "转移时间和方式"], "x.when.v1": ["Sent over the network when you sign up, write reviews or like", "会員登録・レビュー作成・いいねの際にネットワーク経由で送信", "在注册、撰写评价、点赞时通过网络传输"], "x.period.v1": ["Until you leave", "退会するまで", "直至注销"], "refuse2": ["You have the right to refuse consent, but if you refuse you cannot sign up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。", "您有权拒绝同意，但拒绝后将无法注册。"], "a.rec": [" [Required] Consent to use the menu recommendation service", " [必須] メニューおすすめサービスの利用への同意", " [必选] 同意使用菜单推荐服务"], "r.purpose.v": ["Menu recommendations based on song mood, showing a map around the location you enter", "曲の雰囲気にもとづくメニューのおすすめ、入力した場所周辺の地図表示", "基于歌曲氛围推荐菜单，显示输入位置周边地图"], "r.items.v": ["Song (artist, title), party size, weather, location (neighborhood/area), meal time, food type, food conditions", "曲（歌手・曲名）、人数、天気、場所（町・地域名）、食事の時間帯、料理の種類、料理の条件", "歌曲（歌手、曲名）、人数、天气、位置（街区、地区名）、用餐时间、菜品类型、菜品条件"], "r.period.v": ["<b>Destroyed immediately when you close the recommendation or leave the page</b> (processed only in your browser, never stored on a server)", "<b>おすすめ画面を閉じるかページを離れると即時破棄</b>（ブラウザ内でのみ処理し、サーバーには保存しません）", "<b>关闭推荐页面或离开网页时立即销毁</b>（仅在浏览器内处理，不保存到服务器）"], "r.refuse": ["You have the right to refuse consent, but if you refuse you cannot sign up. (You can still use 'Just get food picks' without signing up.)", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。（登録せずに「メニューだけ見る」で利用できます）", "您有权拒绝同意，但拒绝后将无法注册。（不注册也可以通过“直接推荐美食”使用）"], "a.rules": [" [Required] Agree to the community rules", " [必須] コミュニティ利用規則への同意", " [必选] 同意社区使用规则"], "rule1": ["Rights and responsibility for reviews (photos, text) belong to the author, and they are used only as needed to display them publicly on the service.", "投稿したレビュー（写真・文章）の権利と責任は投稿者にあり、サービス画面での公開掲載に必要な範囲でのみ利用されます。", "发布的评价（照片、文字）的权利和责任归作者所有，仅在服务页面公开展示所需的范围内使用。"], "rule2": ["Only upload photos you took or have permission to use. Make sure no one else's face, license plate, contact details or other personal information is visible.", "自分で撮った写真か、使用権のある写真だけを投稿してください。他人の顔、車のナンバー、連絡先などの個人情報が写らないようにしてください。", "请只上传自己拍摄或有权使用的照片。请勿让他人的面孔、车牌号、联系方式等个人信息出现在照片中。"], "rule3": ["Profanity, hate, obscene content, ads, spam, and posts that infringe others' rights are prohibited.", "暴言・ヘイト・わいせつ・広告・連投、他人の権利を侵害する投稿は禁止です。", "禁止发布辱骂、仇恨、淫秽、广告、刷屏以及侵犯他人权利的内容。"], "rule4": ["Reviews with 3 or more reports are hidden automatically, and the operator may delete reviews that break the rules.", "通報が3件以上たまったレビューは自動で非表示になり、運営者は規則に違反したレビューを削除できます。", "被举报 3 次及以上的评价将自动隐藏，运营者可删除违反规则的评价。"], "rule5": ["Songs are linked only through album art and the 30-second previews made public by Apple; audio files cannot be uploaded.", "曲はアルバム画像とAppleが公開している30秒の試聴のみにつなげ、音源ファイルはアップロードできません。", "歌曲仅链接专辑图片和 Apple 公开的 30 秒试听，不能上传音频文件。"], "rule6": ["For rights-infringement reports or questions, use the contact in the Privacy Policy.", "権利侵害の通報やお問い合わせは、個人情報処理方針の連絡先までお願いします。", "如需举报侵权或咨询，请通过隐私政策中的联系方式与我们联系。"], "a.xfer": [" [Optional] Consent to transfer outside Korea for song and restaurant search", " [任意] 曲・お店検索のための国外移転への同意", " [可选] 同意为搜索歌曲和餐厅进行跨境转移"], "x2.to.v": ["Apple Inc. (USA), Deezer S.A. (France), Cloudflare, Inc. (USA), MetaBrainz Foundation·Wikimedia Foundation (USA, MusicBrainz·Wikidata), Last.fm Ltd. (UK, if connected by the operator), Open-Meteo (Switzerland, weather)", "Apple Inc.（米国）、Deezer S.A.（フランス）、Cloudflare, Inc.（米国）、MetaBrainz Foundation・Wikimedia Foundation（米国、MusicBrainz・Wikidata）、Last.fm Ltd.（英国、運営者が接続した場合）、Open-Meteo（スイス、天気）", "Apple Inc.（美国）、Deezer S.A.（法国）、Cloudflare, Inc.（美国）、MetaBrainz Foundation·Wikimedia Foundation（美国，MusicBrainz·Wikidata）、Last.fm Ltd.（英国，运营者接入时）、Open-Meteo（瑞士，天气）"], "x2.items.v": ["Apple·Deezer: song (artist, title) and connection info such as IP / Cloudflare: song (artist, title), location (area name), menu search words and connection info / MusicBrainz·Wikidata·Last.fm: only the song (artist, title), via the Cloudflare server (IP not passed on) / Open-Meteo: location coordinates (rounded to about 1 km) and connection info when you tap 'Get current weather'", "Apple・Deezer：曲（歌手・曲名）と接続IPなどの通信情報／Cloudflare：曲（歌手・曲名）、場所（地域名）、メニュー検索語と通信情報／MusicBrainz・Wikidata・Last.fm：Cloudflareサーバーを経由して曲（歌手・曲名）のみ（IPは渡しません）／Open-Meteo：「今の天気を取得」を押したときの位置座標（約1km単位に丸める）と通信情報", "Apple·Deezer：歌曲（歌手、曲名）及访问 IP 等通信信息／Cloudflare：歌曲（歌手、曲名）、位置（地区名）、菜单搜索词及通信信息／MusicBrainz·Wikidata·Last.fm：经 Cloudflare 服务器仅传递歌曲（歌手、曲名）（不传递 IP）／Open-Meteo：点击“获取当前天气”时的位置坐标（约 1 公里精度）及通信信息"], "x2.purpose.v": ["Looking up song info, album art and previews; comparing song info across music services; relaying Naver local and blog search (showing nearby restaurants, checking solo-dining reviews)", "曲情報・アルバム画像・試聴の検索、複数の音楽情報サービスの曲情報の比較、NAVER地域・ブログ検索の中継（周辺のお店表示、おひとりさまレビューの確認）", "查询歌曲信息、专辑图片和试听，比较多个音乐信息服务的歌曲信息，中转 NAVER 地区和博客搜索（显示附近餐厅、确认一人食评价）"], "x2.when.v": ["Sent over the network when you get recommendations or search the map", "おすすめ取得・地図検索の際にネットワーク経由で送信", "在获取推荐、搜索地图时通过网络传输"], "x2.period.v": ["Not stored by the operator; each company handles it under its own privacy policy", "運営者は保存せず、各社はそれぞれの個人情報処理方針に従って処理", "运营者不保存，各公司依据其自身隐私政策处理"], "x2.hint": ["Without consent you can still sign up and get menu picks, but song search and nearby restaurant search won't be available. You can change this anytime in 'My info' after signing up.", "同意しなくても登録とメニューのおすすめは利用できますが、曲情報検索と周辺のお店検索は提供されません。登録後「マイ情報」からいつでも変更できます。", "不同意也可以注册并获得菜单推荐，但无法使用歌曲信息搜索和附近餐厅搜索。注册后可随时在“我的信息”中更改。"], "a.geo": [" [Optional] Consent to use location information", " [任意] 位置情報の利用への同意", " [可选] 同意使用位置信息"], "g.purpose": ["Purpose", "利用目的", "使用目的"], "g.purpose.v": ["Auto-filling your neighborhood from your device location when you tap 'Current location'", "「現在地」ボタンを押したとき、端末の位置から町名を自動入力", "点击“当前位置”按钮时，根据设备位置自动填写街区名称"], "g.items": ["Items used", "利用項目", "使用项目"], "g.items.v": ["Device latitude and longitude (once, when you tap the button)", "端末の緯度・経度（ボタンを押したときに1回）", "设备的纬度和经度（点击按钮时 1 次）"], "g.period.v": ["Destroyed as soon as it's converted to a neighborhood name; never stored", "町名に変換した直後に破棄し、保存しません", "转换为街区名称后立即销毁，不保存"], "g.entrust": ["Processor", "処理委託", "委托处理"], "g.entrust.v": ["NAVER Cloud Corp.: coordinates → address conversion", "NAVER Cloud(株)：座標 → 住所変換", "NAVER Cloud（株）：坐标 → 地址转换"], "g.hint": ["Without consent you can still type a location or pick it on the map.", "同意しなくても、場所を直接入力するか地図で選んで利用できます。", "不同意也可以直接输入位置或在地图上选择。"], "entrust.p": ["Processors: Cloudflare, Inc. (website hosting, data storage), NAVER Cloud Corp. (maps, address conversion, local search, blog search)", "個人情報の処理委託：Cloudflare, Inc.（ウェブサイトのホスティング・データ保管）、NAVER Cloud(株)（地図・住所変換・地域検索・ブログ検索）", "个人信息委托处理：Cloudflare, Inc.（网站托管、数据存储）、NAVER Cloud（株）（地图、地址转换、地区搜索、博客搜索）"], "th.l": [" Light", " ライト", " 浅色"], "th.d": [" Dark", " ダーク", " 深色"], "th.s": [" System", " システム", " 跟随系统"], "kb.text": ["✅ Kakao check complete. Choose a <b>nickname</b> and agree to the items below to sign up. ", "✅ カカオの確認が完了しました。<b>ニックネーム</b>を決めて下の項目に同意すると登録できます。", "✅ Kakao 验证完成。设置<b>昵称</b>并同意以下条款即可注册。"], "lang.note": ["This translation is for convenience. If anything differs, the Korean version applies.", "この翻訳は参考用です。内容に違いがある場合は韓国語版が優先されます。", "本翻译仅供参考，如有不一致，以韩文版为准。"], "nav.me": ["👤 Sign up·Log in", "👤 登録·ログイン", "👤 注册·登录"], "bubble.new": ["Welcome to BeatBobs! 🎶<br>Sign up and share your own food × song combos.", "ビートバプスへようこそ！🎶<br>登録して、あなただけの料理 × 曲の組み合わせを投稿しよう。", "欢迎来到 BeatBobs！🎶<br>注册后分享你的美食 × 歌曲组合吧。"], "bubble.member": ["Sign up to post your food × song combos and like others!", "登録すると料理 × 曲の組み合わせを投稿したり、いいねを押したりできます！", "注册后即可发布美食 × 歌曲组合并点赞！"], "btn.su": ["Agree and sign up", "同意して登録する", "同意并注册"], "btn.suk": ["Agree and sign up with Kakao", "同意してカカオで登録する", "同意并使用 Kakao 注册"], "pw.need": ["Password must be at least 8 characters.", "パスワードは8文字以上にしてください。", "密码至少需要 8 位。"], "pw.short": ["✗ Needs 8+ characters (now {n})", "✗ 8文字以上必要です（現在{n}文字）", "✗ 至少需要 8 位（当前 {n} 位）"], "pw.ok": ["✓ 8+ characters", "✓ 8文字以上です", "✓ 已满 8 位"], "pw2.ok": ["✓ Passwords match", "✓ パスワードが一致しています", "✓ 密码一致"], "pw2.bad": ["✗ Doesn't match the password above", "✗ 上のパスワードと違います", "✗ 与上方密码不一致"], "e.pwlen": ["Password must be at least 8 characters. (now {n})", "パスワードは8文字以上にしてください。（現在{n}文字）", "密码至少需要 8 位。（当前 {n} 位）"], "toast.login": ["Logged in!", "ログインしました！", "登录成功！"], "toast.klogin": ["Logged in with Kakao!", "カカオでログインしました！", "已使用 Kakao 登录！"], "toast.welcome": ["{nick}, welcome aboard! 🎉", "{nick}さん、ようこそ！🎉", "{nick}，欢迎加入！🎉"], "toast.kwelcome": ["{nick}, you signed up with Kakao! 🎉", "{nick}さん、カカオで登録しました！🎉", "{nick}，已使用 Kakao 注册！🎉"]};
+  const I18N = {"nav.music": ["🎵 Find music", "🎵 音楽をさがす", "🎵 找音乐"], "nav.rank": ["🏆 Ranking·Stories", "🏆 ランキング·ストーリー", "🏆 排行·故事"], "nav.logout": ["🚪 Log out", "🚪 ログアウト", "🚪 退出登录"], "nav.install": ["📲 Install app", "📲 アプリを追加", "📲 安装应用"], "sub": ["Song mood → today's menu and restaurants nearby", "曲の雰囲気 → 今日のメニューと近くのお店", "歌曲氛围 → 今日菜单和附近餐厅"], "skip": ["🍽️ Just get food picks without signing up →", "🍽️ 登録せずにメニューだけ見る →", "🍽️ 不注册，直接推荐美食 →"], "k.btn": ["Continue with Kakao", "カカオではじめる", "使用 Kakao 开始"], "k.hint": ["First time? Just pick a nickname and agree, and you're in. We only receive your <b>Kakao member number</b> (one person per Kakao account).", "初めての方はニックネームと同意だけですぐ登録できます。カカオからは<b>会員番号のみ</b>受け取ります（カカオアカウント1つにつき1人）。", "首次使用只需设置昵称并同意即可注册。我们只从 Kakao 获取<b>会员编号</b>（每个 Kakao 账号限 1 人）。"], "k.or": ["or with a username", "またはIDで", "或使用账号"], "tab.signup": ["Sign up", "新規登録", "注册"], "tab.login": ["Log in", "ログイン", "登录"], "f.id": ["Username", "ID", "账号"], "f.pw": ["Password", "パスワード", "密码"], "li.hint": ["Not a member yet? Tap the <b>Sign up</b> tab above.", "まだ会員でない方は、上の<b>新規登録</b>タブを押してください。", "还不是会员？请点击上方的<b>注册</b>标签。"], "pn.h": ["🔒 Privacy notice for sign-up", "🔒 会員登録の個人情報に関するご案内", "🔒 注册个人信息说明"], "pn.p": ["BeatBobs only collects what's needed for posting reviews and likes. <b>We never ask for your email, phone number, real name or date of birth.</b>", "ビートバプスはレビュー投稿・いいねに必要な情報だけを受け取ります。<b>メールアドレス、電話番号、本名、生年月日は受け取りません。</b>", "BeatBobs 只收集发布评价和点赞所必需的信息。<b>不收集邮箱、电话号码、真实姓名和出生日期。</b>"], "t.recv": ["What we collect", "受け取る情報", "收集的信息"], "t.recv.v": ["Username, password (stored encrypted), nickname (Kakao member number instead of username/password if you sign up with Kakao) / when you post a review: song, menu, restaurant name, food photo, review text / like and report history", "ID、パスワード（暗号化して保存）、ニックネーム（カカオで登録した場合はID・パスワードの代わりにカカオ会員番号）／レビュー投稿時は曲、メニュー、店名、料理の写真、レビュー本文／いいね・通報の記録", "账号、密码（加密保存）、昵称（使用 Kakao 注册时以 Kakao 会员编号代替账号和密码）／发布评价时：歌曲、菜单、餐厅名称、美食照片、评价内容／点赞和举报记录"], "t.use": ["How we use it", "利用目的", "用途"], "t.use.v": ["Login, posting reviews, likes and corner rankings, handling reports, menu recommendations", "ログイン、レビュー掲載、いいねとコーナー別ランキング、通報対応、メニューのおすすめ", "登录、发布评价、点赞和分区排行、处理举报、菜单推荐"], "t.rin": ["Recommendation inputs", "おすすめ用の入力情報", "推荐输入信息"], "t.rin.v": ["The song, location, weather etc. you enter for recommendations are not stored and are deleted as soon as the recommendation is done", "おすすめのために入力した曲・場所・天気などは保存せず、おすすめが終わるとすぐに削除します", "为推荐输入的歌曲、位置、天气等不会保存，推荐结束后立即删除"], "t.keep": ["Retention", "保管期間", "保存期限"], "t.keep.v": ["Deleted immediately when you leave (login records are auto-deleted after 30 days)", "退会するとすぐに削除（ログイン記録は30日後に自動削除）", "注销后立即删除（登录记录 30 天后自动删除）"], "t.where": ["Storage location", "保管場所", "保存位置"], "t.where.v": ["Cloud database of Cloudflare, Inc. (USA) (transfer outside Korea)", "Cloudflare, Inc.（米国）のクラウドデータベース（国外移転）", "Cloudflare, Inc.（美国）的云数据库（跨境转移）"], "t.pub": ["Visibility", "公開範囲", "公开范围"], "t.pub.v": ["Your nickname and reviews are public to all visitors / username, password and Kakao member number are private", "ニックネームと投稿したレビューはすべての訪問者に公開／ID・パスワード・カカオ会員番号は非公開", "昵称和发布的评价对所有访客公开／账号、密码、Kakao 会员编号不公开"], "t.right": ["Your rights", "あなたの権利", "您的权利"], "t.right.v": ["You can delete reviews or leave anytime in 'My info'. You may refuse consent, but then you can't sign up (menu picks, stories and rankings work without an account)", "「マイ情報」からいつでもレビュー削除・退会ができます。同意を拒否することもできますが、その場合は登録できません（メニューのおすすめとストーリー・ランキングの閲覧は登録なしで利用できます）", "可随时在“我的信息”中删除评价或注销。您可以拒绝同意，但将无法注册（菜单推荐、故事和排行无需注册即可使用）"], "pn.age": ["Children under 14 can't sign up. See the <a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">Privacy Policy</a> (in Korean) for details.", "14歳未満の方は登録できません。詳しくは<a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">個人情報処理方針</a>（韓国語）をご確認ください。", "未满 14 周岁不能注册。详情请查看<a href=\"privacy.html\" target=\"_blank\" rel=\"noopener\">隐私政策</a>（韩文）。"], "kb.cancel": ["Sign up with a username instead", "IDで登録する", "改用账号注册"], "su.id": ["Username <span class=\"opt\">(4–20 lowercase letters, numbers, _)</span>", "ID <span class=\"opt\">（英小文字・数字・_ 4〜20文字）</span>", "账号 <span class=\"opt\">（小写英文字母、数字、_，4~20 位）</span>"], "su.pw": ["Password <span class=\"opt\">(8+ characters)</span>", "パスワード <span class=\"opt\">（8文字以上）</span>", "密码 <span class=\"opt\">（至少 8 位）</span>"], "su.pw2": ["Confirm password", "パスワード（確認）", "确认密码"], "su.nick": ["Nickname <span class=\"opt\">(2–12 characters, shown on your reviews)</span>", "ニックネーム <span class=\"opt\">（2〜12文字、レビューに表示されます）</span>", "昵称 <span class=\"opt\">（2~12 个字，会显示在评价上）</span>"], "su.hint": ["We don't collect email or phone numbers, so a forgotten password can't be recovered by yourself. Please remember it. (With Kakao you don't need a password.)", "メールアドレス・電話番号は受け取りません。そのためパスワードを忘れると自分で再設定できないので、必ず覚えておいてください。（カカオではじめるとパスワードは不要です）", "我们不收集邮箱和电话号码，忘记密码后无法自行找回，请务必牢记。（使用 Kakao 开始则无需记住密码）"], "su.all": [" <b>Agree to all</b>", " <b>すべてに同意</b>", " <b>全部同意</b>"], "a.age": [" [Required] I am 14 or older.", " [必須] 14歳以上です。", " [必选] 我已年满 14 周岁。"], "a.collect": [" [Required] Consent to collection and use of member personal information", " [必須] 会員の個人情報の収集・利用への同意", " [必选] 同意收集和使用会员个人信息"], "more": ["View details", "内容を見る", "查看详情"], "c.purpose": ["Purpose of collection and use", "収集・利用目的", "收集和使用目的"], "c.purpose.v": ["Identifying members and keeping you logged in, providing reviews, likes and corner rankings, handling reports and preventing abuse", "会員の識別とログイン維持、レビュー掲載・いいね・コーナー別ランキングの提供、通報対応と不正利用の防止", "识别会员并保持登录，提供评价、点赞和分区排行，处理举报并防止滥用"], "c.items": ["Items collected", "収集項目", "收集项目"], "c.items.v": ["Username, password (stored encrypted), nickname (Kakao member number instead of username/password when signing up with Kakao), reviews you write (song, menu, restaurant name, food photo, review text), like and report history, login records", "ID、パスワード（暗号化して保存）、ニックネーム（カカオで登録した場合はID・パスワードの代わりにカカオ会員番号）、投稿したレビュー（曲、メニュー、店名、料理の写真、レビュー本文）、いいね・通報の記録、ログイン記録", "账号、密码（加密保存）、昵称（使用 Kakao 注册时以 Kakao 会员编号代替账号和密码）、发布的评价（歌曲、菜单、餐厅名称、美食照片、评价内容）、点赞和举报记录、登录记录"], "c.period": ["Retention and use period", "保有・利用期間", "保存和使用期限"], "c.period.v": ["<b>Destroyed immediately when you leave</b> (including your reviews and likes). Login records are auto-deleted after 30 days", "<b>退会時に即時破棄</b>（自分のレビュー・いいねを含む）。ログイン記録は30日後に自動削除", "<b>注销时立即销毁</b>（包括您的评价和点赞）。登录记录 30 天后自动删除"], "c.refuse": ["You have the right to refuse consent, but if you refuse you cannot sign up. Menu picks, stories and rankings are available without signing up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。登録しなくてもメニューのおすすめとストーリー・ランキングの閲覧は利用できます。", "您有权拒绝同意，但拒绝后将无法注册。不注册也可以使用菜单推荐以及浏览故事和排行。"], "a.abroad": [" [Required] Consent to transfer (storage) of member information outside Korea", " [必須] 会員情報の国外移転（保管）への同意", " [必选] 同意会员信息跨境转移（存储）"], "x.to": ["Recipient (country)", "移転先（国）", "接收方（国家）"], "x.to.v1": ["Cloudflare, Inc. (USA) · contact privacyquestions@cloudflare.com", "Cloudflare, Inc.（米国）· 連絡先 privacyquestions@cloudflare.com", "Cloudflare, Inc.（美国）· 联系方式 privacyquestions@cloudflare.com"], "x.items": ["Items transferred", "移転項目", "转移项目"], "x.items.v1": ["All member personal information items listed above", "上記の会員個人情報の収集項目すべて", "上述全部会员个人信息收集项目"], "x.purpose": ["Purpose of transfer", "移転目的", "转移目的"], "x.purpose.v1": ["Storage in the cloud database (Cloudflare D1) that holds member info and reviews", "会員情報とレビューを保存するクラウドデータベース（Cloudflare D1）での保管", "存储于保存会员信息和评价的云数据库（Cloudflare D1）"], "x.when": ["When and how", "移転の時期・方法", "转移时间和方式"], "x.when.v1": ["Sent over the network when you sign up, write reviews or like", "会員登録・レビュー作成・いいねの際にネットワーク経由で送信", "在注册、撰写评价、点赞时通过网络传输"], "x.period.v1": ["Until you leave", "退会するまで", "直至注销"], "refuse2": ["You have the right to refuse consent, but if you refuse you cannot sign up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。", "您有权拒绝同意，但拒绝后将无法注册。"], "a.rec": [" [Required] Consent to use the menu recommendation service", " [必須] メニューおすすめサービスの利用への同意", " [必选] 同意使用菜单推荐服务"], "r.purpose.v": ["Menu recommendations based on song mood, showing a map around the location you enter, song picks based on your shop's mood", "曲の雰囲気にもとづくメニューのおすすめ、入力した場所周辺の地図表示、お店の雰囲気にもとづく曲のおすすめ", "基于歌曲氛围推荐菜单，显示输入位置周边地图，基于店铺氛围的歌曲推荐"], "r.items.v": ["Song (artist, title), party size, weather, location (neighborhood/area), meal time, food type, food conditions / Song picks: shop photo, shop name, type and area", "曲（歌手・曲名）、人数、天気、場所（町・地域名）、食事の時間帯、料理の種類、料理の条件／曲のおすすめ：お店の写真、店名·種類·場所", "歌曲（歌手、曲名）、人数、天气、位置（街区、地区名）、用餐时间、菜品类型、菜品条件／歌曲推荐：店铺照片、店名、类型、位置"], "r.period.v": ["<b>Destroyed immediately when you close the recommendation or leave the page</b> (processed only in your browser, never stored on a server)", "<b>おすすめ画面を閉じるかページを離れると即時破棄</b>（ブラウザ内でのみ処理し、サーバーには保存しません）", "<b>关闭推荐页面或离开网页时立即销毁</b>（仅在浏览器内处理，不保存到服务器）"], "r.refuse": ["You have the right to refuse consent, but if you refuse you cannot sign up. (You can still use 'Just get food picks' without signing up.)", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。（登録せずに「メニューだけ見る」で利用できます）", "您有权拒绝同意，但拒绝后将无法注册。（不注册也可以通过“直接推荐美食”使用）"], "a.rules": [" [Required] Agree to the community rules", " [必須] コミュニティ利用規則への同意", " [必选] 同意社区使用规则"], "rule1": ["Rights and responsibility for reviews (photos, text) belong to the author, and they are used only as needed to display them publicly on the service.", "投稿したレビュー（写真・文章）の権利と責任は投稿者にあり、サービス画面での公開掲載に必要な範囲でのみ利用されます。", "发布的评价（照片、文字）的权利和责任归作者所有，仅在服务页面公开展示所需的范围内使用。"], "rule2": ["Only upload photos you took or have permission to use. Make sure no one else's face, license plate, contact details or other personal information is visible.", "自分で撮った写真か、使用権のある写真だけを投稿してください。他人の顔、車のナンバー、連絡先などの個人情報が写らないようにしてください。", "请只上传自己拍摄或有权使用的照片。请勿让他人的面孔、车牌号、联系方式等个人信息出现在照片中。"], "rule3": ["Profanity, hate, obscene content, ads, spam, and posts that infringe others' rights are prohibited.", "暴言・ヘイト・わいせつ・広告・連投、他人の権利を侵害する投稿は禁止です。", "禁止发布辱骂、仇恨、淫秽、广告、刷屏以及侵犯他人权利的内容。"], "rule4": ["Reviews with 3 or more reports are hidden automatically, and the operator may delete reviews that break the rules.", "通報が3件以上たまったレビューは自動で非表示になり、運営者は規則に違反したレビューを削除できます。", "被举报 3 次及以上的评价将自动隐藏，运营者可删除违反规则的评价。"], "rule5": ["Songs are linked only through album art and the 30-second previews made public by Apple; audio files cannot be uploaded.", "曲はアルバム画像とAppleが公開している30秒の試聴のみにつなげ、音源ファイルはアップロードできません。", "歌曲仅链接专辑图片和 Apple 公开的 30 秒试听，不能上传音频文件。"], "rule6": ["For rights-infringement reports or questions, use the contact in the Privacy Policy.", "権利侵害の通報やお問い合わせは、個人情報処理方針の連絡先までお願いします。", "如需举报侵权或咨询，请通过隐私政策中的联系方式与我们联系。"], "a.xfer": [" [Required] Consent to transfer outside Korea for song/restaurant search and AI analysis", " [必須] 曲·お店検索とAI分析のための国外移転への同意", " [必选] 同意为搜索歌曲和餐厅及 AI 分析进行跨境转移"], "x2.to.v": ["Apple Inc. (USA), Deezer S.A. (France), Cloudflare, Inc. (USA), MetaBrainz Foundation·Wikimedia Foundation (USA, MusicBrainz·Wikidata), Last.fm Ltd. (UK, if connected by the operator), Open-Meteo (Switzerland, weather), Google LLC (USA, Gemini AI shop photo analysis)", "Apple Inc.（米国）、Deezer S.A.（フランス）、Cloudflare, Inc.（米国）、MetaBrainz Foundation・Wikimedia Foundation（米国、MusicBrainz・Wikidata）、Last.fm Ltd.（英国、運営者が接続した場合）、Open-Meteo（スイス、天気）、Google LLC（米国、Gemini AIによるお店の写真分析）", "Apple Inc.（美国）、Deezer S.A.（法国）、Cloudflare, Inc.（美国）、MetaBrainz Foundation·Wikimedia Foundation（美国，MusicBrainz·Wikidata）、Last.fm Ltd.（英国，运营者接入时）、Open-Meteo（瑞士，天气）、Google LLC（美国，Gemini AI 店铺照片分析）"], "x2.items.v": ["Apple·Deezer: song (artist, title) and connection info such as IP / Cloudflare: song (artist, title), location (area name), menu search words and connection info / MusicBrainz·Wikidata·Last.fm: only the song (artist, title), via the Cloudflare server (IP not passed on) / Open-Meteo: location coordinates (rounded to about 1 km) and connection info when you tap 'Get current weather' / Google: the shop photo (a reduced copy) and shop name, type and area you enter for song picks, relayed via the Cloudflare server (IP not passed on)", "Apple・Deezer：曲（歌手・曲名）と接続IPなどの通信情報／Cloudflare：曲（歌手・曲名）、場所（地域名）、メニュー検索語と通信情報／MusicBrainz・Wikidata・Last.fm：Cloudflareサーバーを経由して曲（歌手・曲名）のみ（IPは渡しません）／Open-Meteo：「今の天気を取得」を押したときの位置座標（約1km単位に丸める）と通信情報／Google：曲のおすすめで入れたお店の写真（縮小版）と店名·種類·場所、Cloudflareサーバー経由で送信（IPは渡しません）", "Apple·Deezer：歌曲（歌手、曲名）及访问 IP 等通信信息／Cloudflare：歌曲（歌手、曲名）、位置（地区名）、菜单搜索词及通信信息／MusicBrainz·Wikidata·Last.fm：经 Cloudflare 服务器仅传递歌曲（歌手、曲名）（不传递 IP）／Open-Meteo：点击“获取当前天气”时的位置坐标（约 1 公里精度）及通信信息／Google：歌曲推荐中上传的店铺照片（缩小版）及店名、类型、位置，经 Cloudflare 服务器传递（不传递 IP）"], "x2.purpose.v": ["Looking up song info, album art and previews; comparing song info across music services; relaying Naver local and blog search (showing nearby restaurants, checking solo-dining reviews); analyzing the shop photo's mood and writing the song list (Google Gemini)", "曲情報・アルバム画像・試聴の検索、複数の音楽情報サービスの曲情報の比較、NAVER地域・ブログ検索の中継（周辺のお店表示、おひとりさまレビューの確認）、お店の写真の雰囲気分析と曲リスト作成（Google Gemini）", "查询歌曲信息、专辑图片和试听，比较多个音乐信息服务的歌曲信息，中转 NAVER 地区和博客搜索（显示附近餐厅、确认一人食评价），分析店铺照片氛围并生成歌单（Google Gemini）"], "x2.when.v": ["Sent over the network when you get recommendations or search the map", "おすすめ取得・地図検索の際にネットワーク経由で送信", "在获取推荐、搜索地图时通过网络传输"], "x2.period.v": ["Not stored by the operator; each company handles it under its own privacy policy (under Gemini's free-tier terms, Google may use it to improve its services)", "運営者は保存せず、各社はそれぞれの個人情報処理方針に従って処理（Gemini無料利用の条件上、Googleがサービス改善に使う場合があります）", "运营者不保存，各公司依据其自身隐私政策处理（根据 Gemini 免费使用条款，Google 可能将其用于改进服务）"], "x2.hint": ["You have the right to refuse consent, but if you refuse you cannot sign up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。", "您有权拒绝同意，但拒绝后将无法注册。"], "a.geo": [" [Required] Consent to use location information", " [必須] 位置情報の利用への同意", " [必选] 同意使用位置信息"], "g.purpose": ["Purpose", "利用目的", "使用目的"], "g.purpose.v": ["Auto-filling your neighborhood from your device location when you tap 'Current location'", "「現在地」ボタンを押したとき、端末の位置から町名を自動入力", "点击“当前位置”按钮时，根据设备位置自动填写街区名称"], "g.items": ["Items used", "利用項目", "使用项目"], "g.items.v": ["Device latitude and longitude (once, when you tap the button)", "端末の緯度・経度（ボタンを押したときに1回）", "设备的纬度和经度（点击按钮时 1 次）"], "g.period.v": ["Destroyed as soon as it's converted to a neighborhood name; never stored", "町名に変換した直後に破棄し、保存しません", "转换为街区名称后立即销毁，不保存"], "g.entrust": ["Processor", "処理委託", "委托处理"], "g.entrust.v": ["NAVER Cloud Corp.: coordinates → address conversion", "NAVER Cloud(株)：座標 → 住所変換", "NAVER Cloud（株）：坐标 → 地址转换"], "g.hint": ["You have the right to refuse consent, but if you refuse you cannot sign up.", "同意を拒否する権利がありますが、拒否された場合は会員登録できません。", "您有权拒绝同意，但拒绝后将无法注册。"], "entrust.p": ["Processors: Cloudflare, Inc. (website hosting, data storage), NAVER Cloud Corp. (maps, address conversion, local search, blog search)", "個人情報の処理委託：Cloudflare, Inc.（ウェブサイトのホスティング・データ保管）、NAVER Cloud(株)（地図・住所変換・地域検索・ブログ検索）", "个人信息委托处理：Cloudflare, Inc.（网站托管、数据存储）、NAVER Cloud（株）（地图、地址转换、地区搜索、博客搜索）"], "th.l": [" Light", " ライト", " 浅色"], "th.d": [" Dark", " ダーク", " 深色"], "th.s": [" System", " システム", " 跟随系统"], "kb.text": ["✅ Kakao check complete. Choose a <b>nickname</b> and agree to the items below to sign up. ", "✅ カカオの確認が完了しました。<b>ニックネーム</b>を決めて下の項目に同意すると登録できます。", "✅ Kakao 验证完成。设置<b>昵称</b>并同意以下条款即可注册。"], "lang.note": ["This translation is for convenience. If anything differs, the Korean version applies.", "この翻訳は参考用です。内容に違いがある場合は韓国語版が優先されます。", "本翻译仅供参考，如有不一致，以韩文版为准。"], "nav.me": ["👤 Sign up·Log in", "👤 登録·ログイン", "👤 注册·登录"], "bubble.new": ["Welcome to BeatBobs! 🎶<br>Sign up and share your own food × song combos.", "ビートバプスへようこそ！🎶<br>登録して、あなただけの料理 × 曲の組み合わせを投稿しよう。", "欢迎来到 BeatBobs！🎶<br>注册后分享你的美食 × 歌曲组合吧。"], "bubble.member": ["Sign up to post your food × song combos and like others!", "登録すると料理 × 曲の組み合わせを投稿したり、いいねを押したりできます！", "注册后即可发布美食 × 歌曲组合并点赞！"], "btn.su": ["Agree and sign up", "同意して登録する", "同意并注册"], "btn.suk": ["Agree and sign up with Kakao", "同意してカカオで登録する", "同意并使用 Kakao 注册"], "pw.need": ["Password must be at least 8 characters.", "パスワードは8文字以上にしてください。", "密码至少需要 8 位。"], "pw.short": ["✗ Needs 8+ characters (now {n})", "✗ 8文字以上必要です（現在{n}文字）", "✗ 至少需要 8 位（当前 {n} 位）"], "pw.ok": ["✓ 8+ characters", "✓ 8文字以上です", "✓ 已满 8 位"], "pw2.ok": ["✓ Passwords match", "✓ パスワードが一致しています", "✓ 密码一致"], "pw2.bad": ["✗ Doesn't match the password above", "✗ 上のパスワードと違います", "✗ 与上方密码不一致"], "e.pwlen": ["Password must be at least 8 characters. (now {n})", "パスワードは8文字以上にしてください。（現在{n}文字）", "密码至少需要 8 位。（当前 {n} 位）"], "toast.login": ["Logged in!", "ログインしました！", "登录成功！"], "toast.klogin": ["Logged in with Kakao!", "カカオでログインしました！", "已使用 Kakao 登录！"], "toast.welcome": ["{nick}, welcome aboard! 🎉", "{nick}さん、ようこそ！🎉", "{nick}，欢迎加入！🎉"], "toast.kwelcome": ["{nick}, you signed up with Kakao! 🎉", "{nick}さん、カカオで登録しました！🎉", "{nick}，已使用 Kakao 注册！🎉"]};
   const I18N_ERR = {"아이디와 비밀번호를 입력해 주세요.": ["Please enter your username and password.", "IDとパスワードを入力してください。", "请输入账号和密码。"], "닉네임은 2자 이상으로 만들어 주세요.": ["Nickname must be at least 2 characters.", "ニックネームは2文字以上にしてください。", "昵称至少需要 2 个字。"], "아이디는 영문 소문자·숫자·_ 4~20자로 만들어 주세요.": ["Username must be 4–20 lowercase letters, numbers or _.", "IDは英小文字・数字・_ で4〜20文字にしてください。", "账号须为 4~20 位小写英文字母、数字或 _。"], "비밀번호는 8자 이상으로 만들어 주세요.": ["Password must be at least 8 characters.", "パスワードは8文字以上にしてください。", "密码至少需要 8 位。"], "비밀번호 확인이 일치하지 않아요.": ["The password confirmation doesn't match.", "確認用パスワードが一致しません。", "两次输入的密码不一致。"], "아이디 또는 비밀번호가 맞지 않아요.": ["Incorrect username or password.", "IDまたはパスワードが違います。", "账号或密码不正确。"], "로그인을 여러 번 실패해서 5분 동안 잠겼어요. 잠시 후 다시 시도해 주세요.": ["Too many failed logins. Locked for 5 minutes; please try again later.", "ログインに何度も失敗したため5分間ロックされました。しばらくしてからもう一度お試しください。", "登录失败次数过多，已锁定 5 分钟，请稍后再试。"], "이미 쓰이는 아이디예요.": ["That username is already taken.", "このIDはすでに使われています。", "该账号已被使用。"], "이 아이디는 쓸 수 없어요. 다른 아이디를 골라 주세요.": ["This username can't be used. Please choose another.", "このIDは使えません。別のIDを選んでください。", "该账号不可用，请换一个。"], "이 닉네임은 쓸 수 없어요. 다른 닉네임을 골라 주세요.": ["This nickname can't be used. Please choose another.", "このニックネームは使えません。別のニックネームを選んでください。", "该昵称不可用，请换一个。"], "비밀번호에 아이디를 넣지 말아 주세요.": ["Please don't include your username in the password.", "パスワードにIDを含めないでください。", "密码中请勿包含账号。"], "닉네임은 2~12자로 만들어 주세요.": ["Nickname must be 2–12 characters.", "ニックネームは2〜12文字にしてください。", "昵称须为 2~12 个字。"], "너무 자주 요청했어요. 1분 뒤에 다시 해 주세요.": ["Too many requests. Please try again in a minute.", "リクエストが多すぎます。1分後にもう一度お試しください。", "请求过于频繁，请 1 分钟后再试。"], "서버에서 문제가 생겼어요. 잠시 후 다시 시도해 주세요.": ["Something went wrong on the server. Please try again later.", "サーバーで問題が発生しました。しばらくしてからもう一度お試しください。", "服务器出现问题，请稍后再试。"], "서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.": ["Couldn't reach the server. Check your internet connection and try again.", "サーバーに接続できませんでした。インターネット接続を確認してもう一度お試しください。", "无法连接服务器，请检查网络后重试。"], "요청을 처리하지 못했어요.": ["Couldn't process the request.", "リクエストを処理できませんでした。", "无法处理请求。"], "요청 형식이 올바르지 않아요.": ["Invalid request.", "リクエストの形式が正しくありません。", "请求格式不正确。"], "카카오 로그인에 실패했어요.": ["Kakao login failed.", "カカオログインに失敗しました。", "Kakao 登录失败。"], "카카오 로그인을 취소했어요.": ["Kakao login was cancelled.", "カカオログインをキャンセルしました。", "已取消 Kakao 登录。"], "카카오 로그인 시간이 지났어요. 사이트로 돌아가서 다시 시도해 주세요.": ["The Kakao login timed out. Please try again.", "カカオログインの有効時間が過ぎました。もう一度お試しください。", "Kakao 登录已超时，请重试。"], "이 카카오 계정으로 이미 가입했어요. 카카오로 시작하기를 다시 누르면 로그인돼요.": ["You already signed up with this Kakao account. Tap 'Continue with Kakao' again to log in.", "このカカオアカウントはすでに登録済みです。「カカオではじめる」をもう一度押すとログインできます。", "此 Kakao 账号已注册，再次点击“使用 Kakao 开始”即可登录。"], "가입 정보가 없어요. 카카오로 시작하기를 다시 눌러 주세요.": ["No sign-up info found. Please tap 'Continue with Kakao' again.", "登録情報がありません。「カカオではじめる」をもう一度押してください。", "没有注册信息，请再次点击“使用 Kakao 开始”。"], "카카오 로그인 중 문제가 생겼어요.": ["Something went wrong during Kakao login.", "カカオログイン中に問題が発生しました。", "Kakao 登录时出现问题。"], "카카오 로그인이 아직 켜지지 않았어요.": ["Kakao login isn't turned on yet.", "カカオログインはまだ有効になっていません。", "Kakao 登录尚未开启。"]};
   let LANG = "ko";
   try { const l = localStorage.getItem("food.lang"); if (LANGS.includes(l)) LANG = l; } catch {}
@@ -1130,7 +1170,7 @@
   function showScreen(name) {
     if (AUTH.user && name !== "result") name = "form";   // 회원은 가입할 때 이미 동의함
     $("loading").classList.add("hidden");
-    ["rank", "corner", "auth", "me", "write", "admin"].forEach((id) => $(id).classList.add("hidden"));
+    ["rank", "corner", "auth", "me", "write", "admin", "hub", "shop"].forEach((id) => $(id).classList.add("hidden"));
     $("skipbtn").classList.add("hidden");
     const hasResult = !!$("result").innerHTML;
     if (name === "result" && hasResult) {
@@ -1163,13 +1203,17 @@
     CONSENT.abroad = CONSENT.geo = false; syncGeo();
     closeStory(true);
     COMM.forEach((id) => $(id).classList.add("hidden")); markNav("");
-    if (!AUTH.user) { showComm("auth"); return; }
-    applyPrefs(); showScreen("form");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    SHOP.res = null; SHOP.photo = null; $("shop").innerHTML = "";   // 처음으로 가면 가게 사진·결과도 지움
+    applyPrefs(); showHub();
   });
 
   // 헤더 '음악찾기' = 로고(비트밥스)를 누른 것과 같은 화면으로 이동
-  $("nav-music").addEventListener("click", () => $("home").click());
+  // (v2.20) 첫 화면이 두 칸이 되어서, '음악찾기'는 메뉴 추천 입력 화면으로 바로 감
+  $("nav-music").addEventListener("click", () => {
+    const depth = (history.state && history.state.d) || 0;
+    $("home").click();
+    if (depth) SHOP.navMenu = true; else hubMenu();
+  });
 
   // ---------- 테마: 라이트 / 다크 / 시스템 ----------
   function applyTheme(t) {
@@ -1188,6 +1232,7 @@
     CONSENT.abroad = $("c-abroad").checked;
     CONSENT.geo = $("c-geo").checked;
     syncGeo();
+    if (SHOP.pending) { showShop(); go("shop"); return; }
     $("consent").classList.add("hidden");
     $("form").classList.remove("hidden");
     go("form", 1);
@@ -2623,23 +2668,43 @@ JJ Lin|林俊傑|임준걸`;
     if (!key) return Promise.resolve(null);
     if (locCache[key]) return locCache[key];
     return (locCache[key] = (async () => {
-      const geo = mapsReady() ? await new Promise((res) => {
+      // '마곡'처럼 짧은 이름은 주소 검색이 다른 지역(예: 지방의 '○○면 마곡리')을 먼저 주기도 해서,
+      // 이름만 쓰면 ① 장소 검색(역·동네 이름은 유명한 곳이 먼저 나옴) ② '마곡동'처럼 '동'을 붙인 주소, 그 밖에는 여러 주소 중 이름이 동·읍·면으로 맞는 것을 고름
+      const geocodeAll = (q) => mapsReady() ? new Promise((res) => {
         try {
-          naver.maps.Service.geocode({ query: key }, (status, r) => {
-            const a = status === naver.maps.Service.Status.OK && r.v2 && r.v2.addresses && r.v2.addresses[0];
-            res(a ? { lat: +a.y, lng: +a.x, addr: a.roadAddress || a.jibunAddress || "" } : null);
+          naver.maps.Service.geocode({ query: q }, (status, r) => {
+            const list = status === naver.maps.Service.Status.OK && r.v2 && r.v2.addresses || [];
+            res(list.map((a) => ({ lat: +a.y, lng: +a.x, addr: a.roadAddress || a.jibunAddress || "", jibun: a.jibunAddress || "" })));
           });
-        } catch { res(null); }
-      }) : null;
-      if (geo) return geo;
-      if (!SEARCH_PROXY || !CONSENT.abroad) return null;
-      const list = await searchPlaces(key, "").catch(() => null);
+        } catch { res([]); }
+      }) : Promise.resolve([]);
       const k0 = key.replace(/\s+/g, "");
-      const best = list && (list.find((p) => p.name.replace(/\s+/g, "").includes(k0)) || list[0]);
-      return best ? { lat: best.lat, lng: best.lng, addr: best.addr, place: best.name } : null;
+      const bare = !/[\d동읍면리로길가구군시도역]$/.test(k0) && k0.length <= 5;   // 행정 단위 없이 이름만 쓴 경우
+      const fromSearch = async (strict) => {
+        if (!SEARCH_PROXY || !CONSENT.abroad) return null;
+        const list = await searchPlaces(key, "").catch(() => null);
+        const best = list && (list.find((p) => p.name.replace(/\s+/g, "").includes(k0)) || (strict ? null : list[0]));
+        return best ? { lat: best.lat, lng: best.lng, addr: best.addr, place: best.name } : null;
+      };
+      if (bare) {   // 장소 검색(유명한 곳 순) → '마곡동'처럼 '동'을 붙인 주소
+        const sp = await fromSearch(true);   // 이름에 '마곡'이 들어간 장소(마곡나루역 등)만
+        if (sp) return sp;
+        const dong = (await geocodeAll(k0 + "동"))[0];
+        if (dong) return dong;
+      }
+      const all = await geocodeAll(key);
+      const rx = new RegExp("(^|\\s)" + k0.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(동|읍|면|리|가)?(\\s|$)");
+      const geo = all.find((a) => rx.test(a.jibun) || rx.test(a.addr)) || all[0] || null;
+      if (geo && all.length > 1 && !bare) {   // 같은 이름이 여러 곳이면 장소 검색 결과가 그중 하나와 가까운지 확인
+        const sp = await fromSearch();
+        if (sp && all.some((a) => distM(a, sp) < 5000)) return sp;
+      }
+      if (geo) return geo;
+      return bare ? null : fromSearch();
     })().then((x) => { if (!x) delete locCache[key]; return x; }));
   }
 
+  if (location.hostname === "localhost") window.__resolveLoc = resolveLoc;   // 시험용 (실제 사이트에서는 없음)
   const stripTags = (s) => String(s || "").replace(/<[^>]*>/g, "");
 
   function clearMarkers() { M.markers.forEach((m) => m.setMap(null)); M.markers = []; if (M.info) M.info.close(); }
@@ -3501,7 +3566,7 @@ JJ Lin|林俊傑|임준걸`;
 
   // ---------- 화면 전환 ----------
   function hideAll() {
-    ["consent", "form", "result", ...COMM].forEach((id) => $(id).classList.add("hidden"));
+    ["hub", "shop", "consent", "form", "result", ...COMM].forEach((id) => $(id).classList.add("hidden"));
     document.body.classList.remove("wide");
     $("loading").classList.add("hidden");
   }
@@ -3549,7 +3614,9 @@ JJ Lin|林俊傑|임준걸`;
       }
       showComm(s); return;
     }
-    if (!s && !AUTH.user) { showComm("auth"); return; }   // 첫 화면: 가입 먼저 (회원은 showScreen에서 입력 화면으로)
+    if (!s && SHOP.navMenu) { SHOP.navMenu = false; hubMenu(); return; }
+    if (!s) { showHub(); return; }   // 첫 화면: 노래 추천 | 메뉴 추천 (v2.20)
+    if (s === "shop") { showShop(); return; }
     markNav(""); COMM.forEach((id) => $(id).classList.add("hidden"));
     showScreen(s);
   }
@@ -3963,7 +4030,9 @@ JJ Lin|林俊傑|임준걸`;
     toast(msg);
     const next = afterLogin; afterLogin = null;
     const atStart = !history.state || !history.state.d;
+    const menu = SHOP.authMenu; SHOP.authMenu = false;
     if (next) { history.replaceState({ ...(history.state || {}), screen: "write" }, ""); fillWrite(next.seed); showComm("write"); }
+    else if (menu) { history.replaceState({ ...(history.state || {}), screen: "form" }, ""); markNav(""); showScreen("form"); }
     else if (atStart) { history.replaceState({ ...(history.state || {}), screen: null }, ""); markNav(""); showScreen("consent"); }
     else { history.replaceState({ ...(history.state || {}), screen: "me" }, ""); showComm("me"); }
   }
@@ -3976,7 +4045,7 @@ JJ Lin|林俊傑|임준걸`;
   $("signup-form").addEventListener("submit", async (e) => {
     e.preventDefault(); authErr("");
     const login = $("su-id").value.trim().toLowerCase(), pw = $("su-pw").value, nick = $("su-nick").value.trim();
-    const consents = { agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: $("su-xfer").checked, geo: $("su-geo").checked } };
+    const consents = { agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: true, geo: true } };
     if (K_TICKET) {
       if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
       try { loggedIn(await api("/signup/kakao", { method: "POST", body: { ticket: K_TICKET, nick, ...consents } }), tt("toast.kwelcome", `${nick}님, 카카오로 가입했어요! 🎉`, { nick })); }
@@ -3988,7 +4057,7 @@ JJ Lin|林俊傑|임준걸`;
     if (pw !== $("su-pw2").value) { pwSync(); $("su-pw2").focus({ preventScroll: true }); return authErr("비밀번호 확인이 일치하지 않아요."); }
     if (nick.length < 2) return authErr("닉네임은 2자 이상으로 만들어 주세요.");
     try {
-      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: $("su-xfer").checked, geo: $("su-geo").checked } } }), tt("toast.welcome", `${nick}님, 가입을 환영해요! 🎉`, { nick }));
+      loggedIn(await api("/signup", { method: "POST", body: { login, pw, nick, agreeAge: true, agreeCollect: true, agreeAbroad: true, agreeRules: true, agreeRec: true, prefs: { abroad: true, geo: true } } }), tt("toast.welcome", `${nick}님, 가입을 환영해요! 🎉`, { nick }));
     } catch (er) { authErr(er.message); }
   });
 
@@ -4160,8 +4229,514 @@ JJ Lin|林俊傑|임준걸`;
   });
 
   // ---------- 업데이트 내역 (관리자 전용) ----------
-  const APP_VERSION = "v2.19";
+  // ---------- 첫 화면(두 칸) + 노래 추천 (사장님용) ----------
+  // 노래 추천: 가게 사진·이름·위치 → Gemini(Worker /shop/vibe)가 분위기 분석 + 노래 10곡.
+  // Gemini 키가 없거나 한도·오류면 브라우저 안에서 사진 색감 + 가게 종류로 분석하고 아래 곡 목록에서 고름.
+  // 이 화면들은 언어별 글자를 직접 넣어서(lang.js 번역 안 함, .notr) 언어를 바꾸면 다시 그림.
+  const LG = () => (LANGS.includes(LANG) ? LANG : "ko");
+  const T4 = (ko, en, ja, zh) => ({ ko, en, ja, zh })[LG()] || ko;
+  const TK = (ko) => (LG() !== "ko" && window.I18 && I18.t ? I18.t(ko) || ko : ko);
+
+  // 자체 분석용 곡 목록: 가수|곡명|장르|에너지(1~3)|분위기(1~3)|어울리는 가게
+  const SHOP_SONGS = `아이유|밤편지|발라드|1|2|cafe night
+아이유|Blueming|K-pop|2|3|cafe dessert brunch
+아이유|좋은 날|K-pop|3|3|lively dessert
+10CM|봄이 좋냐??|인디|2|3|cafe lively
+10CM|스토커|어쿠스틱|1|1|bar night
+잔나비|주저하는 연인들을 위해|인디 록|1|2|bar cafe night
+볼빨간사춘기|우주를 줄게|인디 팝|2|3|dessert cafe
+볼빨간사춘기|여행|인디 팝|3|3|brunch lively
+악뮤|오랜 날 오랜 밤|발라드|1|2|korean night
+악뮤|200%|팝|2|3|brunch dessert
+성시경|거리에서|발라드|1|1|korean bar
+성시경|두 사람|발라드|1|2|cafe
+폴킴|모든 날, 모든 순간|발라드|1|2|cafe korean
+자이언티|양화대교|R&B|1|2|korean night
+자이언티|꺼내 먹어요|R&B|1|2|dessert cafe
+DEAN|instagram|R&B|1|1|bar night
+크러쉬|가끔|R&B|1|2|bar cafe
+헤이즈|비도 오고 그래서|R&B|1|1|cafe bar night
+백예린|Square (2017)|인디 팝|1|2|cafe brunch
+검정치마|EVERYTHING|인디 록|1|2|bar night
+혁오|TOMBOY|인디 록|2|1|bar pub
+혁오|위잉위잉|인디 록|2|2|pub cafe
+장범준|흔들리는 꽃들 속에서 네 샴푸향이 느껴진거야|어쿠스틱|2|3|cafe brunch
+버스커 버스커|벚꽃 엔딩|어쿠스틱|2|3|brunch dessert
+버스커 버스커|여수 밤바다|어쿠스틱|1|2|korean night pub
+김광석|서른 즈음에|포크|1|1|korean pub
+김광석|사랑했지만|포크|1|1|pub korean
+이문세|광화문 연가|발라드|1|2|korean
+유재하|사랑하기 때문에|발라드|1|1|korean bar
+김현철|춘천 가는 기차|시티팝|2|2|cafe brunch
+빛과 소금|샴푸의 요정|시티팝|2|3|bar cafe
+윤수일|아파트|록|3|3|pub lively
+로제|APT.|팝|3|3|lively pub
+방탄소년단|Dynamite|K-pop|3|3|lively brunch
+방탄소년단|봄날|K-pop|2|2|cafe
+NewJeans|Hype Boy|K-pop|3|3|lively dessert
+NewJeans|Ditto|K-pop|2|2|cafe dessert
+NewJeans|Attention|K-pop|2|3|dessert brunch
+IVE|LOVE DIVE|K-pop|3|3|lively
+aespa|Supernova|K-pop|3|2|lively
+BLACKPINK|뚜두뚜두 (DDU-DU DDU-DU)|K-pop|3|2|lively pub
+BIGBANG|뱅뱅뱅 (BANG BANG BANG)|K-pop|3|3|pub lively
+BIGBANG|봄여름가을겨울 (Still Life)|K-pop|2|2|cafe
+DAY6|한 페이지가 될 수 있게|밴드|3|3|pub lively
+DAY6|예뻤어|밴드|2|2|pub cafe
+싸이|강남스타일|댄스|3|3|pub lively
+에픽하이|Love Love Love|힙합|2|2|cafe
+빈지노|Aqua Man|힙합|2|2|bar night
+장기하와 얼굴들|싸구려 커피|인디|1|1|cafe pub
+송창식|고래사냥|포크|3|3|pub korean
+임영웅|사랑은 늘 도망가|발라드|1|2|korean
+장윤정|어머나|트로트|3|3|korean pub
+박상철|무조건|트로트|3|3|korean pub
+전인권|걱정말아요 그대|포크|1|2|korean pub
+자우림|스물다섯, 스물하나|록|2|2|pub cafe
+넬|기억을 걷는 시간|록|1|1|bar night
+루시드폴|고등어|포크|1|2|korean
+윤하|사건의 지평선|팝 록|2|2|cafe lively
+카더가든|나무|인디|1|2|cafe
+선우정아|도망가자|인디|1|1|bar night
+이루마|River Flows in You|피아노|1|2|cafe dessert
+Norah Jones|Don't Know Why|재즈|1|2|cafe bar brunch
+Norah Jones|Come Away With Me|재즈|1|2|cafe bar
+Frank Sinatra|Fly Me to the Moon|재즈|2|3|western bar
+Louis Armstrong|What a Wonderful World|재즈|1|3|cafe western
+Chet Baker|My Funny Valentine|재즈|1|1|bar night
+Stan Getz|The Girl from Ipanema|보사노바|1|3|cafe brunch
+Michael Bublé|Feeling Good|재즈|2|2|bar western
+Dave Brubeck|Take Five|재즈|2|2|bar western
+Bill Evans|Waltz for Debby|재즈|1|3|bar cafe
+Dean Martin|That's Amore|재즈|2|3|western
+Bruno Mars|Just the Way You Are|팝|2|3|brunch dessert
+Mark Ronson|Uptown Funk|펑크|3|3|lively pub
+Silk Sonic|Leave the Door Open|R&B|1|3|bar western
+Ed Sheeran|Perfect|팝|1|3|western cafe
+Ed Sheeran|Shape of You|팝|2|3|lively brunch
+Jason Mraz|I'm Yours|어쿠스틱|2|3|cafe brunch
+Jack Johnson|Banana Pancakes|어쿠스틱|1|3|brunch cafe
+John Legend|All of Me|발라드|1|2|western bar
+Adele|Someone Like You|발라드|1|1|bar night
+Billie Eilish|Ocean Eyes|팝|1|1|cafe night
+Lauv|I Like Me Better|팝|2|3|dessert brunch
+HONNE|Day 1|일렉트로닉|2|2|bar cafe
+Daft Punk|Get Lucky|디스코|3|3|pub western
+Earth, Wind & Fire|September|디스코|3|3|lively pub
+Queen|Don't Stop Me Now|록|3|3|pub lively
+The Beatles|Here Comes the Sun|록|2|3|brunch cafe
+Oasis|Don't Look Back in Anger|록|2|2|pub
+Coldplay|Viva la Vida|록|3|3|lively pub
+Coldplay|Yellow|록|2|2|cafe
+Maroon 5|Sugar|팝|3|3|dessert lively
+Dua Lipa|Levitating|팝|3|3|lively
+Harry Styles|As It Was|팝|2|2|cafe brunch
+The Weeknd|Blinding Lights|신스팝|3|2|pub lively
+Sabrina Carpenter|Espresso|팝|2|3|cafe dessert
+Pharrell Williams|Happy|팝|3|3|lively brunch
+Stevie Wonder|Isn't She Lovely|소울|2|3|brunch western
+Ben E. King|Stand by Me|소울|1|3|western pub
+ABBA|Dancing Queen|디스코|3|3|pub lively
+Eagles|Hotel California|록|2|1|pub bar
+Elvis Presley|Can't Help Falling in Love|팝|1|2|western bar
+Lana Del Rey|Video Games|팝|1|1|bar night
+Cigarettes After Sex|Apocalypse|드림팝|1|1|bar night
+Khruangbin|Time (You and I)|사이키델릭|2|2|bar cafe
+Gipsy Kings|Bamboléo|라틴|3|3|western pub
+Buena Vista Social Club|Chan Chan|라틴|1|2|bar western
+Avicii|Wake Me Up|EDM|3|3|lively
+Nujabes|Aruarian Dance|로파이 힙합|1|2|cafe japanese night
+竹内まりや|プラスティック・ラブ|시티팝|2|2|japanese bar
+山下達郎|RIDE ON TIME|시티팝|3|3|japanese pub
+YOASOBI|アイドル|J-pop|3|2|japanese lively
+Official髭男dism|Pretender|J-pop|2|2|japanese
+米津玄師|Lemon|J-pop|2|1|japanese night
+あいみょん|マリーゴールド|J-pop|2|3|japanese cafe
+久石譲|Summer|피아노|1|3|cafe brunch japanese
+坂本龍一|Merry Christmas Mr. Lawrence|피아노|1|1|japanese night
+鄧麗君|月亮代表我的心|발라드|1|2|chinese
+周杰倫|晴天|팝|2|2|chinese cafe`.split("\n").map((l) => { const [a, t, g, e, v, s] = l.split("|"); return { artist: a, title: t, genre: g, energy: +e, valence: +v, scenes: s.split(" ") }; });
+
+  const SCENES = {
+    cafe: { re: /카페|커피|coffee|cafe|café|로스터|티룸|찻집|티하우스/i, e: 1.6, v: 2.3, ko: "카페", en: "Café", ja: "カフェ", zh: "咖啡馆", icon: "☕" },
+    dessert: { re: /디저트|베이커리|빵|제과|케이크|도넛|아이스크림|젤라또|와플|마카롱|bakery|dessert/i, e: 2, v: 2.8, ko: "디저트·베이커리", en: "Dessert·Bakery", ja: "デザート·ベーカリー", zh: "甜品·烘焙", icon: "🍰" },
+    brunch: { re: /브런치|샌드위치|샐러드|포케|베이글|토스트|brunch/i, e: 2, v: 2.8, ko: "브런치", en: "Brunch", ja: "ブランチ", zh: "早午餐", icon: "🥪" },
+    bar: { re: /와인|칵테일|위스키|라운지|루프탑|재즈|\bbar\b|바$|바\s/i, e: 1.4, v: 1.8, ko: "바·와인", en: "Bar·Wine", ja: "バー·ワイン", zh: "酒吧·葡萄酒", icon: "🍷" },
+    pub: { re: /호프|맥주|펍|pub|포차|주점|술집|이자카야|막걸리|전집|비어/i, e: 2.6, v: 2.6, ko: "술집·포차", en: "Pub", ja: "居酒屋·パブ", zh: "酒馆", icon: "🍺" },
+    korean: { re: /한식|국밥|해장국|설렁탕|곰탕|백반|한정식|고기|삼겹|갈비|구이|찌개|칼국수|냉면|족발|보쌈|정육/i, e: 1.8, v: 2.2, ko: "한식", en: "Korean food", ja: "韓国料理", zh: "韩餐", icon: "🍚" },
+    japanese: { re: /일식|초밥|스시|라멘|우동|돈가스|돈까스|이자카야|오마카세|소바|텐동|일본/i, e: 1.8, v: 2.2, ko: "일식", en: "Japanese food", ja: "和食", zh: "日料", icon: "🍣" },
+    chinese: { re: /중식|중국|짜장|짬뽕|마라|훠궈|양꼬치|딤섬|중화/i, e: 2, v: 2.2, ko: "중식", en: "Chinese food", ja: "中華", zh: "中餐", icon: "🥟" },
+    western: { re: /양식|파스타|이탈리|스테이크|레스토랑|비스트로|프렌치|다이닝|트라토리아/i, e: 1.8, v: 2.4, ko: "양식·다이닝", en: "Western·Dining", ja: "洋食·ダイニング", zh: "西餐", icon: "🍝" },
+    lively: { re: /치킨|분식|떡볶이|버거|햄버거|피자|핫도그|닭강정|패스트푸드/i, e: 2.8, v: 2.8, ko: "치킨·분식", en: "Chicken·Snacks", ja: "チキン·軽食", zh: "炸鸡·小吃", icon: "🍗" },
+  };
+  const sceneName = (k) => (SCENES[k] ? `${SCENES[k].icon} ${SCENES[k][LG()] || SCENES[k].ko}` : "");
+
+  const SHOP = { pending: false, photo: null, res: null, busy: false, list: [] };
+  const LVL_E = () => [null, T4("잔잔함", "Calm", "穏やか", "舒缓"), T4("보통", "Medium", "ふつう", "中等"), T4("신남", "Upbeat", "ノリノリ", "欢快")];
+  const LVL_V = () => [null, T4("차분하고 어두움", "Moody", "しっとり", "沉静"), T4("무난함", "Balanced", "ほどよい", "平和"), T4("밝고 경쾌함", "Bright", "明るい", "明快")];
+
+  function langBarHTML(id) {
+    return `<div class="langbar" id="${id}" role="group" aria-label="언어 · Language"><span aria-hidden="true">🌐</span>${["ko", "en", "ja", "zh"].map((l) =>
+      `<button type="button" data-lang="${l}" lang="${l}" class="${l === LG() ? "on" : ""}" aria-pressed="${l === LG()}">${{ ko: "한국어", en: "English", ja: "日本語", zh: "中文" }[l]}</button>`).join("")}</div>`;
+  }
+
+  // 첫 화면: 왼쪽 노래 추천(사장님) | 오른쪽 메뉴 추천(손님)
+  function drawHub() {
+    $("hub").innerHTML = `${langBarHTML("hub-lang")}
+      <div class="hubhead"><img src="mascot.png?v=4" alt="" class="hubmascot"><h2>${T4("어떤 추천을 받아 볼까요?", "What would you like us to recommend?", "どちらのおすすめにしますか？", "想要哪种推荐？")}</h2></div>
+      <div class="hubgrid">
+        <button type="button" class="hubcard song" data-go="shop">
+          <span class="hubicon">🎵</span>
+          <b>${T4("노래 추천", "Song picks", "曲のおすすめ", "歌曲推荐")}</b>
+          <small class="hubtag">${T4("사장님용", "For shop owners", "店主さん向け", "店主专用")}</small>
+          <span class="hubdesc">${T4("가게 사진과 이름으로 매장 분위기를 분석해 어울리는 노래 10곡과 곡 분석을 만들어 드려요.", "We read your shop's vibe from a photo and its name, then build a 10-song playlist with song analysis.", "お店の写真と名前から雰囲気を分析し、合う曲10曲と曲の解説をお届けします。", "根据店铺照片和名称分析氛围，生成 10 首合适的歌单和歌曲解析。")}</span>
+          <span class="hubgo">▶ ${T4("들어가기", "Enter", "入る", "进入")}</span>
+        </button>
+        <button type="button" class="hubcard menu" data-go="menu">
+          <span class="hubicon">🍽️</span>
+          <b>${T4("메뉴 추천", "Menu picks", "メニューのおすすめ", "菜单推荐")}</b>
+          <small class="hubtag">${T4("손님용", "For diners", "お客さん向け", "食客专用")}</small>
+          <span class="hubdesc">${T4("좋아하는 노래의 분위기로 오늘의 메뉴와 주변 식당을 골라 드려요.", "Tell us a song you like and we'll pick today's menu and nearby restaurants to match its mood.", "好きな曲の雰囲気から、今日のメニューと近くのお店を選びます。", "根据你喜欢的歌曲氛围，推荐今日菜单和附近餐厅。")}</span>
+          <span class="hubgo">▶ ${T4("들어가기", "Enter", "入る", "进入")}</span>
+        </button>
+      </div>`;
+  }
+  function showHub() {
+    hideAll(); markNav("");
+    drawHub(); $("hub").classList.remove("hidden");
+    window.scrollTo({ top: 0 });
+  }
+  $("hub").addEventListener("click", (e) => {
+    const lb = e.target.closest("button[data-lang]");
+    if (lb) { applyLang(lb.dataset.lang); return; }
+    const c = e.target.closest("[data-go]"); if (!c) return;
+    if (c.dataset.go === "shop") { showShop(); go("shop"); return; }
+    hubMenu();
+  });
+  // 메뉴 추천으로: 손님은 가입·로그인 화면(가입 없이 쓰기 버튼 있음), 회원은 바로 입력 화면
+  function hubMenu() {
+    if (!AUTH.user) { SHOP.authMenu = true; openComm("auth"); return; }
+    hideAll(); markNav(""); showScreen("form"); go("form");
+  }
+
+  function showShop() {
+    if (!AUTH.user && !reqOk()) {   // 손님은 동의 화면부터 (동의하면 다시 이 화면으로)
+      SHOP.pending = true;
+      hideAll(); markNav(""); $("consent").classList.remove("hidden");
+      window.scrollTo({ top: 0 }); return;
+    }
+    SHOP.pending = false;
+    hideAll(); markNav("");
+    if (!$("shop-form")) drawShop();
+    $("shop").classList.remove("hidden");
+    if (SHOP.res) document.body.classList.add("wide");
+    window.scrollTo({ top: 0 });
+  }
+
+  function drawShop() {
+    const keep = { name: $("sh-name") ? $("sh-name").value : "", loc: $("sh-loc") ? $("sh-loc").value : "", kind: $("sh-kind") ? $("sh-kind").value : "" };
+    const opts = Object.keys(SCENES).map((k) => `<option value="${k}">${sceneName(k)}</option>`).join("");
+    $("shop").innerHTML = `
+      <div id="shop-form" class="card shopform">
+        <h2>🎵 ${T4("매장 노래 추천", "Music for your shop", "お店のBGMおすすめ", "店铺背景音乐推荐")}</h2>
+        <p class="hint" style="margin:0 0 12px">${T4("가게 사진을 올리고 이름·위치를 적으면 AI가 인테리어 분위기를 분석해 매장에 틀기 좋은 노래 10곡과 곡 분석을 만들어 드려요.", "Upload a photo of your shop and enter its name and area. AI reads the interior mood and builds 10 songs to play in your shop, with song analysis.", "お店の写真をアップして名前・場所を入れると、AIがインテリアの雰囲気を分析し、店内で流すのにぴったりな10曲と曲の解説を作ります。", "上传店铺照片并填写名称和位置，AI 会分析室内氛围，生成 10 首适合店内播放的歌曲及解析。")}</p>
+        <label>📷 ${T4("가게 사진", "Shop photo", "お店の写真", "店铺照片")} <span class="opt">(${T4("인테리어가 보이게", "show the interior", "店内が写るように", "拍到室内装潢")})</span></label>
+        <label class="shopdrop" id="sh-drop"><input type="file" id="sh-photo" accept="image/*" hidden>
+          <span id="sh-ph">${SHOP.photo ? "" : "📸 " + T4("눌러서 사진 고르기", "Tap to choose a photo", "タップして写真を選ぶ", "点击选择照片")}</span>
+          ${SHOP.photo ? `<img src="${SHOP.photo.url}" alt="">` : ""}</label>
+        <p class="hint" style="margin:4px 0 12px">${T4("손님 얼굴이나 차량 번호가 크게 나오지 않게 찍어 주세요. 사진은 분석에만 쓰고 저장하지 않아요.", "Avoid clearly showing customers' faces or license plates. The photo is used only for analysis and is not stored.", "お客さんの顔や車のナンバーが大きく写らないようにしてください。写真は分析にだけ使い、保存しません。", "请避免清楚拍到顾客面孔或车牌。照片仅用于分析，不会保存。")}</p>
+        <label for="sh-name">🏪 ${T4("가게 이름", "Shop name", "店名", "店名")}</label>
+        <input type="text" id="sh-name" maxlength="60" placeholder="${esc(T4("예: 마곡 브루잉 카페", "e.g. Magok Brewing Café", "例：マゴク ブルーイング カフェ", "例：麻谷精酿咖啡"))}" value="${esc(keep.name)}">
+        <label for="sh-loc">📍 ${T4("가게 위치", "Area", "場所", "位置")} <span class="opt">(${T4("선택", "optional", "任意", "可选")})</span></label>
+        <input type="text" id="sh-loc" maxlength="60" placeholder="${esc(T4("예: 마곡동, 강남역", "e.g. Magok-dong, Gangnam Station", "例：麻谷洞、江南駅", "例：麻谷洞、江南站"))}" value="${esc(keep.loc)}">
+        <label for="sh-kind">🍴 ${T4("가게 종류", "Shop type", "お店の種類", "店铺类型")}</label>
+        <select id="sh-kind"><option value="">${T4("자동으로 알아내기", "Detect automatically", "自動で判定", "自动识别")}</option>${opts}</select>
+        <div id="sh-err" class="error hidden"></div>
+        <button type="button" id="sh-go">🎶 ${T4("플레이리스트 만들기", "Make my playlist", "プレイリストを作る", "生成歌单")}</button>
+      </div>
+      <div id="shop-res"></div>`;
+    $("sh-kind").value = keep.kind;
+    if (SHOP.res) drawShopResult();
+  }
+
+  // 사진을 줄여서(긴 쪽 768px) 보내고, 색감도 같이 계산
+  function loadPhoto(file) {
+    return new Promise((res, rej) => {
+      const url = URL.createObjectURL(file), im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, 768 / Math.max(im.width, im.height));
+        const c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        const s = document.createElement("canvas"); s.width = 64; s.height = Math.max(1, Math.round(64 * im.height / im.width));
+        s.getContext("2d").drawImage(im, 0, 0, s.width, s.height);
+        res({ url, data: c.toDataURL("image/jpeg", 0.82), look: analyzePixels(s.getContext("2d").getImageData(0, 0, s.width, s.height).data) });
+      };
+      im.onerror = () => rej(new Error("photo"));
+      im.src = url;
+    });
+  }
+  function analyzePixels(d) {
+    let n = 0, L = 0, S = 0, L2 = 0, warm = 0, cool = 0, green = 0;
+    const buckets = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, dd = mx - mn;
+      const s = dd === 0 ? 0 : dd / (1 - Math.abs(2 * l - 1));
+      let h = 0;
+      if (dd) h = mx === r ? ((g - b) / dd) % 6 : mx === g ? (b - r) / dd + 2 : (r - g) / dd + 4;
+      h = (h * 60 + 360) % 360;
+      n++; L += l; L2 += l * l; S += s;
+      if (s > 0.18 && l > 0.12 && l < 0.92) {
+        if (h < 60 || h >= 330) warm++; else if (h >= 170 && h < 280) cool++;
+        if (h >= 70 && h < 165) green++;
+      }
+      const key = ((d[i] >> 5) << 6) | ((d[i + 1] >> 5) << 3) | (d[i + 2] >> 5);
+      buckets.set(key, (buckets.get(key) || 0) + 1);
+    }
+    L /= n; S /= n;
+    const contrast = Math.sqrt(Math.max(0, L2 / n - L * L));
+    const palette = [...buckets.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => {
+      const c = (v) => ((v << 5) + 16).toString(16).padStart(2, "0");
+      return "#" + c(k >> 6) + c((k >> 3) & 7) + c(k & 7);
+    });
+    return { L, S, warm: warm / n, cool: cool / n, green: green / n, contrast, palette };
+  }
+  function lookTraits(x) {
+    const t = [];
+    t.push(x.L > 0.62 ? T4("밝고 환한 조명", "Bright lighting", "明るい照明", "明亮的灯光") : x.L > 0.38 ? T4("은은한 조명", "Soft lighting", "やわらかな照明", "柔和的灯光") : T4("어둡고 아늑한 조명", "Dim, cozy lighting", "暗めで落ち着いた照明", "昏暗温馨的灯光"));
+    t.push(x.warm > x.cool * 1.4 ? T4("따뜻한 색감", "Warm tones", "暖色系", "暖色调") : x.cool > x.warm * 1.4 ? T4("시원한 색감", "Cool tones", "寒色系", "冷色调") : T4("중간 색감", "Neutral tones", "ニュートラルな色", "中性色调"));
+    t.push(x.S > 0.38 ? T4("화사하고 선명함", "Vivid colors", "鮮やか", "色彩鲜艳") : T4("차분한 톤", "Muted colors", "落ち着いたトーン", "色调沉稳"));
+    if (x.green > 0.1) t.push(T4("식물·자연 느낌", "Plants & nature", "植物·ナチュラル", "绿植·自然感"));
+    if (x.contrast > 0.26) t.push(T4("또렷한 대비", "Strong contrast", "コントラスト強め", "对比鲜明"));
+    return t;
+  }
+  function detectScenes(text, kind) {
+    if (kind && SCENES[kind]) return [kind];
+    const out = Object.keys(SCENES).filter((k) => SCENES[k].re.test(text || ""));
+    return out.length ? out.slice(0, 2) : ["cafe"];
+  }
+
+  // 자체 분석: 가게 종류의 기본 분위기 + 사진 색감 → 목표 에너지·분위기에 가까운 곡
+  function localPlaylist(scenes, look, avoid) {
+    const sc = SCENES[scenes[0]];
+    let E = sc.e, V = sc.v;
+    if (look) {
+      const pe = 1 + 2 * Math.min(1, 0.55 * look.S / 0.5 + 0.45 * look.contrast / 0.3);
+      const pv = 1 + 2 * Math.min(1, 0.65 * look.L / 0.7 + 0.35 * Math.min(1, look.warm * 3));
+      E = (E + pe) / 2; V = (V + pv) / 2;
+    }
+    const h = new Date().getHours();
+    if (h >= 21 || h < 5) { E -= scenes[0] === "pub" ? -0.2 : 0.25; V -= 0.15; }
+    if (h >= 6 && h < 11) V += 0.2;
+    const warmish = look && look.warm > look.cool * 1.4, coolish = look && look.cool > look.warm * 1.4, natural = look && look.green > 0.1;
+    const night = h >= 20 || h < 5;
+    const skip = new Set(avoid || []);
+    const scored = SHOP_SONGS.filter((s) => !skip.has(s.artist + "|" + s.title)).map((s) => {
+      let d = Math.abs(s.energy - E) + Math.abs(s.valence - V);
+      if (s.scenes.some((x) => scenes.includes(x))) d -= 0.9;
+      if (night && s.scenes.includes("night")) d -= 0.3;
+      if (warmish && /재즈|어쿠스틱|R&B|포크|보사노바|소울|발라드/.test(s.genre)) d -= 0.25;
+      if (coolish && /일렉트로닉|인디|드림팝|로파이|신스팝|시티팝/.test(s.genre)) d -= 0.25;
+      if (natural && /어쿠스틱|포크|보사노바|피아노/.test(s.genre)) d -= 0.25;
+      return { s, d: d + Math.random() * 0.6 };
+    }).sort((a, b) => a.d - b.d);
+    const out = [], per = {};
+    for (const { s } of scored) {
+      if ((per[s.artist] || 0) >= 1) continue;
+      per[s.artist] = 1; out.push(s);
+      if (out.length === 10) break;
+    }
+    return { E: Math.max(1, Math.min(3, Math.round(E))), V: Math.max(1, Math.min(3, Math.round(V))), songs: out };
+  }
+  function localReason(s, scenes, look) {
+    const where = sceneName(scenes[0]).replace(/^\S+\s/, "");
+    const mood = s.energy === 1 ? T4("잔잔하게 깔리는", "laid-back", "静かに流れる", "舒缓的") : s.energy === 2 ? T4("편안하게 흐르는", "easygoing", "心地よく流れる", "轻松的") : T4("흥을 올려 주는", "upbeat", "盛り上げてくれる", "带动气氛的");
+    const lt = look ? (look.L > 0.62 ? T4("밝은 조명", "bright lighting", "明るい照明", "明亮的灯光") : look.L > 0.38 ? T4("은은한 조명", "soft lighting", "やわらかな照明", "柔和的灯光") : T4("어두운 조명", "dim lighting", "暗めの照明", "昏暗的灯光")) : "";
+    const g = s.genre, c = g.charCodeAt(g.length - 1);
+    const ieyo = c >= 0xac00 && c <= 0xd7a3 ? ((c - 0xac00) % 28 ? "이에요" : "예요") : /[aeiouy]$/i.test(g) ? "예요" : "이에요";
+    return T4(`${lt ? lt + "과 " : ""}${where} 분위기에 어울리는 ${mood} ${g}${ieyo}.`,
+      `A ${mood} ${s.genre} track that suits a ${where.toLowerCase()}${lt ? " with " + lt : ""}.`,
+      `${lt ? lt + "と" : ""}${where}の雰囲気に合う、${mood}${s.genre}です。`,
+      `${mood}${s.genre}，适合${lt ? lt + "下的" : ""}${where}氛围。`);
+  }
+
+  async function storeInfo(name, loc) {
+    if (!name || !SEARCH_PROXY || !CONSENT.abroad) return null;
+    const list = await (loc ? searchPlaces(loc, name) : searchPlaces(name, "")).catch(() => null);
+    if (!list || !list.length) return null;
+    const k0 = name.replace(/\s+/g, "");
+    return list.find((p) => p.name.replace(/\s+/g, "").includes(k0) || k0.includes(p.name.replace(/\s+/g, ""))) || null;
+  }
+
+  async function runShop(more) {
+    if (SHOP.busy) return;
+    const name = $("sh-name").value.trim(), loc = $("sh-loc").value.trim(), kind = $("sh-kind").value;
+    const err = (t) => { $("sh-err").textContent = t; $("sh-err").classList.toggle("hidden", !t); };
+    if (!SHOP.photo && !name) { err(T4("가게 사진을 올리거나 가게 이름을 적어 주세요.", "Please add a shop photo or enter the shop name.", "お店の写真か店名を入れてください。", "请上传店铺照片或填写店名。")); return; }
+    err("");
+    SHOP.busy = true;
+    const btns = [$("sh-go"), $("sh-more")].filter(Boolean);
+    btns.forEach((b) => (b.disabled = true));
+    $("loading").classList.remove("hidden");
+    $("load-sub").textContent = T4("가게 분위기를 분석하고 노래를 고르는 중이에요...", "Reading your shop's vibe and picking songs...", "お店の雰囲気を分析して曲を選んでいます...", "正在分析店铺氛围并挑选歌曲...");
+    const avoid = more && SHOP.res ? SHOP.res.songs.map((s) => s.artist + "|" + s.title).concat(SHOP.res.avoid || []) : [];
+    const place = more && SHOP.res ? SHOP.res.place : await storeInfo(name, loc);
+    const scenes = detectScenes([name, place && place.category, kind && SCENES[kind] && SCENES[kind].ko].filter(Boolean).join(" "), kind);
+    const look = SHOP.photo ? SHOP.photo.look : null;
+    let ai = null, why = "";
+    try {
+      const r = await fetch(API + "/shop/vibe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        image: SHOP.photo ? SHOP.photo.data : "", mime: "image/jpeg", name, loc: place ? place.addr : loc, kind: kind ? SCENES[kind].ko : "",
+        category: place ? place.category : "", lang: LG(), hour: new Date().getHours(), avoid: avoid.map((x) => x.replace("|", " - ")),
+      }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.songs && d.songs.length) ai = d; else why = d.error || "fail";
+    } catch { why = "net"; }
+    let res;
+    if (ai) {
+      res = { by: "ai", model: ai.model, summary: ai.summary, tags: ai.tags, lighting: ai.lighting, colors: ai.colors, materials: ai.materials, E: ai.energy, V: ai.valence, songs: ai.songs };
+    } else {
+      const lp = localPlaylist(scenes, look, avoid);
+      res = { by: "local", why, E: lp.E, V: lp.V, tags: look ? lookTraits(look) : [], songs: lp.songs.map((s) => ({ ...s, reason: localReason(s, scenes, look) })),
+        summary: localSummary(scenes, look) };
+    }
+    Object.assign(res, { name, place, scenes, look, avoid });
+    SHOP.res = res;
+    $("loading").classList.add("hidden");
+    SHOP.busy = false;
+    btns.forEach((b) => (b.disabled = false));
+    drawShopResult();
+    document.body.classList.add("wide");
+    $("shop-res").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function localSummary(scenes, look) {
+    const where = sceneName(scenes[0]).replace(/^\S+\s/, "");
+    if (!look) return T4(`${where} 가게라서 그 분위기에 흔히 어울리는 곡을 골랐어요.`, `As a ${where.toLowerCase()}, we picked songs that usually suit that kind of place.`, `${where}のお店なので、その雰囲気によく合う曲を選びました。`, `这是一家${where}，所以挑选了通常适合这类店铺的歌曲。`);
+    const t = lookTraits(look);
+    return T4(`사진은 ${t.slice(0, 3).join(", ")}이 느껴지는 ${where} 공간이에요. 이 느낌에 맞는 에너지와 분위기의 곡을 골랐어요.`,
+      `The photo shows a ${where.toLowerCase()} space with ${t.slice(0, 3).join(", ").toLowerCase()}. We matched the songs' energy and mood to that feel.`,
+      `写真からは${t.slice(0, 3).join("、")}が感じられる${where}の空間です。この雰囲気に合うエネルギーとムードの曲を選びました。`,
+      `照片中是一个${t.slice(0, 3).join("、")}的${where}空间。我们按照这种感觉挑选了能量和氛围相符的歌曲。`);
+  }
+
+  function drawShopResult() {
+    const r = SHOP.res; if (!r || !$("shop-res")) return;
+    const E = LVL_E(), V = LVL_V();
+    const src = r.by === "ai"
+      ? `<span class="shopsrc ai">✨ ${T4("Gemini AI 분석", "Gemini AI analysis", "Gemini AI 分析", "Gemini AI 分析")}</span>`
+      : `<span class="shopsrc">🎨 ${T4("사진 색감·가게 종류 분석", "Photo colors & shop type", "写真の色·お店の種類で分析", "照片色彩·店铺类型分析")}</span>`;
+    const whyLocal = r.by === "local" && r.why && r.why !== "off" ? `<p class="hint">${r.why === "busy" ? T4("AI 분석 무료 사용량이 잠시 다 차서 자체 분석으로 골랐어요. 1분쯤 뒤에 다시 하면 AI로 분석해요.", "The free AI quota is used up for now, so we used our own analysis. Try again in a minute for AI.", "AI分析の無料枠が一時的にいっぱいなので、独自分析で選びました。1分ほどで再度お試しください。", "AI 免费额度暂时用完，已改用自有分析。约 1 分钟后重试即可使用 AI。") : T4("AI 분석을 쓰지 못해 자체 분석으로 골랐어요.", "AI analysis wasn't available, so we used our own analysis.", "AI分析が使えなかったため、独自分析で選びました。", "暂时无法使用 AI 分析，已改用自有分析。")}</p>` : "";
+    const pal = r.look ? `<div class="palette">${r.look.palette.map((c) => `<i style="background:${c}" title="${c}"></i>`).join("")}</div>` : "";
+    const facts = [[T4("조명", "Lighting", "照明", "灯光"), r.lighting], [T4("색감", "Colors", "色合い", "色调"), r.colors], [T4("소재", "Materials", "素材", "材质"), r.materials]].filter((x) => x[1]);
+    const place = r.place ? `<div class="songmeta">🏪 ${esc(r.place.name)} · ${esc(r.place.category)} · ${esc(r.place.addr)}</div>` : "";
+    const links = (s) => { const q = encodeURIComponent(`${s.artist} ${s.title}`);
+      return `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">${LOGO.yt}YouTube</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">${LOGO.sp}Spotify</a><a href="https://music.apple.com/kr/search?term=${q}" target="_blank" rel="noopener">${LOGO.am}Apple Music</a>`; };
+    const sec = (lab, txt) => `<div class="sect"><span>${lab}</span><span>${esc(txt)}</span></div>`;
+    $("shop-res").innerHTML = `
+      <div class="shopgrid">
+        <div class="card">
+          <h2>🔍 ${T4("가게 분위기 분석", "Shop vibe analysis", "お店の雰囲気分析", "店铺氛围分析")}</h2>
+          ${src}
+          ${SHOP.photo ? `<img class="shopimg" src="${SHOP.photo.url}" alt="">` : ""}
+          ${pal}
+          <p class="synopsis">${esc(r.summary || "")}</p>
+          ${r.tags && r.tags.length ? `<div class="stats">${r.tags.map((t) => `<span class="stat">${esc(t)}</span>`).join("")}</div>` : ""}
+          ${facts.length ? `<div class="sects">${facts.map((f) => sec(f[0], f[1])).join("")}</div>` : ""}
+          <div class="stats" style="margin-top:10px"><span class="stat">${r.scenes.map(sceneName).join(" · ")}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[r.E]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[r.V]}</span></div>
+          ${place}${whyLocal}
+        </div>
+        <div class="card">
+          <h2>🎧 ${r.name ? esc(r.name) + " · " : ""}${T4("플레이리스트 10곡", "10-song playlist", "プレイリスト10曲", "10 首歌单")}</h2>
+          <ol class="shoplist">${r.songs.map((s, i) => `<li>
+            <div class="shoptop"><b>${esc(s.title)}</b><span> – ${esc(s.artist)}</span></div>
+            <div class="stats"><span class="stat">${esc(s.genre || "")}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[s.energy]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[s.valence]}</span></div>
+            <p class="shopwhy">${esc(s.reason || "")}</p>
+            <details><summary>${T4("곡 분석 보기", "Song analysis", "曲の解説", "歌曲解析")}</summary><div class="sects">
+              ${sec(T4("인트로", "Intro", "イントロ", "前奏"), s.intro || TK(INTRO[s.energy]))}
+              ${sec(T4("벌스", "Verse", "Aメロ", "主歌"), s.verse || TK(VERSE[s.valence]))}
+              ${sec(T4("후렴", "Chorus", "サビ", "副歌"), s.chorus || TK(chorusText(s.energy, s.valence)))}
+            </div></details>
+            <div class="shopacts"><button type="button" class="mini" data-pv="${i}">▶ ${T4("미리듣기", "Preview", "試聴", "试听")}</button><span class="listen">${links(s)}</span></div>
+            <div class="shoppv" id="sh-pv-${i}"></div>
+          </li>`).join("")}</ol>
+          <p class="songmeta">${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 미리듣기로 실제 곡을 확인해 보세요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. Check each song with the preview. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。試聴で実際の曲を確認してください。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选，请用试听确认。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
+          <div class="row2">
+            <button type="button" id="sh-more">🔄 ${T4("다른 10곡", "10 different songs", "別の10曲", "换 10 首")}</button>
+            <button type="button" class="ghost" id="sh-copy">📋 ${T4("목록 복사", "Copy list", "リストをコピー", "复制列表")}</button>
+          </div>
+          <button type="button" class="ghost" id="sh-again">✏️ ${T4("다시 입력", "Start over", "入力し直す", "重新输入")}</button>
+        </div>
+      </div>`;
+  }
+
+  $("shop").addEventListener("change", async (e) => {
+    if (e.target.id !== "sh-photo" || !e.target.files[0]) return;
+    try { SHOP.photo = await loadPhoto(e.target.files[0]); }
+    catch { SHOP.photo = null; toast(T4("사진을 읽지 못했어요. 다른 사진을 골라 주세요.", "Couldn't read that photo. Please choose another.", "写真を読み込めませんでした。別の写真を選んでください。", "无法读取该照片，请换一张。")); return; }
+    const d = $("sh-drop"); d.querySelector("img") && d.querySelector("img").remove();
+    $("sh-ph").textContent = ""; d.insertAdjacentHTML("beforeend", `<img src="${SHOP.photo.url}" alt="">`);
+  });
+  $("shop").addEventListener("click", async (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.id === "sh-go") { SHOP.res = null; runShop(false); return; }
+    if (t.id === "sh-more") { runShop(true); return; }
+    if (t.id === "sh-again") { SHOP.res = null; $("shop-res").innerHTML = ""; document.body.classList.remove("wide"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (t.id === "sh-copy") {
+      const txt = SHOP.res.songs.map((s, i) => `${i + 1}. ${s.artist} - ${s.title}`).join("\n");
+      try { await navigator.clipboard.writeText(txt); } catch { copyText(txt); }
+      toast(T4("플레이리스트를 복사했어요.", "Playlist copied.", "プレイリストをコピーしました。", "歌单已复制。")); return;
+    }
+    if (t.dataset.pv !== undefined) {
+      const i = +t.dataset.pv, s = SHOP.res.songs[i], box = $("sh-pv-" + i);
+      t.disabled = true; box.innerHTML = `<span class="hint">${T4("곡을 찾는 중...", "Finding the song...", "曲を探しています...", "正在查找歌曲...")}</span>`;
+      const info = await lookupSong(`${s.artist} ${s.title}`).catch(() => null);
+      t.disabled = false;
+      if (info && info.previewUrl && !info.mismatch) {
+        box.innerHTML = `<div class="shoppvrow">${info.artworkUrl100 ? `<img src="${esc(info.artworkUrl100)}" alt="">` : ""}<span>${esc(info.artistName || "")} – ${esc(info.trackName || "")}</span></div><audio controls autoplay src="${esc(info.previewUrl)}"></audio>`;
+      } else box.innerHTML = `<span class="hint">${T4("미리듣기를 찾지 못했어요. 옆의 YouTube·Spotify에서 들어 보세요.", "No preview found. Try YouTube or Spotify next to it.", "試聴が見つかりませんでした。横のYouTube·Spotifyで聴いてみてください。", "未找到试听，请用旁边的 YouTube·Spotify 收听。")}</span>`;
+    }
+  });
+  LANG_HOOKS.push(() => {
+    if (!$("hub").classList.contains("hidden")) drawHub();
+    if ($("shop-form")) {
+      const res = SHOP.res; drawShop();
+      if (res && res.by === "local") { res.songs.forEach((s) => (s.reason = localReason(s, res.scenes, res.look))); res.summary = localSummary(res.scenes, res.look); res.tags = res.look ? lookTraits(res.look) : []; drawShopResult(); }
+    }
+  });
+
+  // ---------- 음악 소리 크기 (내 정보) ----------
+  let VOL = 1;
+  try { const v = parseFloat(localStorage.getItem("food.vol")); if (v >= 0 && v <= 1) VOL = v; } catch {}
+  function applyVol() {
+    document.querySelectorAll("audio, video").forEach((a) => (a.volume = VOL));
+    if (ST && ST.el) ST.el.volume = VOL;
+    if ($("vol")) { $("vol").value = Math.round(VOL * 100); $("vol-n").textContent = Math.round(VOL * 100) + "%"; }
+  }
+  document.addEventListener("play", (e) => { if (e.target && "volume" in e.target) e.target.volume = VOL; }, true);
+  $("vol").addEventListener("input", (e) => {
+    VOL = Math.max(0, Math.min(1, e.target.value / 100));
+    try { localStorage.setItem("food.vol", String(VOL)); } catch {}
+    applyVol();
+  });
+  $("vol-test").addEventListener("click", () => {
+    try {
+      const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain();
+      o.frequency.value = 660; g.gain.value = 0.25 * VOL; o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.35);
+    } catch {}
+  });
+  applyVol();
+
+  const APP_VERSION = "v2.20";
   const CHANGELOG = [
+    ["v2.20", "2026-11-19", "노래 추천 패널·동의 필수·마곡 위치·음량", [
+      "첫 화면을 두 패널로 나눔: 왼쪽 노래 추천(가게 사장님용), 오른쪽 기존 메뉴 추천",
+      "노래 추천: 가게 사진 + 이름·위치 넣으면 AI(Gemini)가 분위기 분석 후 10곡 플레이리스트와 곡별 설명 제공, 미리듣기·유튜브·스포티파이·애플 링크, 다른 10곡 받기",
+      "AI 키가 없거나 한도에 걸리면 사진 색감·가게 종류로 자체 분석해 실제 곡 목록에서 추천",
+      "로그인·가입 동의 항목 전부 필수로 변경, 국외 이전에 Google(Gemini) 추가",
+      "'마곡'처럼 짧은 동네 이름이 다른 지역(공주 등)으로 잡히던 문제 수정",
+      "계정 설정에 음악 음량 조절 추가",
+      "새 화면도 한·영·일·중 4개 언어 지원",
+    ]],
     ["v2.19", "2026-11-17", "캐릭터를 세 친구 단체 그림으로", [
       "v2.18의 합친 캐릭터 대신, 사용자가 준 세 캐릭터(헤드폰 토마토·헤드폰 버섯·뒤집개 든 돈가스 셰프)를 그대로 살려 나란히 선 단체 그림으로 바꿈",
       "헤더 로고·첫 화면 인사·로딩 화면·링크 공유 이미지는 셋이 나란히, 홈 화면 앱 아이콘은 셋이 삼각형으로 모인 모양 (작은 탭 아이콘은 버섯만)",
@@ -4434,6 +5009,7 @@ JJ Lin|林俊傑|임준걸`;
   function fillPrefs() {
     const pf = (AUTH.user && AUTH.user.prefs) || {};
     $("pf-abroad").checked = !!pf.abroad; $("pf-geo").checked = !!pf.geo;
+    $("pf-box").classList.toggle("hidden", !!pf.abroad && !!pf.geo);   // v2.20부터 가입 때 모두 필수 동의 → 예전 회원만 보임
     const t = (x) => x ? new Date(x).toLocaleString("ko-KR") : "";
     $("pf-when").textContent = pf.agreedAt ? `가입 동의 ${t(pf.agreedAt)}${pf.updatedAt && pf.updatedAt !== pf.agreedAt ? ` · 마지막 변경 ${t(pf.updatedAt)}` : ""}` : "";
   }

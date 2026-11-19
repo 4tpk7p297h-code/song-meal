@@ -9,6 +9,9 @@
 //        SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET (Spotify),  LASTFM_API_KEY (Last.fm)
 //      키가 없어도 MusicBrainz·Wikidata(키 필요 없음)는 항상 함께 비교함 → 맨 아래 '곡 정보' 부분
 //
+//   6) (선택) 노래 추천의 가게 사진 AI 분석: Secret 으로 GEMINI_API_KEY (Google AI Studio 무료 키)
+//        없거나 무료 한도를 넘으면 사이트가 브라우저 안 사진 색감 분석으로 대신함. 모델을 바꾸려면 Text 변수 GEMINI_MODEL
+//
 //   5) (선택) 카카오 로그인: Secret 으로 KAKAO_REST_KEY(REST API 키), KAKAO_CLIENT_SECRET(보안 → Client Secret 코드)
 //        두 개가 모두 있으면 켜짐. KAKAO_ADMIN_KEY(어드민 키)도 넣으면 탈퇴할 때 카카오 연결도 함께 끊음
 //        카카오 개발자 콘솔 Redirect URI: 이 Worker 주소 + /auth/kakao/callback
@@ -108,7 +111,7 @@ export default {
         MusicBrainz: "켜짐", Wikidata: "켜짐",
         Spotify: k.spotify ? "켜짐" : "꺼짐 (SPOTIFY_CLIENT_ID·SPOTIFY_CLIENT_SECRET 없음)",
         "Last.fm": k.lastfm ? "켜짐" : "꺼짐 (LASTFM_API_KEY 없음)",
-      }, kakao: kakaoOn(env) ? "켜짐" : "꺼짐 (KAKAO_REST_KEY·KAKAO_CLIENT_SECRET 없음)" });
+      }, gemini: env.GEMINI_API_KEY ? "켜짐 (" + (env.GEMINI_MODEL || GEMINI_MODELS[0]) + ")" : "꺼짐 (GEMINI_API_KEY 없음)", kakao: kakaoOn(env) ? "켜짐" : "꺼짐 (KAKAO_REST_KEY·KAKAO_CLIENT_SECRET 없음)" });
     }
     // 카카오 로그인 시작·돌아오기 (브라우저가 페이지째 이동하므로 Origin 이 없음 → 허용 사이트 검사보다 먼저)
     if (pathname === "/auth/kakao/start" || pathname === "/auth/kakao/callback") {
@@ -131,6 +134,17 @@ export default {
       if (tooMany(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "너무 자주 요청했어요. 1분 뒤에 다시 해 주세요." }, 429);
       try { return json(await musicMood(new URL(request.url).searchParams, env)); }
       catch (e) { console.log("mood", e && e.stack); return json({ tags: [], error: "분위기 태그를 가져오지 못했어요." }); }
+    }
+    // 노래 추천(사장님용): 가게 사진·이름으로 Gemini가 분위기를 분석하고 노래 10곡을 고름. DB 없이 동작
+    if (pathname === "/shop/vibe" && request.method === "POST") {
+      if (!env.GEMINI_API_KEY) return json({ error: "off" }, 503);
+      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
+      try { return json(await shopVibe(await body(request), env)); }
+      catch (e) {
+        if (e instanceof HttpError) return json({ error: e.message }, e.status);
+        console.log("vibe", e && e.stack);
+        return json({ error: "fail" }, 502);
+      }
     }
     if (!env.DB) return json({ error: "서버에 데이터베이스(DB)가 연결되지 않았어요." }, 500);
 
@@ -675,7 +689,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.8";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "2.9";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -912,4 +926,71 @@ async function musicSearch(q, env) {
   const out = { v: MUSIC_VERSION, names: names.map(clean), titles: titles.map(clean), tracks, status };
   // 응답이 없던 서비스가 있으면 기억하지 않음 (다음 검색 때 다시 물어봄)
   return Object.values(status).some((x) => /응답 없음|시간 초과|연결 안 됨|토큰 실패/.test(x)) ? out : memo(key, out);
+}
+
+
+// ---------- 노래 추천 (사장님용): Gemini 사진 분석 ----------
+// 사진은 분석에만 쓰고 저장하지 않음. 무료 키 한도를 아끼려고 한 사람(IP)당 1분에 6번까지
+const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
+const AI_HITS = new Map();
+function tooManyAI(ip) {
+  const t = Date.now(), h = (AI_HITS.get(ip) || []).filter((x) => t - x < 60e3);
+  h.push(t); AI_HITS.delete(ip); AI_HITS.set(ip, h);
+  if (AI_HITS.size > 2000) AI_HITS.delete(AI_HITS.keys().next().value);
+  return h.length > 6;
+}
+const LANG_NAME = { ko: "한국어", en: "English", ja: "日本語", zh: "简体中文" };
+const cut = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
+const lv = (v) => Math.max(1, Math.min(3, Math.round(+v) || 2));
+
+async function shopVibe(b, env) {
+  const img = typeof b.image === "string" ? b.image.replace(/^data:[^,]+,/, "") : "";
+  if (img && (img.length > 2_400_000 || !/^[A-Za-z0-9+/=]+$/.test(img))) fail(400, "photo");
+  const name = cut(b.name, 60), kind = cut(b.kind, 40), cat = cut(b.category, 60), loc = cut(b.loc, 60);
+  if (!img && !name) fail(400, "need");
+  const lang = LANG_NAME[b.lang] ? b.lang : "ko";
+  const avoid = Array.isArray(b.avoid) ? b.avoid.slice(0, 40).map((x) => cut(x, 80)).filter(Boolean) : [];
+  const hour = Number.isInteger(b.hour) && b.hour >= 0 && b.hour < 24 ? b.hour : null;
+  const prompt = [
+    "You are a music curator for restaurants and cafes in Korea. A shop owner wants background music that fits the shop.",
+    img ? "Look at the attached photo of the shop (interior, lighting, colors, materials, furniture, crowd feel)." : "There is no photo; use the shop information only.",
+    `Shop name: ${name || "(none)"} / Shop type chosen by owner: ${kind || "(auto)"} / Naver category: ${cat || "(unknown)"} / Area: ${loc || "(unknown)"}` + (hour !== null ? ` / Current hour: ${hour}` : ""),
+    "Pick exactly 10 REAL, officially released songs that actually exist (well-known enough to find on Apple Music or YouTube). Never invent songs. Mix Korean songs and international songs unless the shop clearly suits one style. At most 2 songs per artist. Order them as a playlist flow.",
+    avoid.length ? "Do not use these songs: " + avoid.join(" | ") : "",
+    `Write every descriptive text in ${LANG_NAME[lang]}. Keep artist and title as officially written (Korean songs in Korean).`,
+    "energy and valence are integers 1-3 (1 = calm/dark, 3 = energetic/bright).",
+    "Return only JSON with this shape:",
+    '{"summary":"2 sentences about the shop atmosphere","lighting":"short","colors":"short","materials":"short","tags":["5 short mood keywords"],"energy":2,"valence":2,"songs":[{"artist":"","title":"","genre":"","energy":2,"valence":2,"reason":"1 sentence why it fits this shop","intro":"1 short sentence","verse":"1 short sentence","chorus":"1 short sentence"}]}',
+  ].filter(Boolean).join("\n");
+  const parts = [{ text: prompt }];
+  if (img) parts.push({ inline_data: { mime_type: /^image\/(png|webp|jpeg)$/.test(b.mime) ? b.mime : "image/jpeg", data: img } });
+  const models = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...GEMINI_MODELS] : GEMINI_MODELS;
+  let lastStatus = 0;
+  for (const model of models) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.9 } }),
+    });
+    lastStatus = r.status;
+    if (r.status === 404 || r.status === 400 && !img) continue;   // 모델 이름이 바뀐 경우 다음 모델로
+    if (r.status === 429) fail(429, "busy");
+    if (!r.ok) { console.log("gemini", r.status, (await r.text()).slice(0, 300)); continue; }
+    const d = await r.json();
+    const text = (((d.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "";
+    let o; try { o = JSON.parse(text.replace(/^```(json)?|```$/g, "").trim()); } catch { continue; }
+    const seen = new Set();
+    const songs = (Array.isArray(o.songs) ? o.songs : []).map((x) => ({
+      artist: cut(x.artist, 80), title: cut(x.title, 100), genre: cut(x.genre, 30),
+      energy: lv(x.energy), valence: lv(x.valence), reason: cut(x.reason, 200),
+      intro: cut(x.intro, 140), verse: cut(x.verse, 140), chorus: cut(x.chorus, 140),
+    })).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()) && seen.add((x.artist + x.title).toLowerCase())).slice(0, 10);
+    if (songs.length < 5) continue;
+    return {
+      model, summary: cut(o.summary, 400), lighting: cut(o.lighting, 80), colors: cut(o.colors, 80), materials: cut(o.materials, 80),
+      tags: (Array.isArray(o.tags) ? o.tags : []).map((t) => cut(t, 24)).filter(Boolean).slice(0, 6),
+      energy: lv(o.energy), valence: lv(o.valence), songs,
+    };
+  }
+  fail(502, lastStatus === 403 || lastStatus === 401 ? "key" : "fail");
 }

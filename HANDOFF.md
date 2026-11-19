@@ -1,7 +1,7 @@
 # 비트밥스 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-17 (사이트 v2.19, 업로드 zip 20261117_rev2, Worker song-meal-api v2.8 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-19 (사이트 v2.20, 업로드 zip 20261119_rev1, Worker song-meal-api v2.9 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -78,6 +78,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - v2.17: 사이트 전체 다국어. lang.js = 화면 번역 엔진(MutationObserver로 새로 그려지는 글자를 바꿈. 앱 로직은 계속 한국어로 돌고, 보이는 글자만 번역). 글자 노드는 TR[한국어]=[en,ja,zh]로 정확히 일치, 안쪽에 b·span 등만 있는 요소는 TR_HTML[innerHTML], placeholder·title·aria-label·alt도 번역, 숫자·이름이 섞인 문장은 RULES(정규식+함수). 원래 한국어는 WeakMap에 기억해 한국어로 돌아가면 복원. translate="no"·textarea·.notr 안은 건드리지 않음(업데이트 내역 #adm-log는 한국어 유지). 못 바꾼 글자는 window.__i18nMiss에 모임. API: I18.set(lang)/I18.t(ko), applyLang 끝에서 호출. lang-data.js = 번역 사전(window.I18N_DATA={TR,TR_HTML,RULES}); 세션 밖 스크립트로 만들었지만 직접 고쳐도 됨. 화면 문구를 바꾸거나 새로 넣으면 lang-data.js TR에 같은 한국어 키로 [en,ja,zh]를 추가해야 번역됨. 가게 이름·주소·후기·닉네임·곡 제목은 번역 안 함. 배포 zip에 lang.js·lang-data.js 꼭 포함.
 - v2.18: 캐릭터 리디자인(2026-11-17 사용자 요청, 사용자가 준 토마토·헤드폰 버섯·돈가스 셰프 3개를 합침): 토마토 꼭지+헤드폰+빨간 버섯 갓(흰 점)+바삭한 주황 돈가스 몸+뒤집개+락 손. 원본은 SVG로 직접 그림(/mnt/project-files/song-meal/mascot.svg). mascot.png·아이콘 5개·og.png 다시 만듦. 이미지 주소는 ?v=3으로 바꿔 카카오톡 등 링크 미리보기 캐시를 피함(이미지 바꿀 때마다 숫자 올리기). 이름 '뮤디'는 그대로.
 - v2.19: 사용자 정정("셋이 나란히 친구처럼, 부위를 합치는 게 아니라") → v2.18 합친 캐릭터 폐기. 사용자가 준 원본 3장(헤드폰 토마토·헤드폰 버섯·뒤집개 돈가스 셰프)의 배경만 투명하게 따서 나란히 배치. 원본 조각·단체 그림: /mnt/project-files/song-meal/characters/(tomato·mush·cutlet·group.png). mascot.png(단체 900×369)는 헤더 로고·첫 화면·로딩, 앱 아이콘은 버섯 위·토마토/돈가스 아래 삼각형, icon-32는 버섯만. 이미지 주소 ?v=4.
+- v2.20: 팀원 피드백 반영. 첫 화면 #hub 두 패널(노래 추천 #shop / 기존 메뉴 추천). 노래 추천 = 가게 사진(768px JPEG)+이름·위치 → Worker POST /shop/vibe → Gemini(Secret GEMINI_API_KEY, 모델 gemini-2.5-flash→flash-latest→2.0-flash, IP당 분당 6회) → 10곡 JSON. 키 없음·한도·실패 시 브라우저 자체 분석(사진 색감 analyzePixels + 가게 종류 SCENES) + 내장 SHOP_SONGS(실제 곡 ~120). 미리듣기는 기존 lookupSong 호출만(수정 안 함). 새 화면은 .notr + T4(ko,en,ja,zh) 직접 번역. 동의: 게스트·가입 모두 필수(국외 이전·위치), 국외 이전에 Google LLC 추가, privacy.html 동일 반영. resolveLoc: 짧은 동네 이름은 이름 포함 장소 검색 우선→'이름+동' 지오코딩, 주소 후보 여러 개면 5km 안 장소 검색으로 확인(마곡→강서구 마곡동). 음량: localStorage food.vol, 계정 설정 #vol-box.
 - v2.12: Last.fm 분위기 태그는 분석에만 (사용자 지시: 곡 검색·결과 도출 로직은 절대 건드리지 말 것). Worker GET /music/mood?a=가수|별칭&t=곡명|다른표기 → track.getTopTags(태그 3개 이상) 아니면 artist.getTopTags, 30분 메모. 사이트: 곡이 정해진 뒤 lastfmMood() → moodFromTags(MOOD_RE eLow/eHigh/vNeg/vPos, count 비중) → v.energy/v.valence 덮어씀(관련 태그 없으면 장르 추정 유지). 시험: 스크래치패드 mood.mjs(Worker), t33.js(화면)
 - v2.11: 화면 비율 (style 끝 'v2.11' 블록). viewport-fit=cover + safe-area 여백, max-width 360px 좁은 화면(.row 한 줄, 테마 .tl 숨김), 700~959px 또는 960+ 높이 559 이하에서 결과 2칸, 기존 3칸은 min-height 560 이상만, horizontal-viewport-segments: 2(듀얼 스크린) 경첩 피하기. 가입 비밀번호 실시간 안내 #su-pwcheck/#su-pw2check(pwSync), #auth-err 상자+흔들기. 시험: 스크래치패드 t31.js(9개 화면 크기 가로넘침 검사), t32.js
 - v2.10: 사용자 브라우저의 실제 응답(Deezer '싸이 예술이야' → Psy "Fantastic Duo 2 Part.4 '예술이야'", 싸이 (PSY) "It's Art" / Apple 미국 'PSY 예술이야' → It's Art (Live), It's Art, I LUV IT …, Apple 한국은 0곡)으로 재현(스크래치패드 lktest6.mjs). 합치기는 pick 묶음 대신 pool에서 직접: hit 표시 + 서버 확정 곡의 가수 + 라이브·MR 제외 원곡이 Apple·Deezer 2곳에서 sameSong이면 확정. 한 칸·곡명만 입력도 됨. 점검 로그에 검색 결과 맨 위 3곡(top3)

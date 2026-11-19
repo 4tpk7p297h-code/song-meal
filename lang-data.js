@@ -4405,3 +4405,47 @@
     RULES,
   };
 })();
+
+// v2.20 추가 문구 (동의 필수화·소리 크기)
+Object.assign(window.I18N_DATA.TR, {
+ "Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Open-Meteo: 입력한 위치의 지금 날씨·기온 조회 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계 / Google: 가게 사진 분위기 분석과 노래 목록 작성(Gemini)": [
+  "Apple·Deezer: song info, album art, previews / MusicBrainz·Wikidata: comparing song info, checking Korean/English names of artists and songs / Last.fm: comparing song info, song mood tags (mood analysis) / Open-Meteo: current weather and temperature at your location / Cloudflare: relaying song comparison searches and Naver local/blog search (nearby restaurants, solo-dining reviews) / Google: analyzing the shop photo's mood and writing the song list (Gemini)",
+  "Apple・Deezer：曲情報・アルバム画像・試聴の検索／MusicBrainz・Wikidata：複数の曲情報の比較、歌手・曲名のハングル・英語表記の確認／Last.fm：曲情報の比較、曲の雰囲気タグの確認（雰囲気分析）／Open-Meteo：入力した場所の現在の天気・気温の取得／Cloudflare：曲情報の比較検索とNAVER地域・ブログ検索（周辺のお店表示、おひとりさまレビューの確認）の中継／Google：お店の写真の雰囲気分析と曲リスト作成（Gemini）",
+  "Apple·Deezer：查询歌曲信息、专辑图片和试听／MusicBrainz·Wikidata：比较多方歌曲信息，确认歌手和歌名的韩文、英文写法／Last.fm：比较歌曲信息，确认歌曲氛围标签（氛围分析）／Open-Meteo：查询输入位置的当前天气和气温／Cloudflare：中转歌曲比较搜索及 NAVER 地区、博客搜索（显示附近餐厅、确认一人食评价）／Google：分析店铺照片氛围并生成歌单（Gemini）"
+ ],
+ "메뉴 추천은 회원가입 없이 이용하며, 추천에 입력하신 정보와 가게 사진은 운영자 서버에 저장하지 않습니다. 추천에 필요한 범위에서만 아래와 같이 처리하며, 아래 항목은 모두 필수입니다. 후기 올리기·좋아요는 선택 사항이며, 원할 때 회원가입 화면에서 따로 동의를 받습니다.": [
+  "Recommendations work without an account, and what you enter and your shop photo are never stored on the operator's server. They're processed only as needed for recommendations, as below, and all items below are required. Posting reviews and liking are optional; we ask for separate consent on the sign-up screen if you want them.",
+  "おすすめは会員登録なしで利用でき、入力した情報とお店の写真は運営者のサーバーに保存しません。おすすめに必要な範囲でのみ下記のとおり処理し、下記の項目はすべて必須です。レビュー投稿・いいねは任意で、希望する場合は会員登録画面で別途同意をいただきます。",
+  "推荐无需注册即可使用，您输入的信息和店铺照片不会保存在运营者的服务器上。仅在推荐所需范围内按下述方式处理，以下各项均为必选。发布评价和点赞为可选功能，如需使用将在注册页面另行征得同意。"
+ ],
+ "[필수] 개인정보 국외 이전 동의": [
+  "[Required] Consent to transfer personal information outside Korea",
+  "[必須] 個人情報の国外移転への同意",
+  "[必选] 同意个人信息跨境转移"
+ ],
+ "동의를 거부할 권리가 있으며, 거부하시면 추천 서비스를 이용할 수 없습니다.": [
+  "You have the right to refuse consent, but if you refuse you cannot use the recommendation service.",
+  "同意を拒否する権利がありますが、拒否された場合はおすすめサービスを利用できません。",
+  "您有权拒绝同意，但拒绝后将无法使用推荐服务。"
+ ],
+ "🔊 음악 소리": [
+  "🔊 Music volume",
+  "🔊 音楽の音量",
+  "🔊 音乐音量"
+ ],
+ "미리듣기와 후기 스토리 음악의 소리 크기예요. 이 기기에 저장돼요.": [
+  "Volume for previews and review-story music. Saved on this device.",
+  "試聴とレビューストーリーの音楽の音量です。この端末に保存されます。",
+  "试听和评价故事音乐的音量，保存在此设备上。"
+ ],
+ "🔔 소리 확인": [
+  "🔔 Test sound",
+  "🔔 音を確認",
+  "🔔 试听音量"
+ ],
+ "음악 소리 크기": [
+  "Music volume",
+  "音楽の音量",
+  "音乐音量"
+ ]
+});
