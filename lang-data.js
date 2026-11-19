@@ -45,9 +45,9 @@
     [/^🔎 (.+) (\d+)곳에서 같은 곡 확인$/, (m, L) => P(L, `🔎 Same song confirmed on ${m[2]} sources: ${m[1]}`, `🔎 ${m[1]}の${m[2]}か所で同じ曲を確認`, `🔎 在 ${m[1]} ${m[2]} 处确认为同一首歌`)],
     [/^🔎 (.+)에서 찾은 곡$/, (m, L) => P(L, `🔎 Found on ${m[1]}`, `🔎 ${m[1]}で見つけた曲`, `🔎 在 ${m[1]} 找到的歌曲`)],
     [/^BPM · (.+)$/, (m, L, w) => "BPM · " + w(m[1])],
-    [/^(에너지|분위기) (.+?)( \(장르 추정\)| \(Last\.fm 태그\))?$/, (m, L, w) => {
+    [/^(에너지|분위기) (.+?)( \(장르 추정\)| \(Last\.fm 태그\)| \(AI 분석\))?$/, (m, L, w) => {
       const k = m[1] === "에너지" ? P(L, "Energy", "エネルギー", "能量") : P(L, "Mood", "雰囲気", "氛围");
-      const how = !m[3] ? "" : /장르/.test(m[3]) ? P(L, " (from genre)", "（ジャンル推定）", "（流派推测）") : P(L, " (Last.fm tags)", "（Last.fmタグ）", "（Last.fm 标签）");
+      const how = !m[3] ? "" : /장르/.test(m[3]) ? P(L, " (from genre)", "（ジャンル推定）", "（流派推测）") : /AI/.test(m[3]) ? P(L, " (AI analysis)", "（AI分析）", "（AI 分析）") : P(L, " (Last.fm tags)", "（Last.fmタグ）", "（Last.fm 标签）");
       const v = w(m[2]); return v === m[2] ? null : `${k}: ${v}${how}`; }],
     [/^🏷️ Last\.fm (가수|곡) 태그: (.+)$/, (m, L) => (m[1] === "가수" ? P(L, "🏷️ Last.fm artist tags: ", "🏷️ Last.fm 歌手タグ：", "🏷️ Last.fm 歌手标签：") : P(L, "🏷️ Last.fm song tags: ", "🏷️ Last.fm 曲タグ：", "🏷️ Last.fm 歌曲标签：")) + m[2]],
     [/^'(.+)'은\(는\) 미리듣기가 없어요\. 아래에 같은 곡이 있으면 골라 주세요\.$/, (m, L) => P(L, `'${m[1]}' has no preview. Pick the same song below if it's there.`, `「${m[1]}」は試聴がありません。下に同じ曲があれば選んでください。`, `“${m[1]}”没有试听。如果下方有同一首歌，请选择。`)],
@@ -4447,5 +4447,7 @@ Object.assign(window.I18N_DATA.TR, {
   "Music volume",
   "音楽の音量",
   "音乐音量"
- ]
+ ],
+ "AI가 추정한 템포예요.": ["Tempo estimated by AI.", "AIが推定したテンポです。", "AI 估算的速度。"],
+ "※ 구간 해설과 분위기 판단은 Gemini AI가 곡 정보와 Last.fm 태그를 참고해 분석한 결과예요.": ["※ The section notes and mood come from Gemini AI, using the song info and Last.fm tags.", "※ 区間解説と雰囲気の判断は、Gemini AIが曲情報とLast.fmタグを参考に分析した結果です。", "※ 段落解说和氛围判断由 Gemini AI 参考歌曲信息和 Last.fm 标签分析得出。"]
 });

@@ -315,6 +315,18 @@
   .loading.hidden { display: none; }
   .spbox { width: min(420px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 20px 18px 16px; box-shadow: var(--shadow); }
   .spbox h3 { margin: 0 0 4px; font-size: 18px; }
+  .okbadge { display: inline-block; font-size: 12px; color: #fff; background: #2e9d5b; border-radius: 999px; padding: 0 6px; margin-left: 4px; vertical-align: 2px; }
+  .aisum { margin: -4px 0 8px; padding: 10px 12px; border-radius: 12px; background: var(--chip); font-size: 14px; line-height: 1.6; word-break: keep-all; }
+  .songfb .aisug { border: 2px solid var(--accent); border-radius: 14px; padding: 10px 12px; margin-bottom: 12px; }
+  .songfb .aisug p { margin: 0 0 8px; font-weight: 600; word-break: keep-all; } .songfb .aisug small { display: block; font-weight: 400; color: var(--muted); }
+  .songfb .aisug audio { width: 100%; height: 36px; margin-bottom: 6px; } .songfb .aisug button { margin: 0; width: 100%; }
+  .songfb .sfbq { margin: 0 0 8px; font-weight: 600; word-break: keep-all; }
+  .songfb .sfbbtns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .songfb .sfbbtns button { flex: 1 1 120px; margin: 0; padding: 10px 12px; font-size: 15px; white-space: nowrap; }
+  .songfb .sfbsearch { display: flex; gap: 8px; margin-top: 10px; }
+  .songfb .sfbsearch input { flex: 1; min-width: 0; }
+  .songfb .sfbsearch button { margin: 0; flex: none; width: auto; padding: 10px 16px; }
+  .songfb .linkbtn { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 8px 0 0; margin: 0; font-size: 13px; width: auto; }
   .spc { display: grid; grid-template-columns: 56px 1fr; gap: 6px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
   .spc img, .spc .noart { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--field); display: flex; align-items: center; justify-content: center; font-size: 24px; }
   .spc b { display: block; font-size: 15px; line-height: 1.3; word-break: keep-all; }
@@ -991,8 +1003,8 @@
       <button type="button" data-t="posts">📝 후기</button>
       <button type="button" data-t="users">👥 회원</button>
       <button type="button" data-t="songs">🎵 곡 검색 점검</button>
+      <button type="button" data-t="sfb">🎯 곡 피드백</button>
       <button type="button" data-t="log">📋 업데이트 내역</button>
-      <button type="button" data-t="mine">🔑 내 계정</button>
     </div>
     <div id="adm-stats" class="admp"></div>
     <div id="adm-posts" class="admp hidden">
@@ -1012,6 +1024,13 @@
       <div id="adm-ulist"></div>
       <button type="button" class="ghost hidden" id="adm-umore">더 보기</button>
     </div>
+    <div id="adm-sfb" class="admp hidden">
+      <p class="hint" style="margin-top:0">결과 화면의 '이 곡이 맞나요?'에 이용자가 누른 기록이에요. 같은 입력에 서로 다른 2명 이상이 같은 곡으로 바로잡고 '맞아요'보다 많으면, 다음 검색부터 그 곡을 먼저 찾아요(자동). 관리자가 승인하면 1명이어도 바로 적용되고, 막으면 적용하지 않아요. 곡 검색 방식 자체는 바꾸지 않아요.</p>
+      <div class="admbar"><div class="seg" id="adm-ff"><button type="button" data-f="all" class="on">전체</button><button type="button" data-f="bad">👎 틀림 있는 것만</button></div></div>
+      <div id="adm-fsum"></div>
+      <div id="adm-flist"></div>
+      <button type="button" class="ghost hidden" id="adm-fmore">더 보기</button>
+    </div>
     <div id="adm-songs" class="admp hidden">
       <p class="hint" style="margin-top:0">실제 검색으로 곡을 제대로 찾는지 점검해요. Apple Music·Deezer와 서버(MusicBrainz·Wikidata, 키를 넣었으면 Spotify·Last.fm)에서 같은 곡이 몇 곳에서 나오는지 비교해서 골라요. 한 줄에 '가수 - 곡명'을 하나씩 적어 주세요 (가수는 한글·영어 모두 가능). Apple 검색은 1분에 약 20번까지라서 한도에 닿으면 기다렸다가 이어서 해요. 이 기기에 저장된 결과는 쓰지 않고 새로 찾아요.</p>
       <p class="hint" id="adm-shealth"></p>
@@ -1021,10 +1040,6 @@
       <div id="adm-slist"></div>
     </div>
     <div id="adm-log" class="admp hidden" translate="no"></div>
-    <div id="adm-mine" class="admp hidden">
-      <p>관리자 계정(<b id="adm-login"></b>)의 비밀번호는 '내 정보 → 비밀번호 변경'에서 바꿀 수 있어요. 처음 받은 비밀번호를 쓰고 있다면 꼭 바꿔 주세요.</p>
-      <button type="button" id="adm-gome">내 정보로 가기</button>
-    </div>
   </section>
 
   <!-- 8. 후기 올리기 -->
@@ -1106,8 +1121,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=2.20"></script>
-<script src="lang.js?v=2.20"></script>
+<script src="lang-data.js?v=2.21"></script>
+<script src="lang.js?v=2.21"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -2583,9 +2598,12 @@ JJ Lin|林俊傑|임준걸`;
     const title = info ? `${info.artistName} – ${info.trackName}` : (v.song || "선택한 곡");
     const year = info && info.releaseDate ? info.releaseDate.slice(0, 4) : "";
     const art = info && info.artworkUrl100 ? info.artworkUrl100.replace("100x100", "300x300") : "";
+    const A = v.ai && v.ai.match && info ? v.ai : null;   // Gemini 곡 분석 (교차검증에서 같은 곡으로 확인된 경우만)
     const bpmBlock = audio
       ? `<div class="bpm"><b>${audio.bpm}</b><span>BPM · ${tempoName(audio.bpm)}</span></div>
          <div class="songmeta">미리듣기 30초를 직접 분석한 값이에요.</div>`
+      : A && A.bpm ? `<div class="bpm"><b>${A.bpm}</b><span>BPM · ${tempoName(A.bpm)}</span></div>
+         <div class="songmeta">AI가 추정한 템포예요.</div>`
       : `<div class="bpm"><b>${range[0]}~${range[1]}</b><span>BPM · ${tempoName((range[0] + range[1]) / 2)}</span></div>
          <div class="songmeta">${g ? "장르" : "선택한 에너지"}로 추정한 범위예요.</div>`;
     const dyn = audio ? `
@@ -2605,21 +2623,23 @@ JJ Lin|林俊傑|임준걸`;
       </div>
       ${bpmBlock}
       <p class="synopsis">${esc(SYNOPSIS[type])}</p>
+      ${A && A.summary ? `<p class="aisum notr">🤖 ${esc(A.summary)}</p>` : ""}
+      ${A && A.mood && A.mood.length ? `<div class="stats notr" style="margin-bottom:8px">${A.mood.map((m) => `<span class="stat">${esc(m)}</span>`).join("")}</div>` : ""}
       ${v.moodTags && v.moodTags.length ? `<div class="songmeta" style="margin:-4px 0 8px">🏷️ Last.fm ${v.moodFrom === "artist" ? "가수" : "곡"} 태그: ${v.moodTags.slice(0, 6).map((t) => esc(t.name)).join(", ")}</div>` : ""}
       <div class="stats">
-        <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
-        <span class="stat">분위기 ${V_LABEL[v.valence]}${v.valenceBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
+        <span class="stat">에너지 ${E_LABEL[v.energy]}${v.energyBy === "ai" ? " (AI 분석)" : v.energyBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
+        <span class="stat">분위기 ${V_LABEL[v.valence]}${v.valenceBy === "ai" ? " (AI 분석)" : v.valenceBy === "tag" ? " (Last.fm 태그)" : v.energyGuessed ? " (장르 추정)" : ""}</span>
         <span class="stat">${esc(tex)}</span>
       </div>
       <div class="sects">
-        <div class="sect"><span>인트로</span><span>${INTRO[v.energy]}</span></div>
-        <div class="sect"><span>벌스</span><span>${VERSE[v.valence]}</span></div>
-        <div class="sect"><span>후렴</span><span>${chorusText(v.energy, v.valence)}</span></div>
+        <div class="sect"><span>인트로</span>${A && A.intro ? `<span class="notr">${esc(A.intro)}</span>` : `<span>${INTRO[v.energy]}</span>`}</div>
+        <div class="sect"><span>벌스</span>${A && A.verse ? `<span class="notr">${esc(A.verse)}</span>` : `<span>${VERSE[v.valence]}</span>`}</div>
+        <div class="sect"><span>후렴</span>${A && A.chorus ? `<span class="notr">${esc(A.chorus)}</span>` : `<span>${chorusText(v.energy, v.valence)}</span>`}</div>
       </div>
       ${dyn}
       ${info && info.previewUrl ? `<audio controls preload="none" src="${esc(info.previewUrl)}"></audio>` : ""}
       ${listenHTML(v, info)}
-      <div class="songmeta" style="margin-top:10px">※ 시놉시스와 구간 해설은 곡 장르로 에너지·분위기를 추정해 만든 해설이에요.</div>`;
+      <div class="songmeta" style="margin-top:10px">${A ? "※ 구간 해설과 분위기 판단은 Gemini AI가 곡 정보와 Last.fm 태그를 참고해 분석한 결과예요." : "※ 시놉시스와 구간 해설은 곡 장르로 에너지·분위기를 추정해 만든 해설이에요."}</div>`;
   }
 
   const E_LABEL = ["", "잔잔함", "보통", "신남"], V_LABEL = ["", "어둡고 차분", "무난", "밝고 경쾌"];
@@ -3286,6 +3306,7 @@ JJ Lin|林俊傑|임준걸`;
     document.body.classList.add("wide");
     $("result").innerHTML = `
       <div class="card" id="analysis"><p class="songmeta">🎧 곡 정보를 찾는 중...</p></div>
+      <div class="card songfb notr hidden" id="songfb"></div>
       <div class="card" id="pickscard">${picksHTML(v, r)}</div>
       <div class="card" id="mapcard">
         <h2 id="maptitle">🗺️ ${esc(v.loc)} 주변</h2>
@@ -3322,6 +3343,7 @@ JJ Lin|林俊傑|임준걸`;
     // 곡 분석은 비동기로 채움 (추천은 바로 보여 줌)
     const song = (render.song = (render.song || 0) + 1);
     $("analysis").innerHTML = analysisHTML(v, r.type, info, null);
+    drawSongFb();
     if (info) analyzeAudio(info.previewUrl).then((audio) => {
       if (song !== render.song || !audio) return;
       $("analysis").innerHTML = analysisHTML(v, r.type, info, audio);
@@ -3419,14 +3441,30 @@ JJ Lin|林俊傑|임준걸`;
     btn.disabled = true; btn.textContent = "곡을 분석하는 중...";
     $("loading").classList.remove("hidden");
     $("load-sub").textContent = "";
-    let info = await lookupSong(v.song, { onStep: (x) => { $("load-sub").textContent = x; } });
-    $("loading").classList.add("hidden");
-    const cands = lookupSong.last && lookupSong.last.cands;
-    if (cands && cands.length && (!info || !info.previewUrl || info.mismatch || info.unverified)) {
-      const g = await askSong(cands, info);
-      if (g) info = await chooseSong(g);
+    const onStep = (x) => { $("load-sub").textContent = x; };
+    // 다른 이용자들이 '다른 곡이에요'로 바로잡은 곡이 있으면 그 곡을 먼저 찾음 (곡 검색 자체는 그대로)
+    const fx = await songFixFor(v.song);
+    let info = null;
+    if (fx) { info = await lookupSong(`${fx.a} ${fx.t}`, { onStep }); if (info) info = { ...info, crowd: fx }; }
+    if (!info) {
+      info = await lookupSong(v.song, { onStep });
+      $("loading").classList.add("hidden");
+      const cands = lookupSong.last && lookupSong.last.cands;
+      if (cands && cands.length && (!info || !info.previewUrl || info.mismatch || info.unverified)) {
+        const g = await askSong(cands, info);
+        if (g) info = await chooseSong(g);
+      }
     }
+    SFB.key = v.song; SFB.state = ""; SFB.found = null;
+    SFB.alts = lookupSong.last && lookupSong.last.calls ? (pick.groups || []).filter(playable) : [];
+    $("loading").classList.add("hidden");
     btn.disabled = false; btn.textContent = "추천받기";
+    await songDone(v, info);
+  });
+
+  // 곡이 정해진 뒤: 장르·Last.fm 태그로 에너지·분위기를 정하고 결과 화면을 그림
+  async function songDone(v, info, again) {
+    v.moodTags = null; v.moodFrom = ""; v.energyBy = v.valenceBy = ""; v.ai = null;
     v.energy = energyFromGenre(info && info.primaryGenreName);
     v.valence = valenceFromGenre(info && info.primaryGenreName);
     v.energyGuessed = !!(info && info.primaryGenreName);
@@ -3442,11 +3480,22 @@ JJ Lin|林俊傑|임준걸`;
         if (mood.v) { v.valence = mood.v; v.valenceBy = "tag"; }
       }
     }
+    // Gemini 교차검증·곡 분석: 찾은 곡이 입력과 맞는지 의견 + (맞으면) Last.fm 태그를 참고한 곡 분석. 곡 검색 결과는 바꾸지 않음
+    if (v.song && CONSENT.abroad) {
+      $("loading").classList.remove("hidden"); $("load-sub").textContent = T4("AI가 곡을 한 번 더 확인하고 분석하는 중", "AI is double-checking and analyzing the song", "AIが曲をもう一度確認・分析しています", "AI 正在复核并分析歌曲");
+      const ai = await aiSongCheck(v.song, info, v.moodTags);
+      $("loading").classList.add("hidden");
+      if (ai) {
+        v.ai = ai;
+        if (ai.match && info) { v.energy = ai.energy; v.valence = ai.valence; v.energyBy = v.valenceBy = "ai"; }
+      }
+    }
     $("form").classList.add("hidden");
     render(v, recommend(v), info);
+    if (again) { $("songfb").scrollIntoView({ block: "center", behavior: "smooth" }); return; }
     go("result", 2);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  }
 
   // 곡이 애매할 때 후보 고르기 → 고른 묶음(g) 또는 null(그대로 진행)
   function askSong(cands, info) {
@@ -3480,6 +3529,125 @@ JJ Lin|林俊傑|임준걸`;
       $("sp-none").onclick = () => end(null);
       setTimeout(() => { const b = $("sp-list").querySelector("button"); if (b) b.focus({ preventScroll: true }); }, 30);
     });
+  }
+
+  // Gemini 교차검증 (서버 /music/check). 키가 없거나 한도·시간 초과면 null → 기존 분석 그대로
+  async function aiSongCheck(term, info, tags) {
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 9000);
+    try {
+      const r = await fetch(API + "/music/check", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        q: term, lang: LG(), tags: (tags || []).map((t) => t.name),
+        found: info ? { artist: info.artistName, title: info.trackName, album: info.collectionName || "", genre: info.primaryGenreName || "", year: (info.releaseDate || "").slice(0, 4) } : null,
+      }) });
+      if (!r.ok) return null;
+      const d = await r.json();
+      return d && typeof d.match === "boolean" ? d : null;
+    } catch { return null; } finally { clearTimeout(tm); }
+  }
+
+  // ================= 곡 검색 피드백: 찾은 곡이 맞는지 표시 → 서버에 쌓아 다음 검색에 반영 =================
+  // 곡 검색 로직(lookupSong·pick·score)은 건드리지 않음. 바로잡은 곡은 다음 검색 때 lookupSong에 그 곡 이름을 넘기는 방식
+  const SFB = { key: "", state: "", alts: [], found: null, busy: false };
+  async function songFixFor(term) {
+    if (!term || !CONSENT.abroad) return null;
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 1500);
+    try {
+      const r = await fetch(API + "/song/fix?q=" + encodeURIComponent(term), { signal: ac.signal });
+      const d = await r.json();
+      return d && d.fix && d.fix.t ? d.fix : null;
+    } catch { return null; } finally { clearTimeout(tm); }
+  }
+  function sendSongFb(ok, got, fix) {
+    return fetch(API + "/song/fb", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(AUTH.token ? { Authorization: "Bearer " + AUTH.token } : {}) },
+      body: JSON.stringify({ q: SFB.key, ok, got: got ? { a: got.artistName, t: got.trackName, src: got.source || "" } : null, fix: fix ? { a: fix.artistName, t: fix.trackName, src: fix.source || "" } : null }),
+    }).then((r) => r.ok).catch(() => false);
+  }
+  // 후보 한 줄 (그룹 g 또는 곡 정보 r)
+  function sfbRow(x, i) {
+    const r = x.items ? x.r : x, it = x.items ? x.items.map((c) => c.r) : [x];
+    const get = (k) => (it.find((y) => y[k]) || {})[k] || "";
+    const art = get("artworkUrl100"), pv = get("previewUrl");
+    return `<div class="spc">
+      ${art ? `<img src="${esc(art)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'noart',textContent:'🎵'}))">` : `<span class="noart">🎵</span>`}
+      <div><b>${esc(r.trackName)}</b><small>${esc(r.artistName)}${get("collectionName") ? " · " + esc(get("collectionName")) : ""}</small></div>
+      ${pv ? `<audio controls preload="none" src="${esc(pv)}"></audio>` : ""}
+      <button type="button" data-pick="${i}">${T4("이 곡이에요", "This is the one", "この曲です", "就是这首")}</button>
+    </div>`;
+  }
+  function drawSongFb() {
+    const box = $("songfb"), c = render.ctx;
+    if (!box || !c) return;
+    const { v, info } = c;
+    if (!CONSENT.abroad || !v.song || SFB.key !== v.song) { box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    const crowd = info && info.crowd ? `<p class="hint">✅ ${info.crowd.by === "admin" ? T4("관리자가 확인한 곡이에요.", "Confirmed by the admin.", "管理者が確認した曲です。", "管理员已确认此歌曲。")
+      : T4(`다른 이용자 ${info.crowd.n}명이 바로잡은 곡이에요.`, `Corrected by ${info.crowd.n} other users.`, `他の利用者${info.crowd.n}人が訂正した曲です。`, `已由${info.crowd.n}位用户更正。`)}</p>` : "";
+    if (SFB.state === "ok" || SFB.state === "sent" || SFB.state === "fixed") {
+      box.innerHTML = `<p class="sfbq">${SFB.state === "fixed" ? "🎯 " + T4("맞는 곡으로 바꿨어요. 알려 줘서 고마워요! 같은 곡을 검색하는 다른 사람에게도 반영돼요.", "Switched to the right song. Thanks! This will help others searching the same song.", "正しい曲に変えました。ありがとうございます！同じ曲を検索する人にも反映されます。", "已换成正确的歌曲。谢谢！搜索同一首歌的其他人也会受益。")
+        : "🙏 " + T4("알려 줘서 고마워요! 곡 검색을 더 정확하게 만드는 데 쓸게요.", "Thanks! We'll use this to make song search more accurate.", "ありがとうございます！曲検索の精度向上に使います。", "谢谢！我们会用它来改进歌曲搜索。")}</p>${crowd}`;
+      return;
+    }
+    const sg = v.ai && v.ai.suggest && !SFB.state ? v.ai.suggest : null;
+    const aiBox = sg ? `<div class="aisug"><p>🤖 ${T4(`AI 교차검증: 입력하신 곡은 '${esc(sg.artist)} - ${esc(sg.title)}'일 가능성이 높아요.`, `AI cross-check: you probably meant '${esc(sg.artist)} - ${esc(sg.title)}'.`, `AIクロスチェック: 入力した曲は「${esc(sg.artist)} - ${esc(sg.title)}」の可能性が高いです。`, `AI 交叉验证：您要找的可能是“${esc(sg.artist)} - ${esc(sg.title)}”。`)}${v.ai.why ? ` <small>${esc(v.ai.why)}</small>` : ""}</p>
+        ${sg.preview ? `<audio controls preload="none" src="${esc(sg.preview)}"></audio>` : ""}
+        <button type="button" id="sfb-ai">${T4("이 곡으로 바꾸기", "Switch to this song", "この曲に変える", "换成这首")}</button></div>` : "";
+    const aiOk = v.ai && v.ai.match && info && !SFB.state ? `<p class="hint">🤖 ${T4("AI도 입력과 같은 곡으로 확인했어요.", "AI also confirmed this is the song you typed.", "AIも入力と同じ曲だと確認しました。", "AI 也确认这是您输入的歌曲。")}</p>` : "";
+    const bindAi = () => { if ($("sfb-ai")) $("sfb-ai").addEventListener("click", async (e) => {
+      e.target.disabled = true; e.target.textContent = T4("바꾸는 중...", "Switching...", "変更中...", "正在更换...");
+      let r = null;
+      try { r = await lookupSong(`${sg.artist} ${sg.title}`, { fresh: true, force: true }); } catch {}
+      if (!r && sg.artist_en) try { r = await lookupSong(`${sg.artist_en} ${sg.title_en || sg.title}`, { fresh: true, force: true }); } catch {}
+      if (!r) r = { artistName: sg.artist, trackName: sg.title, previewUrl: sg.preview || "", artworkUrl100: sg.art || "", source: "Deezer" };
+      pickFix(r);
+    }); };
+    if (SFB.state === "bad" || !info) {
+      const alts = (SFB.found || SFB.alts.filter((g) => !info || !sameSong(g.r, info))).slice(0, 4);
+      box.innerHTML = `
+        ${aiBox}<p class="sfbq">🔎 ${!info ? T4("곡을 찾지 못했어요. 어떤 곡인지 알려 주면 다음부터 바로 찾아요.", "We couldn't find the song. Tell us which one and we'll find it next time.", "曲が見つかりませんでした。どの曲か教えてくれれば次から見つけます。", "没有找到歌曲。告诉我们是哪首，下次就能找到。")
+          : T4("어떤 곡이었나요? 아래에서 고르거나 가수와 곡명을 다시 써 주세요.", "Which song was it? Pick one below or type the artist and title again.", "どの曲でしたか？下から選ぶか、歌手と曲名をもう一度入力してください。", "是哪首歌？请从下面选择，或重新输入歌手和歌名。")}</p>
+        ${alts.length ? `<div class="sfblist">${alts.map(sfbRow).join("")}</div>` : SFB.found ? `<p class="hint">${T4("찾은 곡이 없어요. 가수 이름과 곡명을 함께 써 보세요.", "Nothing found. Try both the artist and the title.", "見つかりませんでした。歌手名と曲名を一緒に入力してください。", "没有找到。请同时输入歌手和歌名。")}</p>` : ""}
+        <form class="sfbsearch" id="sfb-form"><input type="text" id="sfb-q" placeholder="${T4("예: 아이유 밤편지", "e.g. IU Through the Night", "例: IU 夜の手紙", "例如：IU 夜信")}" value="${esc(SFB.lastQ || "")}" maxlength="80">
+          <button type="submit" class="ghost"${SFB.busy ? " disabled" : ""}>${SFB.busy ? T4("찾는 중...", "Searching...", "検索中...", "搜索中...") : T4("찾기", "Search", "検索", "搜索")}</button></form>
+        ${info ? `<button type="button" class="linkbtn" id="sfb-skip">${T4("목록에 없어요, 그냥 '다른 곡'이라고만 알리기", "Not listed, just report it as wrong", "リストにない、違う曲とだけ伝える", "列表里没有，只报告是错的")}</button>` : ""}`;
+      box.querySelectorAll("audio").forEach((a) => a.addEventListener("play", () => box.querySelectorAll("audio").forEach((b) => b !== a && b.pause())));
+      box.querySelectorAll("button[data-pick]").forEach((b) => b.addEventListener("click", () => pickFix(alts[+b.dataset.pick])));
+      $("sfb-form").addEventListener("submit", (e) => { e.preventDefault(); searchFix($("sfb-q").value.trim()); });
+      if ($("sfb-skip")) $("sfb-skip").addEventListener("click", () => { sendSongFb(false, info, null); SFB.state = "sent"; drawSongFb(); });
+      bindAi();
+      return;
+    }
+    box.innerHTML = aiBox + aiOk + `
+      <p class="sfbq">🎯 ${T4(`'${esc(v.song)}'(으)로 찾은 곡이 맞나요?`, `Is this the song you meant by '${esc(v.song)}'?`, `「${esc(v.song)}」で見つかった曲は合っていますか？`, `用“${esc(v.song)}”找到的歌曲对吗？`)}</p>
+      ${crowd}
+      <div class="sfbbtns"><button type="button" id="sfb-ok">👍 ${T4("맞아요", "Yes", "合っています", "对")}</button>
+      <button type="button" class="ghost" id="sfb-bad">👎 ${T4("다른 곡이에요", "Wrong song", "違う曲です", "不是这首")}</button></div>
+      <p class="hint">${T4("눌러 주신 결과가 모이면 같은 곡을 찾는 다른 사람에게도 맞는 곡이 먼저 나와요.", "Your answers add up, so others searching the same song get the right one first.", "皆さんの回答が集まると、同じ曲を探す他の人にも正しい曲が先に出ます。", "大家的反馈累积后，搜索同一首歌的人会先看到正确的歌曲。")}</p>`;
+    $("sfb-ok").addEventListener("click", () => { sendSongFb(true, info, info && info.crowd ? info : null); SFB.state = "ok"; drawSongFb(); });
+    $("sfb-bad").addEventListener("click", () => { SFB.state = "bad"; drawSongFb(); });
+    bindAi();
+  }
+  async function searchFix(term) {
+    if (!term || SFB.busy) return;
+    SFB.busy = true; SFB.lastQ = term; drawSongFb();
+    let r = null;
+    try { r = await lookupSong(term, { fresh: true }); } catch {}
+    const groups = lookupSong.last && lookupSong.last.calls ? (pick.groups || []).filter(playable) : [];
+    const list = [];
+    if (r) list.push(r);
+    groups.forEach((g) => { if (!list.some((x) => sameSong(x.items ? x.r : x, g.r))) list.push(g); });
+    SFB.found = list; SFB.busy = false; drawSongFb();
+  }
+  async function pickFix(x) {
+    const c = render.ctx;
+    if (!x || !c) return;
+    const r = x.items ? await finish(x) : x;
+    sendSongFb(false, c.info, r);
+    // 이 기기에서는 같은 입력에 바로 이 곡이 나오게 저장 (후보에서 고를 때와 같은 방식)
+    songCache(deacc(SFB.key).toLowerCase().replace(/\s+/g, " ").trim(), r);
+    SFB.state = "fixed"; SFB.found = null;
+    await songDone(c.v, r, true);
   }
 
   // ================= 커뮤니티: 회원·후기·좋아요·코너별 순위 =================
@@ -4517,7 +4685,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   }
 
   // 자체 분석: 가게 종류의 기본 분위기 + 사진 색감 → 목표 에너지·분위기에 가까운 곡
-  function localPlaylist(scenes, look, avoid) {
+  function localPlaylist(scenes, look, avoid, n = 10) {
     const sc = SCENES[scenes[0]];
     let E = sc.e, V = sc.v;
     if (look) {
@@ -4544,7 +4712,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     for (const { s } of scored) {
       if ((per[s.artist] || 0) >= 1) continue;
       per[s.artist] = 1; out.push(s);
-      if (out.length === 10) break;
+      if (out.length === n) break;
     }
     return { E: Math.max(1, Math.min(3, Math.round(E))), V: Math.max(1, Math.min(3, Math.round(V))), songs: out };
   }
@@ -4568,6 +4736,12 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     return list.find((p) => p.name.replace(/\s+/g, "").includes(k0) || k0.includes(p.name.replace(/\s+/g, ""))) || null;
   }
 
+  // 한글 가수 이름 → 영어 표기 (가수 사전 ARTISTS의 첫 이름). 없으면 빈 값
+  function enArtist(a) {
+    const g = AIDX.get(AKEY(a)) || [];
+    const en = g.find((x) => /^[\x20-\x7e]+$/.test(x));
+    return en && en !== a ? en : "";
+  }
   async function runShop(more) {
     if (SHOP.busy) return;
     const name = $("sh-name").value.trim(), loc = $("sh-loc").value.trim(), kind = $("sh-kind").value;
@@ -4584,23 +4758,38 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     const scenes = detectScenes([name, place && place.category, kind && SCENES[kind] && SCENES[kind].ko].filter(Boolean).join(" "), kind);
     const look = SHOP.photo ? SHOP.photo.look : null;
     let ai = null, why = "";
+    // 예비 곡(내장 실제 곡 목록 20곡): AI 곡이 실제로 확인 안 되면 서버가 이걸로 채움. 영어 가수 이름도 같이 보냄(Deezer 확인용)
+    const lp = localPlaylist(scenes, look, avoid, 20);
+    const pool = lp.songs.map((s) => ({ artist: s.artist, title: s.title, artist_en: enArtist(s.artist), genre: s.genre, energy: s.energy, valence: s.valence, pool: true }));
     try {
       const r = await fetch(API + "/shop/vibe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         image: SHOP.photo ? SHOP.photo.data : "", mime: "image/jpeg", name, loc: place ? place.addr : loc, kind: kind ? SCENES[kind].ko : "",
-        category: place ? place.category : "", lang: LG(), hour: new Date().getHours(), avoid: avoid.map((x) => x.replace("|", " - ")),
+        category: place ? place.category : "", lang: LG(), hour: new Date().getHours(), avoid: avoid.map((x) => x.replace("|", " - ")), pool,
       }) });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.songs && d.songs.length) ai = d; else why = d.error || "fail";
     } catch { why = "net"; }
     let res;
     if (ai) {
-      res = { by: "ai", model: ai.model, summary: ai.summary, tags: ai.tags, lighting: ai.lighting, colors: ai.colors, materials: ai.materials, E: ai.energy, V: ai.valence, songs: ai.songs };
+      res = { by: "ai", model: ai.model, verified: ai.verified, summary: ai.summary, tags: ai.tags, lighting: ai.lighting, colors: ai.colors, materials: ai.materials, E: ai.energy, V: ai.valence,
+        songs: ai.songs.map((s) => (s.pool ? { ...s, reason: localReason(s, scenes, look) } : s)), avoid: ai.dropped || [] };
     } else {
-      const lp = localPlaylist(scenes, look, avoid);
-      res = { by: "local", why, E: lp.E, V: lp.V, tags: look ? lookTraits(look) : [], songs: lp.songs.map((s) => ({ ...s, reason: localReason(s, scenes, look) })),
+      // AI를 못 쓰면 내장 목록에서 고르고, 서버에서 실제로 있는지 확인(미리듣기도 받아 둠)
+      let songs = lp.songs.slice(0, 10), verified = false;
+      try {
+        const r = await fetch(API + "/shop/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ songs: pool, need: 10 }) });
+        const d = await r.json();
+        if (r.ok && d.reached && d.songs && d.songs.length >= 5) { songs = d.songs.map((v) => ({ ...lp.songs.find((x) => x.artist === v.artist && x.title === v.title), ...v })); verified = true; }
+      } catch {}
+      res = { by: "local", why, verified, E: lp.E, V: lp.V, tags: look ? lookTraits(look) : [], songs: songs.map((s) => ({ ...s, reason: localReason(s, scenes, look) })),
         summary: localSummary(scenes, look) };
     }
-    Object.assign(res, { name, place, scenes, look, avoid });
+    // 확인된 곡이 10곡이 안 되면 내장 목록(사람이 고른 실제 곡)으로 채움 (✔ 표시 없음)
+    for (const p of lp.songs) {
+      if (res.songs.length >= 10) break;
+      if (!res.songs.some((x) => x.artist === p.artist && x.title === p.title)) res.songs.push({ ...p, reason: localReason(p, scenes, look) });
+    }
+    Object.assign(res, { name, place, scenes, look, avoid: avoid.concat(res.avoid || []) });
     SHOP.res = res;
     $("loading").classList.add("hidden");
     SHOP.busy = false;
@@ -4648,7 +4837,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
         <div class="card">
           <h2>🎧 ${r.name ? esc(r.name) + " · " : ""}${T4("플레이리스트 10곡", "10-song playlist", "プレイリスト10曲", "10 首歌单")}</h2>
           <ol class="shoplist">${r.songs.map((s, i) => `<li>
-            <div class="shoptop"><b>${esc(s.title)}</b><span> – ${esc(s.artist)}</span></div>
+            <div class="shoptop"><b>${esc(s.title)}</b><span> – ${esc(s.artist)}</span>${s.checked ? ` <span class="okbadge" title="${T4("음원 서비스에서 실제 곡 확인", "Verified on a music service", "音楽サービスで実在を確認", "已在音乐平台确认")}">✔</span>` : ""}</div>
             <div class="stats"><span class="stat">${esc(s.genre || "")}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[s.energy]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[s.valence]}</span></div>
             <p class="shopwhy">${esc(s.reason || "")}</p>
             <details><summary>${T4("곡 분석 보기", "Song analysis", "曲の解説", "歌曲解析")}</summary><div class="sects">
@@ -4659,7 +4848,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
             <div class="shopacts"><button type="button" class="mini" data-pv="${i}">▶ ${T4("미리듣기", "Preview", "試聴", "试听")}</button><span class="listen">${links(s)}</span></div>
             <div class="shoppv" id="sh-pv-${i}"></div>
           </li>`).join("")}</ol>
-          <p class="songmeta">${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 미리듣기로 실제 곡을 확인해 보세요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. Check each song with the preview. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。試聴で実際の曲を確認してください。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选，请用试听确认。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
+          <p class="songmeta">${r.verified ? "✔ " + T4("표시된 곡은 음원 서비스(Deezer)에서 실제로 있는 곡인지 확인했어요. ", "Songs marked ✔ were verified to exist on a music service (Deezer). ", "✔の曲は音楽サービス(Deezer)で実在を確認しました。", "带 ✔ 的歌曲已在音乐平台(Deezer)确认存在。") : ""}${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
           <div class="row2">
             <button type="button" id="sh-more">🔄 ${T4("다른 10곡", "10 different songs", "別の10曲", "换 10 首")}</button>
             <button type="button" class="ghost" id="sh-copy">📋 ${T4("목록 복사", "Copy list", "リストをコピー", "复制列表")}</button>
@@ -4688,8 +4877,19 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     }
     if (t.dataset.pv !== undefined) {
       const i = +t.dataset.pv, s = SHOP.res.songs[i], box = $("sh-pv-" + i);
+      // 서버에서 이미 실제 곡을 확인하고 미리듣기 주소를 받아 둔 곡은 바로 재생 (만료됐으면 새 주소)
+      if (s.preview) {
+        t.disabled = true;
+        const url = dzExpired(s.preview) ? await freshPreview(s.preview, { trackId: s.dz && s.dz.id, artist: s.dz ? s.dz.artist : s.artist, title: s.dz ? s.dz.title : s.title }) : s.preview;
+        t.disabled = false;
+        if (url) {
+          s.preview = url;
+          box.innerHTML = `<div class="shoppvrow">${s.art ? `<img src="${esc(s.art)}" alt="">` : ""}<span>${esc(s.dz ? s.dz.artist : s.artist)} – ${esc(s.dz ? s.dz.title : s.title)}</span></div><audio controls autoplay src="${esc(url)}"></audio>`;
+          return;
+        }
+      }
       t.disabled = true; box.innerHTML = `<span class="hint">${T4("곡을 찾는 중...", "Finding the song...", "曲を探しています...", "正在查找歌曲...")}</span>`;
-      const info = await lookupSong(`${s.artist} ${s.title}`).catch(() => null);
+      const info = await lookupSong(`${s.artist} ${s.title}`, { force: true }).catch(() => null);
       t.disabled = false;
       if (info && info.previewUrl && !info.mismatch) {
         box.innerHTML = `<div class="shoppvrow">${info.artworkUrl100 ? `<img src="${esc(info.artworkUrl100)}" alt="">` : ""}<span>${esc(info.artistName || "")} – ${esc(info.trackName || "")}</span></div><audio controls autoplay src="${esc(info.previewUrl)}"></audio>`;
@@ -4726,8 +4926,18 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v2.20";
+  const APP_VERSION = "v2.21";
   const CHANGELOG = [
+    ["v2.21", "2026-11-19", "곡 맞음·틀림 체크, 노래 추천 곡 실제 확인, AI 교차검증", [
+      "메뉴 추천 결과에 '이 곡이 맞나요?' 👍/👎 추가. 틀리면 다른 후보나 직접 검색으로 맞는 곡 고르면 바로 바뀜",
+      "피드백은 서버에 쌓임. 같은 입력을 서로 다른 2명 이상이 같은 곡으로 바로잡으면 다음 사람부터 그 곡이 먼저 나옴 (곡 검색 방식 자체는 그대로)",
+      "관리패널에 '곡 피드백' 탭: 검색 정확도, 입력별 맞음·틀림 수, 정정 승인·막기·삭제",
+      "노래 추천: AI가 고른 곡을 서버가 Deezer에서 실제로 있는지 먼저 확인, 확인된 곡만 ✔ 표시로 보여 줌. 미리듣기는 받아 둔 주소로 바로 재생",
+      "확인된 곡이 모자라면 사람이 고른 내장 곡 목록으로 채움",
+      "메뉴 추천: Gemini가 찾은 곡이 입력과 맞는지 교차검증, 다르면 'AI 제안' 곡으로 한 번에 바꾸기",
+      "Gemini가 Last.fm 태그를 참고해 곡 분석(요약·분위기·BPM·구간 해설). 키가 없거나 한도면 기존 분석 그대로",
+      "관리패널 '내 계정(비밀번호 변경 안내)' 탭 없앰",
+    ]],
     ["v2.20", "2026-11-19", "노래 추천 패널·동의 필수·마곡 위치·음량", [
       "첫 화면을 두 패널로 나눔: 왼쪽 노래 추천(가게 사장님용), 오른쪽 기존 메뉴 추천",
       "노래 추천: 가게 사진 + 이름·위치 넣으면 AI(Gemini)가 분위기 분석 후 10곡 플레이리스트와 곡별 설명 제공, 미리듣기·유튜브·스포티파이·애플 링크, 다른 10곡 받기",
@@ -5042,18 +5252,59 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   // ---------- 관리패널 ----------
   const ADM = { tab: "stats", pf: "all", pq: "", poff: 0, plist: [], uq: "", uoff: 0, ulist: [] };
   $("nav-admin").addEventListener("click", () => openComm("admin"));
-  $("adm-gome").addEventListener("click", () => openComm("me"));
   $("adm-tab").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) admTab(b.dataset.t); });
   function admTab(t) {
     ADM.tab = t;
     $("adm-tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.t === t));
-    ["stats", "posts", "users", "songs", "log", "mine"].forEach((k) => $("adm-" + k).classList.toggle("hidden", k !== t));
-    $("adm-login").textContent = AUTH.user ? AUTH.user.login : "";
+    ["stats", "posts", "users", "songs", "sfb", "log"].forEach((k) => $("adm-" + k).classList.toggle("hidden", k !== t));
     if (t === "stats") admStats();
     if (t === "posts") admPosts(true);
     if (t === "users") admUsers(true);
     if (t === "songs") admMusicHealth();
+    if (t === "sfb") admSfb(true);
   }
+  // ---------- 곡 피드백 (관리자) ----------
+  ADM.ff = "all"; ADM.foff = 0; ADM.flist = [];
+  $("adm-ff").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; ADM.ff = b.dataset.f; markSeg("adm-ff", "f", ADM.ff); admSfb(true); });
+  $("adm-fmore").addEventListener("click", () => admSfb(false));
+  const songTxt = (x) => x && x.t ? `${x.a} – ${x.t}` : "";
+  async function admSfb(reset) {
+    if (reset) { ADM.foff = 0; ADM.flist = []; $("adm-flist").innerHTML = `<p class="hint">불러오는 중...</p>`; }
+    try {
+      const d = await api("/admin/songfb?" + new URLSearchParams({ offset: ADM.foff, filter: ADM.ff }));
+      const pct = d.total ? Math.round((d.oks / d.total) * 100) : 0;
+      $("adm-fsum").innerHTML = `<div class="tiles">
+        <div class="tile"><b>${d.total}</b><span>피드백 수</span></div><div class="tile"><b>${d.inputs}</b><span>입력한 곡 종류</span></div>
+        <div class="tile${d.total && pct < 80 ? " warn" : ""}"><b>${d.total ? pct + "%" : "-"}</b><span>'맞아요' 비율 (검색 정확도)</span></div></div>`;
+      if (reset) $("adm-flist").innerHTML = "";
+      const start = ADM.flist.length;
+      ADM.flist.push(...d.rows); ADM.foff += d.rows.length;
+      $("adm-flist").insertAdjacentHTML("beforeend", d.rows.map((r, j) => `
+        <div class="arow" data-i="${start + j}"><div class="atx">
+          <b>"${esc(r.q)}" <small>${dt(r.last)}</small></b>
+          <small>최근 사이트가 보여 준 곡: ${esc(songTxt(r.got) || "못 찾음")}</small>
+          <span class="abadges"><span>👍 ${r.oks}</span>${r.bads ? `<span class="bad">👎 ${r.bads}</span>` : `<span>👎 0</span>`}
+            ${r.state === 1 ? `<span>✅ 관리자 승인</span>` : r.state === -1 ? `<span class="bad">⛔ 정정 막음</span>` : ""}
+            <span>${r.live ? `지금 적용: ${esc(songTxt(r.live))}${r.live.by === "users" ? ` (이용자 ${r.live.n}명)` : ""}` : "지금 적용: 없음 (원래 검색)"}</span></span>
+          ${r.fixes.length ? `<div class="areports">이용자가 고른 곡<br>${r.fixes.map((f, k) => `${esc(songTxt(f))} · ${f.n}명 <button type="button" class="mini ghost" data-act="ok" data-k="${k}">이 곡으로 승인</button>`).join("<br>")}</div>` : ""}
+        </div><div class="aacts">
+          ${r.state !== -1 ? `<button type="button" class="mini ghost" data-act="block">정정 막기</button>` : ""}
+          ${r.state ? `<button type="button" class="mini ghost" data-act="auto">자동으로 되돌리기</button>` : ""}
+          <button type="button" class="mini danger" data-act="del">기록 삭제</button>
+        </div></div>`).join(""));
+      if (!ADM.flist.length) $("adm-flist").innerHTML = `<p class="hint">아직 피드백이 없어요.</p>`;
+      $("adm-fmore").classList.toggle("hidden", !d.more);
+    } catch (e) { $("adm-flist").innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  $("adm-flist").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"), row = e.target.closest(".arow"); if (!b || !row) return;
+    const r = ADM.flist[+row.dataset.i];
+    const go2 = async (path, body) => { b.disabled = true; try { await api(path, { method: "POST", body }); admSfb(true); } catch (er) { b.disabled = false; toast(er.message); } };
+    if (b.dataset.act === "ok") { const f = r.fixes[+b.dataset.k]; go2("/admin/songfix", { q: r.q, a: f.a, t: f.t, state: 1 }); }
+    if (b.dataset.act === "block") go2("/admin/songfix", { q: r.q, state: -1 });
+    if (b.dataset.act === "auto") go2("/admin/songfix", { q: r.q, state: 0 });
+    if (b.dataset.act === "del") twice(b, () => go2("/admin/songfb/delete", { q: r.q }));
+  });
   // ---------- 곡 검색 점검 (관리자) ----------
   const SONG_TESTS = ["Kanye West - Stronger", "칸예 웨스트 - Heartless", "The Weeknd - Blinding Lights", "위켄드 - Starboy",
     "Ed Sheeran - Shape of You", "에드 시런 - Perfect", "테일러 스위프트 - Love Story", "Bruno Mars - Just the Way You Are",

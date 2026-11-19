@@ -68,3 +68,17 @@ CREATE INDEX IF NOT EXISTS comments_user ON comments(user_id);
 
 -- 이미 표를 만든 뒤라면 아래 한 줄만 실행 (v1.4): 동의 기록 열 추가
 -- ALTER TABLE users ADD COLUMN prefs TEXT NOT NULL DEFAULT '{}';
+
+-- v2.21 곡 검색 피드백 (Worker가 처음 쓸 때 자동으로 만들기도 함)
+CREATE TABLE IF NOT EXISTS song_fb (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  q TEXT NOT NULL,                     -- 입력한 곡 이름 (정리한 모양)
+  who TEXT NOT NULL,                   -- 회원 u+번호 또는 IP 해시 (원래 IP는 저장 안 함)
+  ok INTEGER NOT NULL,                 -- 1 맞아요, 0 다른 곡이에요
+  got TEXT NOT NULL DEFAULT '',        -- 사이트가 찾은 곡 {a,t,src}
+  fix_a TEXT, fix_t TEXT, fix_src TEXT, -- 이용자가 고른 맞는 곡
+  created INTEGER NOT NULL,
+  UNIQUE (q, who)
+);
+CREATE INDEX IF NOT EXISTS song_fb_q ON song_fb(q, ok);
+CREATE TABLE IF NOT EXISTS song_fix (q TEXT PRIMARY KEY, a TEXT, t TEXT, state INTEGER NOT NULL, updated INTEGER NOT NULL);

@@ -9,7 +9,8 @@
 //        SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET (Spotify),  LASTFM_API_KEY (Last.fm)
 //      키가 없어도 MusicBrainz·Wikidata(키 필요 없음)는 항상 함께 비교함 → 맨 아래 '곡 정보' 부분
 //
-//   6) (선택) 노래 추천의 가게 사진 AI 분석: Secret 으로 GEMINI_API_KEY (Google AI Studio 무료 키)
+//   6) (선택) 노래 추천의 가게 사진 AI 분석 + 메뉴 추천의 곡 교차검증·분석: Secret 으로 GEMINI_API_KEY (Google AI Studio 무료 키)
+//        AI가 고른 곡은 Deezer(키 필요 없음)에서 실제로 있는지 확인한 곡만 보여 줌
 //        없거나 무료 한도를 넘으면 사이트가 브라우저 안 사진 색감 분석으로 대신함. 모델을 바꾸려면 Text 변수 GEMINI_MODEL
 //
 //   5) (선택) 카카오 로그인: Secret 으로 KAKAO_REST_KEY(REST API 키), KAKAO_CLIENT_SECRET(보안 → Client Secret 코드)
@@ -146,6 +147,21 @@ export default {
         return json({ error: "fail" }, 502);
       }
     }
+    // 노래 추천 예비 곡 실제 확인 (AI 키 없어도 됨)
+    if (pathname === "/shop/verify" && request.method === "POST") {
+      if (tooMany(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
+      try { return json(await shopVerify(await body(request))); } catch (e) { console.log("verify", e && e.stack); return json({ error: "fail" }, 502); }
+    }
+    // 메뉴 추천: 찾은 곡이 입력과 맞는지 Gemini 교차검증 + 곡 분석
+    if (pathname === "/music/check" && request.method === "POST") {
+      if (!env.GEMINI_API_KEY) return json({ error: "off" }, 503);
+      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
+      try { return json(await songCheck(await body(request), env)); }
+      catch (e) {
+        if (e instanceof HttpError) return json({ error: e.message }, e.status);
+        console.log("check", e && e.stack); return json({ error: "fail" }, 502);
+      }
+    }
     if (!env.DB) return json({ error: "서버에 데이터베이스(DB)가 연결되지 않았어요." }, 500);
 
     try {
@@ -208,6 +224,7 @@ async function likedSet(env, me, ids) {
 async function deleteAccount(DB, uid) {
   // 댓글 표가 아직 없을 수도 있어서(DB 업데이트 전) 따로 지움
   try { await DB.prepare("DELETE FROM comments WHERE user_id = ? OR post_id IN (SELECT id FROM posts WHERE user_id = ?)").bind(uid, uid).run(); } catch {}
+  try { await DB.prepare("DELETE FROM song_fb WHERE who = ?").bind("u" + uid).run(); } catch {}   // 곡 검색 피드백
   await DB.batch([
     DB.prepare("UPDATE posts SET likes = MAX(likes - 1, 0) WHERE id IN (SELECT post_id FROM likes WHERE user_id = ?)").bind(uid),
     DB.prepare("UPDATE posts SET reports = MAX(reports - 1, 0) WHERE id IN (SELECT post_id FROM reports WHERE user_id = ?)").bind(uid),
@@ -236,6 +253,43 @@ async function admin(request, env, me, path, M, url) {
     let comments = null;
     try { comments = await one("SELECT COUNT(*) AS n FROM comments"); } catch {}
     return { users, posts, likes, reported, hidden, newUsers, newPosts, byKind, comments };
+  }
+
+  // 곡 검색 피드백: 입력별 맞음·틀림 수, 가장 많이 고른 정정, 관리자 상태(1 승인·-1 막음)
+  if (path === "/admin/songfb" && M === "GET") {
+    await fbTables(DB);
+    const f = url.searchParams.get("filter") || "all";
+    const { results } = await DB.prepare(
+      `SELECT f.q, SUM(f.ok) AS oks, SUM(1 - f.ok) AS bads, MAX(f.created) AS last, x.state, x.a AS xa, x.t AS xt,
+         (SELECT got FROM song_fb g WHERE g.q = f.q AND g.got != '' ORDER BY g.created DESC LIMIT 1) AS got
+       FROM song_fb f LEFT JOIN song_fix x ON x.q = f.q GROUP BY f.q
+       ${f === "bad" ? "HAVING SUM(1 - f.ok) > 0" : ""} ORDER BY last DESC LIMIT 101 OFFSET ?`
+    ).bind(num("offset")).all();
+    const rows = await Promise.all(results.slice(0, 100).map(async (r) => {
+      const { results: fixes } = await DB.prepare(
+        "SELECT fix_a AS a, fix_t AS t, COUNT(*) AS n FROM song_fb WHERE q = ? AND fix_t IS NOT NULL GROUP BY lower(fix_a), lower(fix_t) ORDER BY n DESC LIMIT 3"
+      ).bind(r.q).all();
+      let got = null; try { got = r.got ? JSON.parse(r.got) : null; } catch {}
+      return { q: r.q, oks: r.oks, bads: r.bads, last: r.last, state: r.state || 0, set: r.xt ? { a: r.xa, t: r.xt } : null, got, fixes, live: await songFix(DB, r.q) };
+    }));
+    const one = async (sql) => (await DB.prepare(sql).first()).n;
+    const [total, oks, inputs] = await Promise.all([one("SELECT COUNT(*) AS n FROM song_fb"), one("SELECT COUNT(*) AS n FROM song_fb WHERE ok = 1"), one("SELECT COUNT(DISTINCT q) AS n FROM song_fb")]);
+    return { rows, more: results.length > 100, total, oks, inputs };
+  }
+  if (path === "/admin/songfix" && M === "POST") {
+    await fbTables(DB);
+    const b = await body(request), q = songKey(b.q), state = [1, -1, 0].includes(b.state) ? b.state : 0;
+    if (!q) fail(400, "입력이 없어요.");
+    if (state === 0) await DB.prepare("DELETE FROM song_fix WHERE q = ?").bind(q).run();
+    else await DB.prepare("INSERT INTO song_fix (q, a, t, state, updated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(q) DO UPDATE SET a = excluded.a, t = excluded.t, state = excluded.state, updated = excluded.updated")
+      .bind(q, str(b.a, 80), str(b.t, 120), state, now()).run();
+    return { ok: true, live: await songFix(DB, q) };
+  }
+  if (path === "/admin/songfb/delete" && M === "POST") {
+    await fbTables(DB);
+    const q = songKey((await body(request)).q);
+    await DB.batch([DB.prepare("DELETE FROM song_fb WHERE q = ?").bind(q), DB.prepare("DELETE FROM song_fix WHERE q = ?").bind(q)]);
+    return { ok: true };
   }
 
   if (path === "/admin/posts" && M === "GET") {
@@ -520,6 +574,28 @@ async function route(request, env) {
     return { ok: true };
   }
 
+  // ---------- 곡 검색 피드백 (찾은 곡이 맞는지 이용자가 표시 → 쌓인 정정을 다음 검색에 먼저 적용) ----------
+  if (path === "/song/fb" && M === "POST") {
+    if (tooMany(request.headers.get("CF-Connecting-IP") || "?")) fail(429, "너무 자주 보냈어요. 잠시 후 다시 해 주세요.");
+    await fbTables(DB);
+    const b = await body(request), q = songKey(b.q);
+    if (!q) fail(400, "곡 이름이 없어요.");
+    const got = b.got && typeof b.got === "object" ? JSON.stringify({ a: str(b.got.a, 80), t: str(b.got.t, 120), src: str(b.got.src, 20) }) : "";
+    const fx = b.fix && typeof b.fix === "object" ? { a: str(b.fix.a, 80), t: str(b.fix.t, 120), src: str(b.fix.src, 20) } : null;
+    const me = await currentUser(request, env, false);
+    const who = me ? "u" + me.id : "i" + (await sha256("fb|" + (request.headers.get("CF-Connecting-IP") || "?"))).slice(0, 16);
+    // 한 사람은 같은 입력에 한 표만 (다시 누르면 바뀜)
+    await DB.prepare(`INSERT INTO song_fb (q, who, ok, got, fix_a, fix_t, fix_src, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(q, who) DO UPDATE SET ok = excluded.ok, got = excluded.got, fix_a = excluded.fix_a, fix_t = excluded.fix_t, fix_src = excluded.fix_src, created = excluded.created`)
+      .bind(q, who, b.ok ? 1 : 0, got, fx && fx.t ? fx.a : null, fx && fx.t ? fx.t : null, fx && fx.t ? fx.src : null, now()).run();
+    return { ok: true };
+  }
+  if (path === "/song/fix" && M === "GET") {
+    const q = songKey(url.searchParams.get("q"));
+    if (!q) return { fix: null };
+    try { return { fix: await songFix(DB, q) }; } catch { return { fix: null }; }   // 표가 아직 없으면 정정 없음
+  }
+
   // ---------- 관리자 ----------
   if (path.startsWith("/admin/")) {
     const me = await currentUser(request, env, true);
@@ -689,7 +765,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.9";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "2.11";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -697,6 +773,34 @@ const musicKeys = (env) => ({
 });
 
 // 같은 검색은 30분 동안 다시 묻지 않음 (Worker가 켜져 있는 동안만 기억)
+// ---------- 곡 검색 피드백 ----------
+// 입력을 같은 모양으로: 소문자, 기호·띄어쓰기 정리 (예: "IU - 밤편지" = "iu 밤편지")
+const songKey = (v) => (typeof v === "string" ? v : "").normalize("NFC").toLowerCase().replace(/[\s\-–—·,./'"’`!?()\[\]]+/g, " ").trim().slice(0, 80);
+let FB_READY = false;
+async function fbTables(DB) {
+  if (FB_READY) return;
+  await DB.batch([
+    DB.prepare(`CREATE TABLE IF NOT EXISTS song_fb (id INTEGER PRIMARY KEY AUTOINCREMENT, q TEXT NOT NULL, who TEXT NOT NULL, ok INTEGER NOT NULL,
+      got TEXT NOT NULL DEFAULT '', fix_a TEXT, fix_t TEXT, fix_src TEXT, created INTEGER NOT NULL, UNIQUE (q, who))`),
+    DB.prepare("CREATE INDEX IF NOT EXISTS song_fb_q ON song_fb(q, ok)"),
+    DB.prepare("CREATE TABLE IF NOT EXISTS song_fix (q TEXT PRIMARY KEY, a TEXT, t TEXT, state INTEGER NOT NULL, updated INTEGER NOT NULL)"),
+  ]);
+  FB_READY = true;
+}
+// 지금 적용할 정정: 관리자가 막았으면 없음, 승인했으면 그 곡, 아니면 서로 다른 2명 이상이 같은 곡으로 고쳤고(정정된 곡에 '맞아요'도 포함) 원래 검색 결과에 '맞아요'보다 많을 때
+const FIX_MIN = 2;
+async function songFix(DB, q) {
+  const x = await DB.prepare("SELECT a, t, state FROM song_fix WHERE q = ?").bind(q).first();
+  if (x && x.state === -1) return null;
+  if (x && x.state === 1 && x.t) return { a: x.a, t: x.t, by: "admin" };
+  const top = await DB.prepare(
+    "SELECT fix_a AS a, fix_t AS t, COUNT(*) AS n FROM song_fb WHERE q = ? AND fix_t IS NOT NULL GROUP BY lower(fix_a), lower(fix_t) ORDER BY n DESC LIMIT 1"
+  ).bind(q).first();
+  if (!top || top.n < FIX_MIN) return null;
+  const oks = (await DB.prepare("SELECT COUNT(*) AS n FROM song_fb WHERE q = ? AND ok = 1 AND fix_t IS NULL").bind(q).first()).n;
+  return top.n > oks ? { a: top.a, t: top.t, n: top.n, by: "users" } : null;
+}
+
 const MEMO = new Map();
 function memo(k, v) {
   if (v === undefined) { const x = MEMO.get(k); return x && Date.now() - x.t < 30 * 60e3 ? x.v : undefined; }
@@ -943,6 +1047,71 @@ const LANG_NAME = { ko: "한국어", en: "English", ja: "日本語", zh: "简体
 const cut = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
 const lv = (v) => Math.max(1, Math.min(3, Math.round(+v) || 2));
 
+// Gemini 한 번 부르기 → JSON 객체. 모델 이름이 바뀌었으면(404) 다음 모델로. 한도(429)면 busy
+async function askGemini(env, parts, { models, temperature = 0.7, check } = {}) {
+  const list = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...(models || GEMINI_MODELS)] : models || GEMINI_MODELS;
+  let lastStatus = 0;
+  for (const model of list) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json", temperature } }),
+    });
+    lastStatus = r.status;
+    if (r.status === 404) continue;
+    if (r.status === 429) fail(429, "busy");
+    if (!r.ok) { console.log("gemini", model, r.status, (await r.text()).slice(0, 300)); continue; }
+    const d = await r.json();
+    const text = (((d.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "";
+    let o; try { o = JSON.parse(text.replace(/^```(json)?|```$/g, "").trim()); } catch { continue; }
+    if (check && !check(o)) continue;
+    return { o, model };
+  }
+  fail(502, lastStatus === 403 || lastStatus === 401 ? "key" : "fail");
+}
+
+// ---------- 곡 실제 확인 (Deezer, 키 필요 없음) ----------
+// AI가 고른 곡이 실제로 있는지 Deezer에서 찾아보고, 있으면 미리듣기·앨범 표지·링크를 붙임. 곡 검색(lookupSong)과는 별개
+const nTitle = (t) => String(t || "").normalize("NFKC").toLowerCase().replace(/\s*[([].*?[)\]]\s*/g, " ").replace(/\b(feat|ft|with)\b.*$/, "").replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]+/g, "");
+const nArtist = (t) => String(t || "").normalize("NFKC").toLowerCase().replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]+/g, "");
+const near = (a, b) => !!a && !!b && (a === b || (Math.min(a.length, b.length) >= 3 && (a.includes(b) || b.includes(a))));
+async function dzFind(s, budget = { n: 8 }) {
+  const titles = [s.title, s.title_en].map(nTitle).filter(Boolean), artists = [s.artist, s.artist_en].map(nArtist).filter(Boolean);
+  const qs = [...new Set([`artist:"${s.artist}" track:"${s.title}"`, s.artist_en && s.title_en ? `artist:"${s.artist_en}" track:"${s.title_en}"` : "",
+    s.artist_en ? `artist:"${s.artist_en}" track:"${s.title}"` : "", `${s.artist_en || s.artist} ${s.title_en || s.title}`, `track:"${s.title}"`, s.title_en ? `track:"${s.title_en}"` : ""].filter(Boolean))];
+  let reached = false;
+  for (const q of qs) {
+    const k = "dz|" + q;
+    let d = memo(k);
+    if (d === undefined) {
+      if (budget.n-- <= 0) break;   // Deezer 한도(5초에 50번) 안에서만
+      try { d = await getJSON("https://api.deezer.com/search?limit=10&q=" + encodeURIComponent(q), {}, 3500); if (d && Array.isArray(d.data)) memo(k, d); } catch { d = null; }
+    }
+    if (!d || !Array.isArray(d.data)) continue;
+    reached = true;
+    const hit = d.data.find((x) => x.artist && artists.some((a) => near(nArtist(x.artist.name), a)) && titles.some((t) => near(nTitle(x.title_short || x.title), t)));
+    if (hit) return { ok: true, preview: hit.preview || "", art: (hit.album && (hit.album.cover_medium || hit.album.cover)) || "", link: hit.link || "", dz: { artist: hit.artist.name, title: hit.title_short || hit.title, id: hit.id } };
+  }
+  return { ok: false, reached };
+}
+// 목록을 앞에서부터 확인해서 확인된 곡만 need곡까지. Deezer가 아예 안 되면 확인 못 한 곡을 그대로 둠(checked=false)
+async function verifySongs(list, need) {
+  const out = [], tried = [];
+  let reached = false;
+  const budget = { n: 45 };
+  for (let i = 0; i < list.length && out.length < need && budget.n > 0; i += 5) {
+    const part = list.slice(i, i + 5);
+    const res = await Promise.all(part.map((s) => dzFind(s, budget).catch(() => ({ ok: false }))));
+    part.forEach((s, k) => { if (res[k].reached || res[k].ok) reached = true; if (res[k].ok && out.length < need) out.push({ ...s, ...res[k], ok: undefined, reached: undefined, checked: true }); else tried.push(s); });
+  }
+  if (!reached) return { songs: list.slice(0, need).map((s) => ({ ...s, checked: false })), reached: false };
+  return { songs: out, dropped: tried.map((s) => `${s.artist} - ${s.title}`).slice(0, 20), reached: true };
+}
+const songIn = (x, extra = {}) => ({
+  artist: cut(x.artist, 80), title: cut(x.title, 100), artist_en: cut(x.artist_en, 80), title_en: cut(x.title_en, 100), genre: cut(x.genre, 30),
+  energy: lv(x.energy), valence: lv(x.valence), reason: cut(x.reason, 200), intro: cut(x.intro, 140), verse: cut(x.verse, 140), chorus: cut(x.chorus, 140), ...extra,
+});
+
 async function shopVibe(b, env) {
   const img = typeof b.image === "string" ? b.image.replace(/^data:[^,]+,/, "") : "";
   if (img && (img.length > 2_400_000 || !/^[A-Za-z0-9+/=]+$/.test(img))) fail(400, "photo");
@@ -955,42 +1124,66 @@ async function shopVibe(b, env) {
     "You are a music curator for restaurants and cafes in Korea. A shop owner wants background music that fits the shop.",
     img ? "Look at the attached photo of the shop (interior, lighting, colors, materials, furniture, crowd feel)." : "There is no photo; use the shop information only.",
     `Shop name: ${name || "(none)"} / Shop type chosen by owner: ${kind || "(auto)"} / Naver category: ${cat || "(unknown)"} / Area: ${loc || "(unknown)"}` + (hour !== null ? ` / Current hour: ${hour}` : ""),
-    "Pick exactly 10 REAL, officially released songs that actually exist (well-known enough to find on Apple Music or YouTube). Never invent songs. Mix Korean songs and international songs unless the shop clearly suits one style. At most 2 songs per artist. Order them as a playlist flow.",
+    "Pick exactly 15 REAL, officially released, popular songs that certainly exist on Deezer, Apple Music and Spotify (prefer well-known tracks; avoid obscure, unreleased or live-only songs). Never invent songs or mix up artists. Mix Korean songs and international songs unless the shop clearly suits one style. At most 2 songs per artist. Order them as a playlist flow, best fits first.",
     avoid.length ? "Do not use these songs: " + avoid.join(" | ") : "",
-    `Write every descriptive text in ${LANG_NAME[lang]}. Keep artist and title as officially written (Korean songs in Korean).`,
+    `Write every descriptive text in ${LANG_NAME[lang]}. artist/title exactly as officially written (Korean songs in Korean); artist_en/title_en = the official English/romanized names used on global services (same as artist/title if already English).`,
     "energy and valence are integers 1-3 (1 = calm/dark, 3 = energetic/bright).",
     "Return only JSON with this shape:",
-    '{"summary":"2 sentences about the shop atmosphere","lighting":"short","colors":"short","materials":"short","tags":["5 short mood keywords"],"energy":2,"valence":2,"songs":[{"artist":"","title":"","genre":"","energy":2,"valence":2,"reason":"1 sentence why it fits this shop","intro":"1 short sentence","verse":"1 short sentence","chorus":"1 short sentence"}]}',
+    '{"summary":"2 sentences about the shop atmosphere","lighting":"short","colors":"short","materials":"short","tags":["5 short mood keywords"],"energy":2,"valence":2,"songs":[{"artist":"","title":"","artist_en":"","title_en":"","genre":"","energy":2,"valence":2,"reason":"1 sentence why it fits this shop","intro":"1 short sentence","verse":"1 short sentence","chorus":"1 short sentence"}]}',
   ].filter(Boolean).join("\n");
   const parts = [{ text: prompt }];
   if (img) parts.push({ inline_data: { mime_type: /^image\/(png|webp|jpeg)$/.test(b.mime) ? b.mime : "image/jpeg", data: img } });
-  const models = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...GEMINI_MODELS] : GEMINI_MODELS;
-  let lastStatus = 0;
-  for (const model of models) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.9 } }),
-    });
-    lastStatus = r.status;
-    if (r.status === 404 || r.status === 400 && !img) continue;   // 모델 이름이 바뀐 경우 다음 모델로
-    if (r.status === 429) fail(429, "busy");
-    if (!r.ok) { console.log("gemini", r.status, (await r.text()).slice(0, 300)); continue; }
-    const d = await r.json();
-    const text = (((d.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "";
-    let o; try { o = JSON.parse(text.replace(/^```(json)?|```$/g, "").trim()); } catch { continue; }
-    const seen = new Set();
-    const songs = (Array.isArray(o.songs) ? o.songs : []).map((x) => ({
-      artist: cut(x.artist, 80), title: cut(x.title, 100), genre: cut(x.genre, 30),
-      energy: lv(x.energy), valence: lv(x.valence), reason: cut(x.reason, 200),
-      intro: cut(x.intro, 140), verse: cut(x.verse, 140), chorus: cut(x.chorus, 140),
-    })).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()) && seen.add((x.artist + x.title).toLowerCase())).slice(0, 10);
-    if (songs.length < 5) continue;
-    return {
-      model, summary: cut(o.summary, 400), lighting: cut(o.lighting, 80), colors: cut(o.colors, 80), materials: cut(o.materials, 80),
-      tags: (Array.isArray(o.tags) ? o.tags : []).map((t) => cut(t, 24)).filter(Boolean).slice(0, 6),
-      energy: lv(o.energy), valence: lv(o.valence), songs,
-    };
+  const { o, model } = await askGemini(env, parts, { temperature: 0.9, check: (o) => Array.isArray(o.songs) && o.songs.length >= 5 });
+  const seen = new Set();
+  const ai = o.songs.map((x) => songIn(x)).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()) && seen.add((x.artist + x.title).toLowerCase())).slice(0, 16);
+  // 사이트가 보낸 예비 곡(실제 곡 목록) → AI 곡이 확인 안 되면 이걸로 채움
+  const pool = (Array.isArray(b.pool) ? b.pool : []).slice(0, 30).map((x) => songIn(x, { pool: true })).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()));
+  const v = await verifySongs([...ai, ...pool], 10);
+  return {
+    model, summary: cut(o.summary, 400), lighting: cut(o.lighting, 80), colors: cut(o.colors, 80), materials: cut(o.materials, 80),
+    tags: (Array.isArray(o.tags) ? o.tags : []).map((t) => cut(t, 24)).filter(Boolean).slice(0, 6),
+    energy: lv(o.energy), valence: lv(o.valence), songs: v.songs, verified: v.reached, dropped: v.dropped || [],
+  };
+}
+
+// 예비 곡만 확인 (AI 키가 없을 때 사이트 자체 추천 목록용)
+async function shopVerify(b) {
+  const list = (Array.isArray(b.songs) ? b.songs : []).slice(0, 30).map((x) => songIn(x, { pool: !!x.pool })).filter((x) => x.artist && x.title);
+  return verifySongs(list, Math.max(1, Math.min(10, +b.need || 10)));
+}
+
+// ---------- 메뉴 추천의 곡 교차검증 + 곡 분석 (Gemini) ----------
+// 곡 검색 결과는 바꾸지 않음. 입력과 찾은 곡이 맞는지 의견을 내고, 아니면 맞을 것 같은 곡을 '제안'만 함(사용자가 눌러야 바뀜)
+const GEMINI_LITE = ["gemini-2.5-flash-lite", "gemini-flash-lite-latest", ...GEMINI_MODELS];
+async function songCheck(b, env) {
+  const q = cut(b.q, 100);
+  if (!q) fail(400, "need");
+  const lang = LANG_NAME[b.lang] ? b.lang : "ko";
+  const f = b.found && typeof b.found === "object" ? { artist: cut(b.found.artist, 80), title: cut(b.found.title, 120), album: cut(b.found.album, 120), genre: cut(b.found.genre, 40), year: cut(b.found.year, 4) } : null;
+  const tags = (Array.isArray(b.tags) ? b.tags : []).slice(0, 10).map((t) => cut(t, 30)).filter(Boolean);
+  const prompt = [
+    "You check a music search result and analyze the song. Be factual; never invent songs.",
+    `The user typed: "${q}"`,
+    f && f.title ? `The search engine found: "${f.artist} - ${f.title}" (album: ${f.album || "?"}, genre: ${f.genre || "?"}, year: ${f.year || "?"})` : "The search engine found nothing.",
+    tags.length ? `Last.fm listener tags for the found song: ${tags.join(", ")}` : "",
+    "1) match: true if the found song is very likely the song the user meant (same song; different language title or romanization is still a match). false if it is a different song (e.g. same title by another artist, a cover, karaoke, or the user clearly meant another artist).",
+    "2) If match is false or nothing was found, suggest the single most likely intended REAL song as {artist, title, artist_en, title_en}; otherwise suggest null. If unsure, null.",
+    `3) Analyze the song (the found song if match, otherwise the suggested song). Use the Last.fm tags as evidence when given. Write texts in ${LANG_NAME[lang]}.`,
+    "energy and valence: integers 1-3 (1 calm/sad, 3 energetic/happy). bpm: typical tempo integer.",
+    'Return only JSON: {"match":true,"confidence":0.0,"why":"1 short sentence","suggest":null,"energy":2,"valence":2,"bpm":100,"mood":["3-5 short words"],"summary":"2 sentences about the song\'s sound and feeling","intro":"1 short sentence","verse":"1 short sentence","chorus":"1 short sentence"}',
+  ].filter(Boolean).join("\n");
+  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.2, check: (o) => typeof o.match === "boolean" });
+  let suggest = null;
+  if (o.suggest && o.suggest.title && o.suggest.artist) {
+    const s = songIn(o.suggest);
+    const same = f && near(nTitle(s.title), nTitle(f.title)) && near(nArtist(s.artist), nArtist(f.artist));
+    if (!same) { const d = await dzFind(s).catch(() => ({ ok: false })); if (d.ok) suggest = { artist: s.artist, title: s.title, artist_en: s.artist_en, title_en: s.title_en, preview: d.preview, art: d.art }; }
   }
-  fail(502, lastStatus === 403 || lastStatus === 401 ? "key" : "fail");
+  const bpm = Math.round(+o.bpm);
+  return {
+    model, match: !!o.match, confidence: Math.max(0, Math.min(1, +o.confidence || 0)), why: cut(o.why, 160), suggest,
+    energy: lv(o.energy), valence: lv(o.valence), bpm: bpm >= 40 && bpm <= 220 ? bpm : null,
+    mood: (Array.isArray(o.mood) ? o.mood : []).map((t) => cut(t, 20)).filter(Boolean).slice(0, 5),
+    summary: cut(o.summary, 300), intro: cut(o.intro, 140), verse: cut(o.verse, 140), chorus: cut(o.chorus, 140),
+  };
 }
