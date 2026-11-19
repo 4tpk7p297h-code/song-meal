@@ -1128,8 +1128,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.4"></script>
-<script src="lang.js?v=4.4"></script>
+<script src="lang-data.js?v=4.5"></script>
+<script src="lang.js?v=4.5"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -3687,7 +3687,7 @@ JJ Lin|林俊傑|임준걸`;
     $("nav-logout").classList.toggle("hidden", !AUTH.user);
     $("leave-box").classList.toggle("hidden", !!(AUTH.user && AUTH.user.admin));
     const kk = !!(AUTH.user && AUTH.user.kakao);
-    $("pw-box").classList.toggle("hidden", kk);
+    $("pw-box").classList.toggle("hidden", kk || !!(AUTH.user && AUTH.user.admin));   // 관리자 계정은 내 정보에서 비밀번호 변경 숨김 (사용자 요청 v4.5)
     $("leave-pw").classList.toggle("hidden", kk);
     $("leave-kakao").classList.toggle("hidden", !kk);
     applyPrefs();
@@ -4946,8 +4946,12 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.4";
+  const APP_VERSION = "v4.5";
   const CHANGELOG = [
+    ["v4.5", "2026-11-19", "관리자 내 정보에서 비밀번호 변경 숨김", [
+      "관리자 계정의 '내 정보' 화면에서 비밀번호 변경 칸을 없앰",
+      "회원 비밀번호 초기화(관리패널 → 회원)는 그대로",
+    ]],
     ["v4.4", "2026-11-19", "곡 확인 창 팝업으로, 노래 추천 로딩 문구", [
       "'이 곡이 맞나요?' 창을 결과 화면 칸에서 빼고 오른쪽 아래 작은 팝업으로 바꿈 → 결과 화면은 예전 3칸 비율 그대로",
       "팝업은 결과가 뜨고 잠깐 뒤에 나타나고 ✕로 닫을 수 있음. '고마워요'는 잠깐 보여 준 뒤 자동으로 닫힘",
