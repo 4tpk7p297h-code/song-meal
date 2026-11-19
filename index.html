@@ -1121,8 +1121,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.2"></script>
-<script src="lang.js?v=4.2"></script>
+<script src="lang-data.js?v=4.3"></script>
+<script src="lang.js?v=4.3"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -4848,7 +4848,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
             <div class="shopacts"><button type="button" class="mini" data-pv="${i}">▶ ${T4("미리듣기", "Preview", "試聴", "试听")}</button><span class="listen">${links(s)}</span></div>
             <div class="shoppv" id="sh-pv-${i}"></div>
           </li>`).join("")}</ol>
-          <p class="songmeta">${r.verified ? "✔ " + T4("표시된 곡은 음원 서비스(Deezer)에서 실제로 있는 곡인지 확인했어요. ", "Songs marked ✔ were verified to exist on a music service (Deezer). ", "✔の曲は音楽サービス(Deezer)で実在を確認しました。", "带 ✔ 的歌曲已在音乐平台(Deezer)确认存在。") : ""}${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
+          <p class="songmeta">${r.verified ? "✔ " + T4("표시된 곡은 음원 서비스(Deezer·Spotify)에서 실제로 있는 곡인지 확인했어요. ", "Songs marked ✔ were verified to exist on a music service (Deezer·Spotify). ", "✔の曲は音楽サービス(Deezer·Spotify)で実在を確認しました。", "带 ✔ 的歌曲已在音乐平台(Deezer·Spotify)确认存在。") : ""}${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
           <div class="row2">
             <button type="button" id="sh-more">🔄 ${T4("다른 10곡", "10 different songs", "別の10曲", "换 10 首")}</button>
             <button type="button" class="ghost" id="sh-copy">📋 ${T4("목록 복사", "Copy list", "リストをコピー", "复制列表")}</button>
@@ -4926,8 +4926,13 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.2";
+  const APP_VERSION = "v4.3";
   const CHANGELOG = [
+    ["v4.3", "2026-11-19", "Spotify로 곡 한 번 더 확인", [
+      "노래 추천 곡이 Deezer에 없으면 Spotify(키 넣은 경우)에서 한 번 더 확인 → 한글 이름 국내 곡도 ✔ 받기 쉬워짐",
+      "AI 교차검증의 제안 곡도 Deezer에 없으면 Spotify로 확인",
+      "Spotify 확인 곡은 미리듣기 주소가 없을 때가 많아서 ▶ 누르면 기존 곡 검색으로 미리듣기 찾음",
+    ]],
     ["v4.2", "2026-11-19", "버전 번호 정리", [
       "버전 끝자리는 0~9까지만, 9 다음은 바로 다음 큰 번호로 (예: v2.9 → v3.0)",
       "예전 v2.10~v2.19 → v3.0~v3.9, v2.20·v2.21 → v4.0·v4.1로 바꿈",

@@ -10,7 +10,7 @@
 //      키가 없어도 MusicBrainz·Wikidata(키 필요 없음)는 항상 함께 비교함 → 맨 아래 '곡 정보' 부분
 //
 //   6) (선택) 노래 추천의 가게 사진 AI 분석 + 메뉴 추천의 곡 교차검증·분석: Secret 으로 GEMINI_API_KEY (Google AI Studio 무료 키)
-//        AI가 고른 곡은 Deezer(키 필요 없음)에서 실제로 있는지 확인한 곡만 보여 줌
+//        AI가 고른 곡은 Deezer(키 필요 없음)에서, 없으면 Spotify(키를 넣었으면)에서 실제로 있는지 확인한 곡만 보여 줌
 //        없거나 무료 한도를 넘으면 사이트가 브라우저 안 사진 색감 분석으로 대신함. 모델을 바꾸려면 Text 변수 GEMINI_MODEL
 //
 //   5) (선택) 카카오 로그인: Secret 으로 KAKAO_REST_KEY(REST API 키), KAKAO_CLIENT_SECRET(보안 → Client Secret 코드)
@@ -150,7 +150,7 @@ export default {
     // 노래 추천 예비 곡 실제 확인 (AI 키 없어도 됨)
     if (pathname === "/shop/verify" && request.method === "POST") {
       if (tooMany(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
-      try { return json(await shopVerify(await body(request))); } catch (e) { console.log("verify", e && e.stack); return json({ error: "fail" }, 502); }
+      try { return json(await shopVerify(await body(request), env)); } catch (e) { console.log("verify", e && e.stack); return json({ error: "fail" }, 502); }
     }
     // 메뉴 추천: 찾은 곡이 입력과 맞는지 Gemini 교차검증 + 곡 분석
     if (pathname === "/music/check" && request.method === "POST") {
@@ -765,7 +765,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "3.1";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "3.2";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -1094,14 +1094,28 @@ async function dzFind(s, budget = { n: 8 }) {
   }
   return { ok: false, reached };
 }
+// Deezer에 없을 때 Spotify(키를 넣은 경우)에서 한 번 더 확인 — 한국 곡을 한글 이름으로 갖고 있음 (미리듣기는 대부분 없음)
+async function spFind(s, env, budget) {
+  if (!env || !musicKeys(env).spotify || budget.sp-- <= 0) return { ok: false };
+  const titles = [s.title, s.title_en].map(nTitle).filter(Boolean), artists = [s.artist, s.artist_en].map(nArtist).filter(Boolean);
+  const r = await spotify(env, s.title, [s.artist], Date.now() + 4000).catch(() => ({ tracks: [] }));
+  if (r.err) return { ok: false, reached: false };
+  const hit = (r.tracks || []).find((x) => x.artistName.split(", ").some((a) => artists.some((b) => near(nArtist(a), b))) && titles.some((t) => near(nTitle(x.trackName), t)));
+  return hit ? { ok: true, reached: true, preview: hit.previewUrl || "", art: hit.artworkUrl100 || "", link: hit.spotifyUrl || "", sp: { artist: hit.artistName, title: hit.trackName } } : { ok: false, reached: true };
+}
 // 목록을 앞에서부터 확인해서 확인된 곡만 need곡까지. Deezer가 아예 안 되면 확인 못 한 곡을 그대로 둠(checked=false)
-async function verifySongs(list, need) {
+async function verifySongs(list, need, env) {
   const out = [], tried = [];
   let reached = false;
-  const budget = { n: 45 };
+  const budget = { n: 45, sp: 15 };
   for (let i = 0; i < list.length && out.length < need && budget.n > 0; i += 5) {
     const part = list.slice(i, i + 5);
-    const res = await Promise.all(part.map((s) => dzFind(s, budget).catch(() => ({ ok: false }))));
+    const res = await Promise.all(part.map(async (s) => {
+      const d = await dzFind(s, budget).catch(() => ({ ok: false }));
+      if (d.ok) return d;
+      const sp = await spFind(s, env, budget).catch(() => ({ ok: false }));
+      return sp.ok || sp.reached ? { ...sp, reached: sp.reached || d.reached } : d;
+    }));
     part.forEach((s, k) => { if (res[k].reached || res[k].ok) reached = true; if (res[k].ok && out.length < need) out.push({ ...s, ...res[k], ok: undefined, reached: undefined, checked: true }); else tried.push(s); });
   }
   if (!reached) return { songs: list.slice(0, need).map((s) => ({ ...s, checked: false })), reached: false };
@@ -1138,7 +1152,7 @@ async function shopVibe(b, env) {
   const ai = o.songs.map((x) => songIn(x)).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()) && seen.add((x.artist + x.title).toLowerCase())).slice(0, 16);
   // 사이트가 보낸 예비 곡(실제 곡 목록) → AI 곡이 확인 안 되면 이걸로 채움
   const pool = (Array.isArray(b.pool) ? b.pool : []).slice(0, 30).map((x) => songIn(x, { pool: true })).filter((x) => x.artist && x.title && !seen.has((x.artist + x.title).toLowerCase()));
-  const v = await verifySongs([...ai, ...pool], 10);
+  const v = await verifySongs([...ai, ...pool], 10, env);
   return {
     model, summary: cut(o.summary, 400), lighting: cut(o.lighting, 80), colors: cut(o.colors, 80), materials: cut(o.materials, 80),
     tags: (Array.isArray(o.tags) ? o.tags : []).map((t) => cut(t, 24)).filter(Boolean).slice(0, 6),
@@ -1147,9 +1161,9 @@ async function shopVibe(b, env) {
 }
 
 // 예비 곡만 확인 (AI 키가 없을 때 사이트 자체 추천 목록용)
-async function shopVerify(b) {
+async function shopVerify(b, env) {
   const list = (Array.isArray(b.songs) ? b.songs : []).slice(0, 30).map((x) => songIn(x, { pool: !!x.pool })).filter((x) => x.artist && x.title);
-  return verifySongs(list, Math.max(1, Math.min(10, +b.need || 10)));
+  return verifySongs(list, Math.max(1, Math.min(10, +b.need || 10)), env);
 }
 
 // ---------- 메뉴 추천의 곡 교차검증 + 곡 분석 (Gemini) ----------
@@ -1177,7 +1191,7 @@ async function songCheck(b, env) {
   if (o.suggest && o.suggest.title && o.suggest.artist) {
     const s = songIn(o.suggest);
     const same = f && near(nTitle(s.title), nTitle(f.title)) && near(nArtist(s.artist), nArtist(f.artist));
-    if (!same) { const d = await dzFind(s).catch(() => ({ ok: false })); if (d.ok) suggest = { artist: s.artist, title: s.title, artist_en: s.artist_en, title_en: s.title_en, preview: d.preview, art: d.art }; }
+    if (!same) { let d = await dzFind(s).catch(() => ({ ok: false })); if (!d.ok) d = await spFind(s, env, { sp: 1 }).catch(() => ({ ok: false })); if (d.ok) suggest = { artist: s.artist, title: s.title, artist_en: s.artist_en, title_en: s.title_en, preview: d.preview, art: d.art }; }
   }
   const bpm = Math.round(+o.bpm);
   return {

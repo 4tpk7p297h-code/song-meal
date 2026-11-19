@@ -1,7 +1,7 @@
 # 비트밥스 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-19 (사이트 v4.2, 업로드 zip 20261119_rev3, Worker song-meal-api v3.1 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-19 (사이트 v4.3, 업로드 zip 20261119_rev4, Worker song-meal-api v3.2 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -81,6 +81,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - v4.0: 팀원 피드백 반영. 첫 화면 #hub 두 패널(노래 추천 #shop / 기존 메뉴 추천). 노래 추천 = 가게 사진(768px JPEG)+이름·위치 → Worker POST /shop/vibe → Gemini(Secret GEMINI_API_KEY, 모델 gemini-2.5-flash→flash-latest→2.0-flash, IP당 분당 6회) → 10곡 JSON. 키 없음·한도·실패 시 브라우저 자체 분석(사진 색감 analyzePixels + 가게 종류 SCENES) + 내장 SHOP_SONGS(실제 곡 ~120). 미리듣기는 기존 lookupSong 호출만(수정 안 함). 새 화면은 .notr + T4(ko,en,ja,zh) 직접 번역. 동의: 게스트·가입 모두 필수(국외 이전·위치), 국외 이전에 Google LLC 추가, privacy.html 동일 반영. resolveLoc: 짧은 동네 이름은 이름 포함 장소 검색 우선→'이름+동' 지오코딩, 주소 후보 여러 개면 5km 안 장소 검색으로 확인(마곡→강서구 마곡동). 음량: localStorage food.vol, 계정 설정 #vol-box.
 - v4.1: (1) 곡 검색 피드백: 결과 #songfb 👍/👎 → 다른 후보(pick.groups)·직접 검색(lookupSong fresh) → pickFix가 songCache+songDone 재렌더. Worker POST /song/fb, GET /song/fix (D1 song_fb·song_fix 자동 생성), 서로 다른 2명(FIX_MIN) 이상 같은 정정 & '원래 결과 맞아요'보다 많으면 submit 때 lookupSong(정정 곡)을 먼저 부름(lookupSong 자체는 수정 안 함). 관리패널 🎯 곡 피드백(승인 1/막기 -1). (2) 노래 추천 곡 실제 확인: Worker verifySongs가 Deezer 검색(키 없음, 요청 45회 예산)으로 AI 15곡+내장 예비 20곡(pool, 한글 가수는 ARTISTS로 영어 표기) 중 확인된 곡만 10곡, preview·art 붙여 줌 → 미리듣기 바로 재생, 모자라면 내장 곡으로 채움. 키 없으면 POST /shop/verify. (3) POST /music/check: Gemini(flash-lite 우선)가 입력↔찾은 곡 일치 판단+Last.fm 태그 참고 곡 분석, 다르면 제안 곡(Deezer 확인된 것만) → #sfb-ai로 바꾸기. 일치하면 energy/valence를 AI 값으로(energyBy 'ai'). (4) 관리패널 '내 계정' 탭 삭제(사용자 요청). 멜론·지니는 공개 API 없음.
 - v4.2: 사용자 규칙 '버전 끝자리는 0~9, 9 다음은 바로 다음 큰 번호' → 예전 v2.10~2.19를 v3.0~3.9, v2.20·2.21을 v4.0·4.1로 바꿈(업데이트 내역·APP_VERSION·sw CACHE·lang ?v). Worker song-meal-api도 2.10·2.11 → 3.0·3.1. 다음 사이트 버전은 v4.3.
+- v4.3: 사용자 결정(국내 플랫폼 공식 API 없음 → 멜론 비공식 대신 Spotify 키): verifySongs가 Deezer에 없으면 spFind(기존 spotify() 재사용, market=KR, 15회 예산)로 확인. Secret SPOTIFY_CLIENT_ID·SPOTIFY_CLIENT_SECRET는 사용자 설정 대기.
 - v3.2: Last.fm 분위기 태그는 분석에만 (사용자 지시: 곡 검색·결과 도출 로직은 절대 건드리지 말 것). Worker GET /music/mood?a=가수|별칭&t=곡명|다른표기 → track.getTopTags(태그 3개 이상) 아니면 artist.getTopTags, 30분 메모. 사이트: 곡이 정해진 뒤 lastfmMood() → moodFromTags(MOOD_RE eLow/eHigh/vNeg/vPos, count 비중) → v.energy/v.valence 덮어씀(관련 태그 없으면 장르 추정 유지). 시험: 스크래치패드 mood.mjs(Worker), t33.js(화면)
 - v3.1: 화면 비율 (style 끝 'v3.1' 블록). viewport-fit=cover + safe-area 여백, max-width 360px 좁은 화면(.row 한 줄, 테마 .tl 숨김), 700~959px 또는 960+ 높이 559 이하에서 결과 2칸, 기존 3칸은 min-height 560 이상만, horizontal-viewport-segments: 2(듀얼 스크린) 경첩 피하기. 가입 비밀번호 실시간 안내 #su-pwcheck/#su-pw2check(pwSync), #auth-err 상자+흔들기. 시험: 스크래치패드 t31.js(9개 화면 크기 가로넘침 검사), t32.js
 - v3.0: 사용자 브라우저의 실제 응답(Deezer '싸이 예술이야' → Psy "Fantastic Duo 2 Part.4 '예술이야'", 싸이 (PSY) "It's Art" / Apple 미국 'PSY 예술이야' → It's Art (Live), It's Art, I LUV IT …, Apple 한국은 0곡)으로 재현(스크래치패드 lktest6.mjs). 합치기는 pick 묶음 대신 pool에서 직접: hit 표시 + 서버 확정 곡의 가수 + 라이브·MR 제외 원곡이 Apple·Deezer 2곳에서 sameSong이면 확정. 한 칸·곡명만 입력도 됨. 점검 로그에 검색 결과 맨 위 3곡(top3)
