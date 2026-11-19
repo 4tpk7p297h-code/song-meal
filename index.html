@@ -627,6 +627,155 @@
   @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .shake { animation: shake .3s ease-in-out 2; }
   @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+  /* ===== v4.7 레이아웃·디자인 (스크롤 줄이기 + 요즘 스타일) ===== */
+  :root { --ring: rgba(255, 122, 89, .22); --soft: 0 1px 2px rgba(31, 29, 26, .04), 0 10px 28px -8px rgba(31, 29, 26, .10); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ring: rgba(255, 138, 76, .28); --soft: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px -10px rgba(0, 0, 0, .55); } }
+  :root[data-theme="dark"] { --ring: rgba(255, 138, 76, .28); --soft: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px -10px rgba(0, 0, 0, .55); }
+  main { padding-top: 0; }
+  /* 상단: 화면 위에 붙는 반투명 머리글 */
+  header.top { position: sticky; top: 0; z-index: 50; margin: 0 -16px 6px; padding: 10px 16px;
+    background: color-mix(in srgb, var(--bg) 84%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+  header.top h1 { margin: 0; font-size: 26px; flex: none; }
+  .logo { height: 40px; }
+  body.wide header.top { padding-top: 6px; padding-bottom: 6px; margin-bottom: 8px; }
+  body.wide main { padding-top: 0; padding-bottom: 12px; }
+  [id] { scroll-margin-top: 76px; }
+  .shopacts .listen a .lt { display: none; }
+  .shopacts .listen a { padding: 6px 9px; }
+  .topr { gap: 8px; }
+  .cnav button { border-width: 1px; background: color-mix(in srgb, var(--card) 80%, transparent); white-space: nowrap; }
+  .cnav button:not(.on):hover { border-color: var(--accent); color: var(--accent); }
+  .theme { border-width: 1px; }
+  .theme button { font-size: 14px; padding: 5px 10px; }
+  .sub { margin: 4px 0 14px; font-size: 14px; }
+  /* 카드·입력·버튼: 얇은 테두리 + 부드러운 그림자 */
+  .card { border: 1px solid color-mix(in srgb, var(--line) 75%, transparent); border-radius: 20px; box-shadow: var(--soft); padding: 18px 20px; margin-bottom: 14px; }
+  .card h2 { font-size: 20px; margin-bottom: 8px; letter-spacing: -.01em; }
+  label { margin: 10px 0 5px; font-size: 13.5px; }
+  input[type=text], input[type=number], input[type=password], select { padding: 10px 14px; font-size: 15px; border-width: 1.5px; border-radius: 12px; transition: border-color .15s, box-shadow .15s; }
+  input[type=text]:focus, input[type=number]:focus, input[type=password]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--ring); }
+  .hint { font-size: 12.5px; line-height: 1.5; margin: 4px 0 0; }
+  button { font-size: 17px; padding: 12px; box-shadow: none; }
+  button:not(:disabled):active { transform: scale(.98); }
+  button[type=submit], #enter, #sh-go, #sh-more { background-image: linear-gradient(135deg, rgba(255, 255, 255, .16), rgba(0, 0, 0, .06)); box-shadow: 0 8px 18px -8px rgba(242, 69, 61, .55); }
+  button.ghost { border-width: 1.5px; }
+  .chips { gap: 6px; }
+  .chips span { padding: 6px 12px; font-size: 14px; border-width: 1.5px; }
+  .chips input:checked + span { box-shadow: 0 4px 12px -4px rgba(242, 69, 61, .5); }
+  .seg { border-width: 1px; margin-bottom: 10px; }
+  .row { gap: 10px; }
+  details summary { font-size: 13px; }
+  /* 메뉴 추천 입력: PC는 2단 */
+  .fgrid { display: block; }
+  #form > button[type=submit] { margin-top: 14px; }
+  /* 회원가입: 안내 표는 접고, 아이디·비밀번호는 PC에서 나란히 */
+  .pnotice { padding: 10px 14px; }
+  .pnotice h3 { font-size: 15px; margin-bottom: 4px; }
+  .pnotice p { margin-bottom: 4px; font-size: 13px; }
+  .pmore summary { margin: 2px 0; }
+  .pnotice .pmore .hint { margin-top: 4px; }
+  .agreebox { border-width: 1.5px; padding: 2px 12px 10px; }
+  .agreebox .check { margin-top: 8px; }
+  .check { margin-top: 10px; }
+  #signup-form .agreebox { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: start; }
+  #signup-form .agreebox > .check { grid-column: 1; }
+  #signup-form .agreebox > details { grid-column: 2; margin-top: 9px; white-space: nowrap; }
+  #signup-form .agreebox > details[open] { grid-column: 1 / -1; white-space: normal; }
+  .pwcheck { font-size: 12.5px; margin: 4px 0 0; }
+  .hello { margin: 0 0 10px; }
+  .hello.small .mascot-hello { width: 120px; }
+  .bubble { font-size: 14px; }
+  /* 노래 추천(사장님) */
+  .shopdrop { min-height: 110px; border-width: 1.5px; }
+  .shopdrop img { max-height: 200px; }
+  .shopimg { max-height: 220px; object-fit: cover; }
+  .shoplist li { padding: 8px 0; }
+  .shoplist .stats { margin-top: 4px; }
+  .shopwhy { margin: 4px 0; font-size: 13.5px; }
+  .shopacts { margin-top: 4px; gap: 6px; }
+  .shopbtns { display: flex; gap: 8px; margin-top: 10px; }
+  .shopbtns button { margin: 0; flex: 1 1 0; min-width: 0; font-size: 15px; padding: 11px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 처음 화면 */
+  .hubhead { margin: 0 0 12px; }
+  .hubmascot { width: 220px; }
+  .hubgrid { box-shadow: var(--soft); }
+  .hubcard { min-height: 300px; }
+
+  @media (min-width: 960px) {
+    header.top, .topr, .cnav { flex-wrap: nowrap; }
+    main { max-width: 1120px; }
+    .sub { display: none; }
+    #consent { max-width: 780px; margin-left: auto; margin-right: auto; }
+    #hub { max-width: 940px; margin: 0 auto; }
+    #me { max-width: 900px; margin-left: auto; margin-right: auto; }
+    .hubmascot { width: 200px; }
+    .hubcard { min-height: 290px; }
+    /* 메뉴 입력 2단 */
+    .fgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 28px; }
+    .fcol + .fcol { border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent); padding-left: 28px; }
+    #form > button[type=submit] { max-width: 420px; display: block; margin: 16px auto 0; }
+    /* 가입·로그인: 왼쪽 인사·탭, 오른쪽 입력 */
+    #auth:not(.hidden) { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 28px; align-items: start; }
+    #auth > * { grid-column: 1; }
+    #auth > form { grid-column: 2; grid-row: 1 / span 8; border-left: 1px solid color-mix(in srgb, var(--line) 70%, transparent); padding-left: 28px; }
+    #auth .hello.small { flex-direction: column; text-align: center; }
+    #auth .hello.small .mascot-hello { width: 170px; }
+    #auth .hello.small .bubble::before { display: none; }
+    #auth .langbar { justify-content: center; }
+    #auth .seg { display: flex; }
+    #auth .seg button { flex: 1; }
+    .idpw.fgrid2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; }
+    /* 사장님 결과: 화면 안에서 카드마다 스크롤 */
+    body.wide #shop .shopgrid { margin-top: 0; }
+    body.wide #shop .shoplist { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; padding-left: 20px; }
+  }
+  @media (min-width: 960px) and (min-height: 600px) {
+    body.wide #result { height: calc(100vh - 72px); }
+    body.wide #shop .shopgrid { height: calc(100vh - 72px); grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr); }
+    body.wide #shop .shopgrid > .card { margin: 0; height: 100%; overflow: auto; }
+    body.wide #shop .shopimg { max-height: 200px; width: 100%; }
+  }
+
+  @media (max-width: 720px) {
+    /* 모바일 머리글: 로고 + 테마 한 줄, 메뉴는 옆으로 밀어서 보기 */
+    header.top { flex-wrap: wrap; row-gap: 6px; padding: 8px 16px 8px; }
+    .topr { display: contents; }
+    header.top h1 { order: 0; font-size: 22px; }
+    .logo, body.wide .logo { height: 32px; }
+    .theme { order: 1; margin-left: auto; }
+    .theme .tl { display: none; }
+    .theme button { padding: 4px 8px; font-size: 14px; }
+    .cnav { order: 2; flex: 1 0 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; mask-image: linear-gradient(90deg, #000 90%, transparent); }
+    .cnav::-webkit-scrollbar { display: none; }
+    .cnav button { padding: 6px 11px; font-size: 13px; flex: none; }
+    .sub { display: none; }
+    .card { padding: 14px 14px; border-radius: 18px; }
+    .card h2 { font-size: 19px; }
+    .hubhead { margin-bottom: 10px; }
+    .hubmascot { width: 150px; }
+    .hubhead h2 { font-size: 20px; }
+    .hubcard { min-height: 0; padding: 18px 16px; gap: 6px; }
+    .hubicon { width: 46px; height: 46px; font-size: 24px; }
+    .hubcard b { font-size: 22px; }
+    .hubdesc { font-size: 13px; line-height: 1.45; }
+    .hubgo { margin-top: 4px; padding: 6px 18px; }
+    .hello, #auth .hello.small { flex-direction: row; text-align: left; }
+    .mascot-hello, .hello.small .mascot-hello { width: 96px; }
+    .bubble { font-size: 13px; }
+    .bubble::before { left: -8px; top: 50%; margin: -8px 0 0; border: 8px solid transparent; border-left: 0; border-right-color: var(--accent-weak); }
+    .langbar { margin-bottom: 8px; }
+    .idpw.fgrid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 10px; }
+    .idpw.fgrid2 > .fld:first-child { grid-column: 1 / -1; }
+    .shopdrop { min-height: 90px; }
+    .shoplist { padding-left: 18px; }
+    .shopacts .listen a .lt { display: none; }
+    .shopacts .listen a { padding: 6px 9px; }
+  }
+  @media (max-width: 420px) {
+    button { font-size: 16px; }
+    .shopbtns button { font-size: 13.5px; padding: 10px 4px; }
+  }
 </style>
 </head>
 <body>
@@ -711,6 +860,7 @@
   <form id="form" class="card hidden" autocomplete="off">
     <h2>추천 조건 입력</h2>
 
+    <div class="fgrid"><div class="fcol">
     <div class="row">
       <div>
         <label for="artist">🎤 가수 이름 <span class="opt">(선택)</span></label>
@@ -750,6 +900,7 @@
       <label class="wxtemp"><span>기온</span><input type="number" id="wx-temp" inputmode="decimal" step="1" min="-30" max="45" placeholder="예: 3"><span>°C</span></label>
     </div>
     <p class="hint" id="wx-msg">위치를 입력하고 누르면 그곳의 지금 날씨·기온을 칸에 넣어 줘요. 기온을 직접 써도 돼요 (28°C 이상 더움, 5°C 이하 추움).</p>
+    </div><div class="fcol">
 
     <label for="loc">📍 위치</label>
     <div class="locrow">
@@ -800,6 +951,7 @@
     <input type="text" id="flt" placeholder="예: 매운 음식 제외, 해산물 빼고, 국물 좋아요">
     <p class="hint">"○○ 제외·빼고·싫어"는 빼고, 그 밖의 말은 먼저 추천해요. 쉼표로 여러 개 쓸 수 있어요.</p>
 
+    </div></div>
     <button type="submit">추천받기</button>
     <div id="err" class="error hidden"></div>
   </form>
@@ -869,6 +1021,7 @@
         <h3><span data-i18n="pn.h">🔒 회원가입 개인정보 안내</span></h3>
         <p class="hint hidden" id="lang-note" data-i18n="lang.note"></p>
         <p><span data-i18n="pn.p">비트밥스는 후기 올리기·좋아요에 꼭 필요한 정보만 받아요. <b>이메일, 전화번호, 실명, 생년월일은 받지 않아요.</b></span></p>
+        <details class="pmore"><summary><span data-i18n="more">내용 보기</span></summary>
         <table class="ptable">
           <tr><th><span data-i18n="t.recv">받는 정보</span></th><td><span data-i18n="t.recv.v">아이디, 비밀번호(암호화해서 저장), 닉네임 (카카오로 가입하면 아이디·비밀번호 대신 카카오 회원번호) / 후기를 올리면 노래, 메뉴, 식당 이름, 음식 사진, 후기 글 / 좋아요·신고 기록</span></td></tr>
           <tr><th><span data-i18n="t.use">쓰는 곳</span></th><td><span data-i18n="t.use.v">로그인, 후기 게시, 좋아요와 코너별 순위, 신고 처리, 메뉴 추천</span></td></tr>
@@ -879,18 +1032,21 @@
           <tr><th><span data-i18n="t.right">내 권리</span></th><td><span data-i18n="t.right.v">언제든 '내 정보'에서 후기 삭제·회원 탈퇴 가능. 동의를 거부할 수 있지만, 그러면 가입할 수 없어요 (메뉴 추천과 스토리·순위 보기는 가입 없이 이용 가능)</span></td></tr>
         </table>
         <p class="hint"><span data-i18n="pn.age">만 14세 미만은 가입할 수 없어요. 자세한 내용은 <a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인해 주세요.</span></p>
+        </details>
       </div>
       <div class="kbanner hidden" id="k-banner"><span data-i18n="kb.text">✅ 카카오 확인이 끝났어요. <b>닉네임</b>을 정하고 아래 항목에 동의하면 가입돼요. </span><a href="#" id="k-cancel"><span data-i18n="kb.cancel">아이디로 가입할래요</span></a></div>
-      <div class="idpw">
+      <div class="idpw fgrid2"><div class="fld">
       <label for="su-id"><span data-i18n="su.id">아이디 <span class="opt">(영문 소문자·숫자·_ 4~20자)</span></span></label>
       <input type="text" id="su-id" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20">
+      </div><div class="fld">
       <label for="su-pw"><span data-i18n="su.pw">비밀번호 <span class="opt">(8자 이상)</span></span></label>
       <input type="password" id="su-pw" autocomplete="new-password" maxlength="72" aria-describedby="su-pwcheck">
       <p class="pwcheck" id="su-pwcheck" aria-live="polite">비밀번호는 8자 이상이어야 해요.</p>
+      </div><div class="fld">
       <label for="su-pw2"><span data-i18n="su.pw2">비밀번호 확인</span></label>
       <input type="password" id="su-pw2" autocomplete="new-password" maxlength="72" aria-describedby="su-pw2check">
       <p class="pwcheck hidden" id="su-pw2check" aria-live="polite"></p>
-      </div>
+      </div></div>
       <label for="su-nick"><span data-i18n="su.nick">닉네임 <span class="opt">(2~12자, 후기에 "○○님의"로 보여요)</span></span></label>
       <input type="text" id="su-nick" maxlength="12">
       <p class="hint idpw"><span data-i18n="su.hint">이메일·전화번호는 받지 않아요. 그래서 비밀번호를 잊으면 스스로 찾을 수 없으니 꼭 기억해 두세요. (카카오로 시작하면 비밀번호를 기억할 필요가 없어요)</span></p>
@@ -1128,8 +1284,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.6"></script>
-<script src="lang.js?v=4.6"></script>
+<script src="lang-data.js?v=4.7"></script>
+<script src="lang.js?v=4.7"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -4839,7 +4995,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     const facts = [[T4("조명", "Lighting", "照明", "灯光"), r.lighting], [T4("색감", "Colors", "色合い", "色调"), r.colors], [T4("소재", "Materials", "素材", "材质"), r.materials]].filter((x) => x[1]);
     const place = r.place ? `<div class="songmeta">🏪 ${esc(r.place.name)} · ${esc(r.place.category)} · ${esc(r.place.addr)}</div>` : "";
     const links = (s) => { const q = encodeURIComponent(`${s.artist} ${s.title}`);
-      return `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">${LOGO.yt}YouTube</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">${LOGO.sp}Spotify</a><a href="https://music.apple.com/kr/search?term=${q}" target="_blank" rel="noopener">${LOGO.am}Apple Music</a>`; };
+      return `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener" title="YouTube">${LOGO.yt}<span class="lt">YouTube</span></a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="Spotify">${LOGO.sp}<span class="lt">Spotify</span></a><a href="https://music.apple.com/kr/search?term=${q}" target="_blank" rel="noopener" title="Apple Music">${LOGO.am}<span class="lt">Apple Music</span></a>`; };
     const sec = (lab, txt) => `<div class="sect"><span>${lab}</span><span>${esc(txt)}</span></div>`;
     $("shop-res").innerHTML = `
       <div class="shopgrid">
@@ -4869,13 +5025,14 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
             <div class="shoppv" id="sh-pv-${i}"></div>
           </li>`).join("")}</ol>
           <p class="songmeta">${r.verified ? "✔ " + T4("표시된 곡은 음원 서비스(Deezer·Spotify)에서 실제로 있는 곡인지 확인했어요. ", "Songs marked ✔ were verified to exist on a music service (Deezer·Spotify). ", "✔の曲は音楽サービス(Deezer·Spotify)で実在を確認しました。", "带 ✔ 的歌曲已在音乐平台(Deezer·Spotify)确认存在。") : ""}${r.by === "ai" ? T4("※ AI가 고른 곡이에요. 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ Picked by AI. For in-store playback, check your music service's business-use terms.", "※ AIが選んだ曲です。店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 歌曲由 AI 挑选。在店内播放时，请确认音乐服务的商用条款。") : T4("※ 매장에서 틀 때는 음원 서비스의 매장용 이용 조건을 확인해 주세요.", "※ For in-store playback, check your music service's business-use terms.", "※ 店内で流す場合は音楽サービスの店舗利用条件をご確認ください。", "※ 在店内播放时，请确认音乐服务的商用条款。")}</p>
-          <div class="row2">
+          <div class="shopbtns">
             <button type="button" id="sh-more">🔄 ${T4("다른 10곡", "10 different songs", "別の10曲", "换 10 首")}</button>
             <button type="button" class="ghost" id="sh-copy">📋 ${T4("목록 복사", "Copy list", "リストをコピー", "复制列表")}</button>
+            <button type="button" class="ghost" id="sh-again">✏️ ${T4("다시 입력", "Start over", "入力し直す", "重新输入")}</button>
           </div>
-          <button type="button" class="ghost" id="sh-again">✏️ ${T4("다시 입력", "Start over", "入力し直す", "重新输入")}</button>
         </div>
       </div>`;
+    $("shop-form").classList.add("hidden");
   }
 
   $("shop").addEventListener("change", async (e) => {
@@ -4889,7 +5046,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     const t = e.target.closest("button"); if (!t) return;
     if (t.id === "sh-go") { SHOP.res = null; runShop(false); return; }
     if (t.id === "sh-more") { runShop(true); return; }
-    if (t.id === "sh-again") { SHOP.res = null; $("shop-res").innerHTML = ""; document.body.classList.remove("wide"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (t.id === "sh-again") { SHOP.res = null; $("shop-res").innerHTML = ""; $("shop-form").classList.remove("hidden"); document.body.classList.remove("wide"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     if (t.id === "sh-copy") {
       const txt = SHOP.res.songs.map((s, i) => `${i + 1}. ${s.artist} - ${s.title}`).join("\n");
       try { await navigator.clipboard.writeText(txt); } catch { copyText(txt); }
@@ -4946,8 +5103,16 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.6";
+  const APP_VERSION = "v4.7";
   const CHANGELOG = [
+    ["v4.7", "2026-11-19", "전체 화면 최적화·디자인 다듬기", [
+      "PC: 화면을 넓게 써서 메뉴 입력·가입·처음 화면·동의·노래 추천이 스크롤 없이 한 화면에 들어옴",
+      "메뉴 추천 입력은 PC에서 2단(곡·시간·날씨 | 위치·음식·조건)",
+      "가입 화면: 안내 표는 '내용 보기'로 접고, 아이디·비밀번호 칸 나란히, 동의 항목과 '내용 보기' 한 줄로",
+      "노래 추천 결과: 입력 칸은 숨기고 결과만, PC는 카드 안에서 스크롤·2단 목록, 듣기 링크는 아이콘으로",
+      "모바일: 위쪽 메뉴를 한 줄(옆으로 밀기)로, 캐릭터·카드 크기와 간격을 줄여 스크롤 횟수 줄임",
+      "디자인: 화면 위에 붙는 반투명 머리글, 얇은 테두리+부드러운 그림자 카드, 입력 칸 포커스 표시, 그라데이션 버튼",
+    ]],
     ["v4.6", "2026-11-19", "개인정보 처리방침 최신화", [
       "처리 목적에 곡 확인(AI 교차검증·실제 곡 확인)과 곡 검색 피드백 추가",
       "국외 이전 표: Spotify와 Last.fm을 따로 나누고 용도 정리, Deezer·Cloudflare·Google 항목에 곡 확인·AI 분석 반영",
