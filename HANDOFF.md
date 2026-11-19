@@ -1,7 +1,7 @@
 # 비트밥스 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-19 (사이트 v4.8, 업로드 zip 20261119_rev9, Worker song-meal-api v3.3 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-19 (사이트 v4.9, 업로드 zip 20261119_rev10, Worker song-meal-api v3.4 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -87,6 +87,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - v4.6: 개인정보 처리방침 최신화(사용자 요청). privacy.html: 목적(곡 확인·피드백), 위탁(네이버 가게 정보, Cloudflare 피드백 보관·중계), 국외 이전(피드백 표 신설, Spotify·Last.fm 분리, Deezer·Cloudflare·Google 갱신), 기기 저장 항목, 11/19 개정 이력. 앱 안 동의(x2.to/items/purpose/when, 손님 목적 칸은 새 키 x2.purpose.full) 4개 언어 I18N 갱신. 새 외부 서비스를 붙이면 privacy.html과 이 키들을 같이 고칠 것.
 - v4.7: 전체 화면 최적화·디자인(사용자 요청, 메뉴·탭 구성은 그대로). index.html 끝의 "v4.7 레이아웃·디자인" CSS 블록: 붙는 반투명 머리글(모바일은 로고+테마 한 줄, 메뉴 가로 스크롤), PC(≥960) main 1120px, 메뉴 입력 .fgrid/.fcol 2단, 가입 #auth 2단·.pmore로 안내 표 접기·.idpw.fgrid2, 노래 추천 결과 때 #shop-form 숨김(다시 입력에서 보임)·PC 카드별 스크롤. 측정 스크립트 ux.js: PC는 모든 화면 1~1.17화면, 모바일 가입 3.5→2.1, 입력 2.2→1.55, 노래 결과 5.8→2.9.
 - v4.8: 처음 화면 언어 버튼 간격. aiBar() 배지(파란 Gemini / 회색 기본 분석 + aiWhy 이유: off·busy(Gemini 429)·limit(서버 자체 1분 10번)·key·time·net·consent) 노래·메뉴 결과 맨 위. 한국어 곡 이중 검색 aliasLookup(): 첫 검색이 못 찾음·미리듣기 없음·다른 가수면 Worker /music/alias(Gemini가 Apple Music 등록 영어 이름) → lookupSong 재호출, 이름이 맞으면 채택하고 기기에 저장. lookupSong 자체는 그대로. Worker v3.3.
+- v4.9: 사용자 실제 화면에서 '세븐틴 소용돌이'가 Last.fm(서버)에서만 '세븐틴 (Seventeen) - 소용돌이 (To you)'로 찾아져 미리듣기 없음 + AI 9초 초과. aliasLookup 1단계로 괄호 속 이름 재검색(AI 없이), 2단계 Gemini. 타임아웃 alias 15초·check 18초. Worker v3.4 askGemini fast 옵션(2.5-flash 계열 thinkingBudget 0).
 - v3.2: Last.fm 분위기 태그는 분석에만 (사용자 지시: 곡 검색·결과 도출 로직은 절대 건드리지 말 것). Worker GET /music/mood?a=가수|별칭&t=곡명|다른표기 → track.getTopTags(태그 3개 이상) 아니면 artist.getTopTags, 30분 메모. 사이트: 곡이 정해진 뒤 lastfmMood() → moodFromTags(MOOD_RE eLow/eHigh/vNeg/vPos, count 비중) → v.energy/v.valence 덮어씀(관련 태그 없으면 장르 추정 유지). 시험: 스크래치패드 mood.mjs(Worker), t33.js(화면)
 - v3.1: 화면 비율 (style 끝 'v3.1' 블록). viewport-fit=cover + safe-area 여백, max-width 360px 좁은 화면(.row 한 줄, 테마 .tl 숨김), 700~959px 또는 960+ 높이 559 이하에서 결과 2칸, 기존 3칸은 min-height 560 이상만, horizontal-viewport-segments: 2(듀얼 스크린) 경첩 피하기. 가입 비밀번호 실시간 안내 #su-pwcheck/#su-pw2check(pwSync), #auth-err 상자+흔들기. 시험: 스크래치패드 t31.js(9개 화면 크기 가로넘침 검사), t32.js
 - v3.0: 사용자 브라우저의 실제 응답(Deezer '싸이 예술이야' → Psy "Fantastic Duo 2 Part.4 '예술이야'", 싸이 (PSY) "It's Art" / Apple 미국 'PSY 예술이야' → It's Art (Live), It's Art, I LUV IT …, Apple 한국은 0곡)으로 재현(스크래치패드 lktest6.mjs). 합치기는 pick 묶음 대신 pool에서 직접: hit 표시 + 서버 확정 곡의 가수 + 라이브·MR 제외 원곡이 Apple·Deezer 2곳에서 sameSong이면 확정. 한 칸·곡명만 입력도 됨. 점검 로그에 검색 결과 맨 위 3곡(top3)

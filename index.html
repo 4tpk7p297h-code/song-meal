@@ -1293,8 +1293,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.8"></script>
-<script src="lang.js?v=4.8"></script>
+<script src="lang-data.js?v=4.9"></script>
+<script src="lang.js?v=4.9"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -2792,7 +2792,8 @@ JJ Lin|林俊傑|임준걸`;
           ${info && info.unverified ? `<div class="songmeta" style="color:var(--danger)">가수 이름이 영어로 등록된 곡이라 같은 가수인지 확인하지 못했어요. 가수 이름을 영어로 쓰면 더 정확해요.</div>` : ""}
           <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName].filter(Boolean).map(esc).join(" · ") : songWhyHTML(v.songWhy)}</div>
           ${info ? `<div class="songmeta">${esc(sourcesText(info))}</div>` : ""}
-          ${info && info.aiAlias ? `<div class="songmeta notr">🤖 ${esc(T4(`AI가 '${info.aiAlias.from}'을(를) Apple Music 등록 이름 '${info.aiAlias.q}'(으)로 다시 찾았어요.`, `AI re-searched '${info.aiAlias.from}' by its Apple Music name '${info.aiAlias.q}'.`, `AIが「${info.aiAlias.from}」をApple Musicの登録名「${info.aiAlias.q}」で再検索しました。`, `AI 已用 Apple Music 登记名“${info.aiAlias.q}”重新搜索“${info.aiAlias.from}”。`))}</div>` : ""}
+          ${info && info.aiAlias ? `<div class="songmeta notr">${info.aiAlias.how === "name" ? "🔁 " + esc(T4(`처음 찾은 곡에 미리듣기가 없어 등록된 다른 이름 '${info.aiAlias.q}'(으)로 다시 찾았어요.`, `The first match had no preview, so we re-searched by its other listed name '${info.aiAlias.q}'.`, `最初の曲に試聴がなかったため、別の登録名「${info.aiAlias.q}」で再検索しました。`, `首次找到的歌曲没有试听，已用其另一登记名“${info.aiAlias.q}”重新搜索。`))
+            : "🤖 " + esc(T4(`AI가 '${info.aiAlias.from}'을(를) Apple Music 등록 이름 '${info.aiAlias.q}'(으)로 다시 찾았어요.`, `AI re-searched '${info.aiAlias.from}' by its Apple Music name '${info.aiAlias.q}'.`, `AIが「${info.aiAlias.from}」をApple Musicの登録名「${info.aiAlias.q}」で再検索しました。`, `AI 已用 Apple Music 登记名“${info.aiAlias.q}”重新搜索“${info.aiAlias.from}”。`))}</div>` : ""}
         </div>
       </div>
       ${bpmBlock}
@@ -3711,7 +3712,7 @@ JJ Lin|林俊傑|임준걸`;
 
   // Gemini 교차검증 (서버 /music/check). 키가 없거나 한도·시간 초과면 null → 기존 분석 그대로
   async function aiSongCheck(term, info, tags) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 9000);
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 18000);
     try {
       const r = await fetch(API + "/music/check", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         q: term, lang: LG(), tags: (tags || []).map((t) => t.name),
@@ -3744,7 +3745,7 @@ JJ Lin|林俊傑|임준걸`;
   // 곡 이름 이중 확인: 첫 검색이 약하면(못 찾음·미리듣기 없음·다른 가수) Gemini에게 Apple Music 등록 이름(영어·로마자)을 물어
   // 그 이름으로 한 번 더 검색. 곡 검색 로직(lookupSong)은 그대로 부르기만 함
   async function aiAlias(term, info) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 7000);
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 15000);
     try {
       const r = await fetch(API + "/music/alias", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         q: term, found: info ? { artist: info.artistName, title: info.trackName } : null }) });
@@ -3754,22 +3755,39 @@ JJ Lin|林俊傑|임준걸`;
   }
   async function aliasLookup(term, info, onStep) {
     if (!term || !CONSENT.abroad) return null;
-    if (onStep) onStep(T4("AI가 Apple Music에 등록된 영어 이름으로 한 번 더 찾는 중", "AI is retrying with the song's Apple Music (English) name", "AIがApple Musicに登録された英語名でもう一度検索中", "AI 正在用 Apple Music 登记的英文名再次搜索"));
-    const a = await aiAlias(term, info);
-    if (!a || !a.found) return null;
     const nm = (t) => deacc(t).toLowerCase().replace(/\s*[([].*?[)\]]\s*/g, " ").replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]+/g, "");
     const near = (x, y) => !!x && !!y && (x === y || (Math.min(x.length, y.length) >= 3 && (x.includes(y) || y.includes(x))));
-    const titles = [a.title_en, a.title, ...(a.alt_titles || [])].map(nm).filter(Boolean), artists = [a.artist_en, a.artist].map(nm).filter(Boolean);
-    const qs = [...new Set([a.artist_en && a.title_en ? `${a.artist_en} ${a.title_en}` : "", a.title_en && a.artist ? `${a.artist} ${a.title_en}` : "", a.artist_en && a.title ? `${a.artist_en} ${a.title}` : ""].filter(Boolean))];
     const last = lookupSong.last, groups = pick.groups;
-    for (const q of qs) {
-      let r = null;
-      try { r = await lookupSong(q, { fresh: true, force: true }); } catch {}
-      if (r && !r.mismatch && titles.some((t) => near(nm(r.trackName), t)) && (!artists.length || artists.some((x) => near(nm(r.artistName), x)))) {
-        r = { ...r, aiAlias: { q, from: term } };
-        songCache(deacc(term).toLowerCase().replace(/\s+/g, " ").trim(), r);   // 다음에는 바로 이 곡
-        return r;
+    const tryQs = async (qs, titles, artists, how) => {
+      titles = titles.map(nm).filter(Boolean); artists = artists.map(nm).filter(Boolean);
+      for (const q of [...new Set(qs.filter(Boolean))]) {
+        let r = null;
+        try { r = await lookupSong(q, { fresh: true, force: true }); } catch {}
+        if (r && r.previewUrl && !r.mismatch && titles.some((t) => near(nm(r.trackName), t)) && (!artists.length || artists.some((x) => near(nm(r.artistName), x)))) {
+          r = { ...r, aiAlias: { q, from: term, how } };
+          songCache(deacc(term).toLowerCase().replace(/\s+/g, " ").trim(), r);   // 다음에는 바로 이 곡
+          return r;
+        }
       }
+      return null;
+    };
+    // 1) AI 없이: 찾은 곡 이름의 괄호 속 다른 이름으로 (예: '세븐틴 (Seventeen) - 소용돌이 (To you)' → 'Seventeen To you')
+    if (info && !info.previewUrl) {
+      const par = (t) => { const m = String(t || "").match(/[([]([^)\]]+)[)\]]/); return m ? m[1].trim() : ""; };
+      const base = (t) => String(t || "").replace(/\s*[([].*?[)\]]\s*/g, " ").trim();
+      const A = [par(info.artistName), base(info.artistName)], Tt = [par(info.trackName), base(info.trackName)];
+      if (A[0] || Tt[0]) {
+        const r = await tryQs([`${A[0] || A[1]} ${Tt[0] || Tt[1]}`, `${A[1]} ${Tt[0] || Tt[1]}`, `${A[0] || A[1]} ${Tt[1]}`], Tt, A, "name");
+        if (r) return r;
+      }
+    }
+    // 2) Gemini에게 Apple Music 등록 이름(영어·로마자)을 물어 다시 검색
+    if (onStep) onStep(T4("AI가 Apple Music에 등록된 영어 이름으로 한 번 더 찾는 중", "AI is retrying with the song's Apple Music (English) name", "AIがApple Musicに登録された英語名でもう一度検索中", "AI 正在用 Apple Music 登记的英文名再次搜索"));
+    const a = await aiAlias(term, info);
+    if (a && a.found) {
+      const r = await tryQs([a.artist_en && a.title_en ? `${a.artist_en} ${a.title_en}` : "", a.title_en && a.artist ? `${a.artist} ${a.title_en}` : "", a.artist_en && a.title ? `${a.artist_en} ${a.title}` : ""],
+        [a.title_en, a.title, ...(a.alt_titles || [])], [a.artist_en, a.artist], "ai");
+      if (r) return r;
     }
     lookupSong.last = last; pick.groups = groups;   // 못 찾으면 첫 검색의 후보 목록을 그대로 씀
     return null;
@@ -5169,8 +5187,13 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.8";
+  const APP_VERSION = "v4.9";
   const CHANGELOG = [
+    ["v4.9", "2026-11-19", "미리듣기 없는 곡 다시 찾기", [
+      "찾은 곡에 미리듣기가 없으면 곡 이름 괄호 속 다른 이름으로 먼저 다시 검색 (예: 세븐틴 (Seventeen) - 소용돌이 (To you) → Seventeen To you), AI 없이도 동작",
+      "그래도 없으면 Gemini에게 Apple Music 등록 이름을 물어 다시 검색, AI 기다리는 시간을 늘림 (이름 확인 15초, 곡 분석 18초)",
+      "서버 song-meal-api v3.4: 곡 확인·이름 확인은 Gemini '생각' 단계를 꺼서 더 빨리 답함",
+    ]],
     ["v4.8", "2026-11-19", "AI 배지·AI 못 쓴 이유·한국어 곡 이중 검색", [
       "처음 화면 언어 버튼이 위 머리글에 붙어 보이던 것 간격 띄움",
       "노래 추천·메뉴 추천 결과 맨 위에 파란 'Gemini AI 분석' 배지, 플레이리스트 제목 옆에도 표시",

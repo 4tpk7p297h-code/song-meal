@@ -775,7 +775,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "3.3";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "3.4";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -1058,14 +1058,14 @@ const cut = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " "
 const lv = (v) => Math.max(1, Math.min(3, Math.round(+v) || 2));
 
 // Gemini 한 번 부르기 → JSON 객체. 모델 이름이 바뀌었으면(404) 다음 모델로. 한도(429)면 busy
-async function askGemini(env, parts, { models, temperature = 0.7, check } = {}) {
+async function askGemini(env, parts, { models, temperature = 0.7, check, fast } = {}) {
   const list = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...(models || GEMINI_MODELS)] : models || GEMINI_MODELS;
   let lastStatus = 0;
   for (const model of list) {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json", temperature } }),
+      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json", temperature, ...(fast && /2\.5-flash/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}) } }),
     });
     lastStatus = r.status;
     if (r.status === 404) continue;
@@ -1192,7 +1192,7 @@ async function songAlias(b, env) {
     "If you are not confident the song exists, set confident to false. Never invent songs.",
     'Return only JSON: {"confident":true,"artist":"","title":"","artist_en":"","title_en":"","alt_titles":[]}',
   ].join("\n");
-  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.1, check: (o) => typeof o.confident === "boolean" });
+  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.1, fast: true, check: (o) => typeof o.confident === "boolean" });
   if (!o.confident || !(o.title_en || o.title)) return { model, found: false };
   return { model, found: true, artist: cut(o.artist, 80), title: cut(o.title, 120), artist_en: cut(o.artist_en, 80), title_en: cut(o.title_en, 120),
     alt_titles: (Array.isArray(o.alt_titles) ? o.alt_titles : []).map((t) => cut(t, 120)).filter(Boolean).slice(0, 3) };
@@ -1215,7 +1215,7 @@ async function songCheck(b, env) {
     "energy and valence: integers 1-3 (1 calm/sad, 3 energetic/happy). bpm: typical tempo integer.",
     'Return only JSON: {"match":true,"confidence":0.0,"why":"1 short sentence","suggest":null,"energy":2,"valence":2,"bpm":100,"mood":["3-5 short words"],"summary":"2 sentences about the song\'s sound and feeling","intro":"1 short sentence","verse":"1 short sentence","chorus":"1 short sentence"}',
   ].filter(Boolean).join("\n");
-  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.2, check: (o) => typeof o.match === "boolean" });
+  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.2, fast: true, check: (o) => typeof o.match === "boolean" });
   let suggest = null;
   if (o.suggest && o.suggest.title && o.suggest.artist) {
     const s = songIn(o.suggest);
