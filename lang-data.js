@@ -4406,7 +4406,7 @@
   };
 })();
 
-// v2.20 추가 문구 (동의 필수화·소리 크기)
+// v4.0 추가 문구 (동의 필수화·소리 크기)
 Object.assign(window.I18N_DATA.TR, {
  "Apple·Deezer: 곡 정보·앨범 이미지·미리듣기 조회 / MusicBrainz·Wikidata: 여러 곳의 곡 정보 비교, 가수·곡 이름의 한글·영어 표기 확인 / Last.fm: 곡 정보 비교, 곡 분위기 태그 확인(분위기 분석) / Open-Meteo: 입력한 위치의 지금 날씨·기온 조회 / Cloudflare: 곡 정보 비교 검색과 네이버 지역·블로그 검색(주변 음식점 표시, 혼밥 후기 확인) 중계 / Google: 가게 사진 분위기 분석과 노래 목록 작성(Gemini)": [
   "Apple·Deezer: song info, album art, previews / MusicBrainz·Wikidata: comparing song info, checking Korean/English names of artists and songs / Last.fm: comparing song info, song mood tags (mood analysis) / Open-Meteo: current weather and temperature at your location / Cloudflare: relaying song comparison searches and Naver local/blog search (nearby restaurants, solo-dining reviews) / Google: analyzing the shop photo's mood and writing the song list (Gemini)",

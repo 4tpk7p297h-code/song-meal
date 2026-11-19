@@ -765,7 +765,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "2.11";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "3.1";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
