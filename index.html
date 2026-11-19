@@ -776,6 +776,15 @@
     button { font-size: 16px; }
     .shopbtns button { font-size: 13.5px; padding: 10px 4px; }
   }
+  /* ===== v4.8 AI 배지·언어 버튼 간격 ===== */
+  #hub .langbar { margin: 14px 0 6px; }
+  .langbar { gap: 6px; }
+  .aibar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px; }
+  .aibadge { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 999px; font-size: 14px; font-weight: 800; line-height: 1.2; color: #fff;
+    background: linear-gradient(90deg, #3b6cff, #8a4dff); box-shadow: 0 6px 16px -6px rgba(70, 90, 255, .7); white-space: nowrap; }
+  .aibadge.sm { padding: 3px 10px; font-size: 12px; vertical-align: middle; font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; }
+  .aibadge.off { color: var(--muted); background: var(--chip); box-shadow: none; }
+  .aiwhy { flex: 1 1 220px; font-size: 12.5px; line-height: 1.5; padding: 6px 10px; border-radius: 10px; background: rgba(255, 170, 0, .14); color: var(--text); }
 </style>
 </head>
 <body>
@@ -1284,8 +1293,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.7"></script>
-<script src="lang.js?v=4.7"></script>
+<script src="lang-data.js?v=4.8"></script>
+<script src="lang.js?v=4.8"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -2774,6 +2783,7 @@ JJ Lin|林俊傑|임준걸`;
         <div class="dyn">${audio.parts.map((p) => `<i style="height:${Math.max(8, p * 100)}%"></i>`).join("")}</div>
         <div class="dynlbl"><span>처음</span><span>끝</span></div>` : "";
     return `
+      ${aiBar(!!v.ai, v.aiErr, "🎵 " + T4("기본 분석 (장르·Last.fm)", "Basic analysis (genre·Last.fm)", "基本分析(ジャンル·Last.fm)", "基础分析(流派·Last.fm)"))}
       <div class="songhead">
         ${art ? `<img src="${esc(art)}" alt="" onerror="this.remove()">` : ""}
         <div>
@@ -2782,6 +2792,7 @@ JJ Lin|林俊傑|임준걸`;
           ${info && info.unverified ? `<div class="songmeta" style="color:var(--danger)">가수 이름이 영어로 등록된 곡이라 같은 가수인지 확인하지 못했어요. 가수 이름을 영어로 쓰면 더 정확해요.</div>` : ""}
           <div class="songmeta">${info ? [genreStr, year && year + "년", info.collectionName].filter(Boolean).map(esc).join(" · ") : songWhyHTML(v.songWhy)}</div>
           ${info ? `<div class="songmeta">${esc(sourcesText(info))}</div>` : ""}
+          ${info && info.aiAlias ? `<div class="songmeta notr">🤖 ${esc(T4(`AI가 '${info.aiAlias.from}'을(를) Apple Music 등록 이름 '${info.aiAlias.q}'(으)로 다시 찾았어요.`, `AI re-searched '${info.aiAlias.from}' by its Apple Music name '${info.aiAlias.q}'.`, `AIが「${info.aiAlias.from}」をApple Musicの登録名「${info.aiAlias.q}」で再検索しました。`, `AI 已用 Apple Music 登记名“${info.aiAlias.q}”重新搜索“${info.aiAlias.from}”。`))}</div>` : ""}
         </div>
       </div>
       ${bpmBlock}
@@ -3610,9 +3621,13 @@ JJ Lin|林俊傑|임준걸`;
     if (fx) { info = await lookupSong(`${fx.a} ${fx.t}`, { onStep }); if (info) info = { ...info, crowd: fx }; }
     if (!info) {
       info = await lookupSong(v.song, { onStep });
+      if (!info || !info.previewUrl || info.mismatch || info.unverified) {
+        const al = await aliasLookup(v.song, info, onStep);
+        if (al) info = al;
+      }
       $("loading").classList.add("hidden");
       const cands = lookupSong.last && lookupSong.last.cands;
-      if (cands && cands.length && (!info || !info.previewUrl || info.mismatch || info.unverified)) {
+      if (cands && cands.length && !(info && info.aiAlias) && (!info || !info.previewUrl || info.mismatch || info.unverified)) {
         const g = await askSong(cands, info);
         if (g) info = await chooseSong(g);
       }
@@ -3626,7 +3641,7 @@ JJ Lin|林俊傑|임준걸`;
 
   // 곡이 정해진 뒤: 장르·Last.fm 태그로 에너지·분위기를 정하고 결과 화면을 그림
   async function songDone(v, info, again) {
-    v.moodTags = null; v.moodFrom = ""; v.energyBy = v.valenceBy = ""; v.ai = null;
+    v.moodTags = null; v.moodFrom = ""; v.energyBy = v.valenceBy = ""; v.ai = null; v.aiErr = CONSENT.abroad ? "" : "consent";
     v.energy = energyFromGenre(info && info.primaryGenreName);
     v.valence = valenceFromGenre(info && info.primaryGenreName);
     v.energyGuessed = !!(info && info.primaryGenreName);
@@ -3647,7 +3662,8 @@ JJ Lin|林俊傑|임준걸`;
       $("loading").classList.remove("hidden"); $("load-sub").textContent = T4("AI가 곡을 한 번 더 확인하고 분석하는 중", "AI is double-checking and analyzing the song", "AIが曲をもう一度確認・分析しています", "AI 正在复核并分析歌曲");
       const ai = await aiSongCheck(v.song, info, v.moodTags);
       $("loading").classList.add("hidden");
-      if (ai) {
+      if (ai && ai.err) v.aiErr = ai.err;
+      else if (ai) {
         v.ai = ai;
         if (ai.match && info) { v.energy = ai.energy; v.valence = ai.valence; v.energyBy = v.valenceBy = "ai"; }
       }
@@ -3701,10 +3717,62 @@ JJ Lin|林俊傑|임준걸`;
         q: term, lang: LG(), tags: (tags || []).map((t) => t.name),
         found: info ? { artist: info.artistName, title: info.trackName, album: info.collectionName || "", genre: info.primaryGenreName || "", year: (info.releaseDate || "").slice(0, 4) } : null,
       }) });
-      if (!r.ok) return null;
-      const d = await r.json();
-      return d && typeof d.match === "boolean" ? d : null;
-    } catch { return null; } finally { clearTimeout(tm); }
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) return { err: d.error || "fail" };
+      return d && typeof d.match === "boolean" ? d : { err: "fail" };
+    } catch { return { err: ac.signal.aborted ? "time" : "net" }; } finally { clearTimeout(tm); }
+  }
+
+  // AI(Gemini)를 쓰지 못한 이유 → 사람이 읽는 문장
+  function aiWhy(e) {
+    return ({
+      off: T4("AI 키가 아직 서버에 설정되지 않아 AI 분석을 쓰지 못했어요.", "The AI key isn't set up on the server yet, so AI analysis wasn't used.", "サーバーにAIキーがまだ設定されていないため、AI分析を使えませんでした。", "服务器尚未设置 AI 密钥，因此未使用 AI 分析。"),
+      busy: T4("Gemini 무료 사용량(토큰)이 다 차서 AI 분석을 쓰지 못했어요. 1분쯤 뒤에 다시 해 보세요 (하루 한도면 내일 풀려요).", "The free Gemini quota (tokens) is used up, so AI wasn't used. Try again in a minute (if it's the daily limit, tomorrow).", "Geminiの無料枠(トークン)を使い切ったため、AI分析を使えませんでした。1分ほど後に再度お試しください(1日の上限なら明日)。", "Gemini 免费额度(令牌)已用完，未能使用 AI。请约 1 分钟后重试(若为每日上限则明天恢复)。"),
+      limit: T4("짧은 시간에 AI 요청이 몰려 잠시 쉬는 중이에요. 1분 뒤에 다시 해 보세요.", "Too many AI requests in a short time. Try again in a minute.", "短時間にAIリクエストが集中したため休止中です。1分後に再度お試しください。", "短时间内 AI 请求过多，暂停中。请 1 分钟后重试。"),
+      key: T4("AI 키가 올바르지 않거나 막혀서 AI 분석을 쓰지 못했어요.", "The AI key is invalid or blocked, so AI wasn't used.", "AIキーが無効またはブロックされているため、AI分析を使えませんでした。", "AI 密钥无效或被封锁，未能使用 AI。"),
+      time: T4("AI 응답이 너무 늦어서 기본 분석으로 보여 줘요.", "The AI took too long, so we show the basic analysis.", "AIの応答が遅すぎたため、基本分析を表示しています。", "AI 响应太慢，显示基础分析。"),
+      net: T4("AI 서버에 연결하지 못해 기본 분석으로 보여 줘요.", "Couldn't reach the AI server, so we show the basic analysis.", "AIサーバーに接続できなかったため、基本分析を表示しています。", "无法连接 AI 服务器，显示基础分析。"),
+      consent: T4("곡 검색(국외 이전) 동의를 하지 않아 AI 분석을 쓰지 않았어요.", "AI wasn't used because song search (overseas transfer) consent is off.", "曲検索(国外移転)に同意していないため、AI分析は使っていません。", "未同意歌曲搜索(跨境传输)，因此未使用 AI 分析。"),
+    })[e] || T4("AI 응답에 문제가 있어 기본 분석으로 보여 줘요.", "Something went wrong with the AI, so we show the basic analysis.", "AIの応答に問題があったため、基本分析を表示しています。", "AI 响应出现问题，显示基础分析。");
+  }
+  // 결과 카드 맨 위 배지: AI를 썼으면 파란 Gemini 배지, 못 썼으면 회색 배지 + 이유
+  function aiBar(on, err, offLabel) {
+    return on ? `<div class="aibar notr"><span class="aibadge">✨ Gemini AI ${T4("분석", "analysis", "分析", "分析")}</span></div>`
+      : `<div class="aibar notr"><span class="aibadge off">${offLabel}</span>${err ? `<span class="aiwhy">⚠️ ${esc(aiWhy(err))}</span>` : ""}</div>`;
+  }
+
+  // 곡 이름 이중 확인: 첫 검색이 약하면(못 찾음·미리듣기 없음·다른 가수) Gemini에게 Apple Music 등록 이름(영어·로마자)을 물어
+  // 그 이름으로 한 번 더 검색. 곡 검색 로직(lookupSong)은 그대로 부르기만 함
+  async function aiAlias(term, info) {
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 7000);
+    try {
+      const r = await fetch(API + "/music/alias", { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        q: term, found: info ? { artist: info.artistName, title: info.trackName } : null }) });
+      const d = await r.json().catch(() => ({}));
+      return r.ok ? d : { err: d.error || "fail" };
+    } catch { return { err: ac.signal.aborted ? "time" : "net" }; } finally { clearTimeout(tm); }
+  }
+  async function aliasLookup(term, info, onStep) {
+    if (!term || !CONSENT.abroad) return null;
+    if (onStep) onStep(T4("AI가 Apple Music에 등록된 영어 이름으로 한 번 더 찾는 중", "AI is retrying with the song's Apple Music (English) name", "AIがApple Musicに登録された英語名でもう一度検索中", "AI 正在用 Apple Music 登记的英文名再次搜索"));
+    const a = await aiAlias(term, info);
+    if (!a || !a.found) return null;
+    const nm = (t) => deacc(t).toLowerCase().replace(/\s*[([].*?[)\]]\s*/g, " ").replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]+/g, "");
+    const near = (x, y) => !!x && !!y && (x === y || (Math.min(x.length, y.length) >= 3 && (x.includes(y) || y.includes(x))));
+    const titles = [a.title_en, a.title, ...(a.alt_titles || [])].map(nm).filter(Boolean), artists = [a.artist_en, a.artist].map(nm).filter(Boolean);
+    const qs = [...new Set([a.artist_en && a.title_en ? `${a.artist_en} ${a.title_en}` : "", a.title_en && a.artist ? `${a.artist} ${a.title_en}` : "", a.artist_en && a.title ? `${a.artist_en} ${a.title}` : ""].filter(Boolean))];
+    const last = lookupSong.last, groups = pick.groups;
+    for (const q of qs) {
+      let r = null;
+      try { r = await lookupSong(q, { fresh: true, force: true }); } catch {}
+      if (r && !r.mismatch && titles.some((t) => near(nm(r.trackName), t)) && (!artists.length || artists.some((x) => near(nm(r.artistName), x)))) {
+        r = { ...r, aiAlias: { q, from: term } };
+        songCache(deacc(term).toLowerCase().replace(/\s+/g, " ").trim(), r);   // 다음에는 바로 이 곡
+        return r;
+      }
+    }
+    lookupSong.last = last; pick.groups = groups;   // 못 찾으면 첫 검색의 후보 목록을 그대로 씀
+    return null;
   }
 
   // ================= 곡 검색 피드백: 찾은 곡이 맞는지 표시 → 서버에 쌓아 다음 검색에 반영 =================
@@ -4987,10 +5055,8 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   function drawShopResult() {
     const r = SHOP.res; if (!r || !$("shop-res")) return;
     const E = LVL_E(), V = LVL_V();
-    const src = r.by === "ai"
-      ? `<span class="shopsrc ai">✨ ${T4("Gemini AI 분석", "Gemini AI analysis", "Gemini AI 分析", "Gemini AI 分析")}</span>`
-      : `<span class="shopsrc">🎨 ${T4("사진 색감·가게 종류 분석", "Photo colors & shop type", "写真の色·お店の種類で分析", "照片色彩·店铺类型分析")}</span>`;
-    const whyLocal = r.by === "local" && r.why && r.why !== "off" ? `<p class="hint">${r.why === "busy" ? T4("AI 분석 무료 사용량이 잠시 다 차서 자체 분석으로 골랐어요. 1분쯤 뒤에 다시 하면 AI로 분석해요.", "The free AI quota is used up for now, so we used our own analysis. Try again in a minute for AI.", "AI分析の無料枠が一時的にいっぱいなので、独自分析で選びました。1分ほどで再度お試しください。", "AI 免费额度暂时用完，已改用自有分析。约 1 分钟后重试即可使用 AI。") : T4("AI 분석을 쓰지 못해 자체 분석으로 골랐어요.", "AI analysis wasn't available, so we used our own analysis.", "AI分析が使えなかったため、独自分析で選びました。", "暂时无法使用 AI 分析，已改用自有分析。")}</p>` : "";
+    const src = aiBar(r.by === "ai", r.by === "ai" ? "" : r.why || "fail", "🎨 " + T4("기본 분석 (사진 색감·가게 종류)", "Basic analysis (photo colors & shop type)", "基本分析(写真の色·お店の種類)", "基础分析(照片色彩·店铺类型)"));
+    const whyLocal = "";
     const pal = r.look ? `<div class="palette">${r.look.palette.map((c) => `<i style="background:${c}" title="${c}"></i>`).join("")}</div>` : "";
     const facts = [[T4("조명", "Lighting", "照明", "灯光"), r.lighting], [T4("색감", "Colors", "色合い", "色调"), r.colors], [T4("소재", "Materials", "素材", "材质"), r.materials]].filter((x) => x[1]);
     const place = r.place ? `<div class="songmeta">🏪 ${esc(r.place.name)} · ${esc(r.place.category)} · ${esc(r.place.addr)}</div>` : "";
@@ -5000,8 +5066,8 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     $("shop-res").innerHTML = `
       <div class="shopgrid">
         <div class="card">
-          <h2>🔍 ${T4("가게 분위기 분석", "Shop vibe analysis", "お店の雰囲気分析", "店铺氛围分析")}</h2>
           ${src}
+          <h2>🔍 ${T4("가게 분위기 분석", "Shop vibe analysis", "お店の雰囲気分析", "店铺氛围分析")}</h2>
           ${SHOP.photo ? `<img class="shopimg" src="${SHOP.photo.url}" alt="">` : ""}
           ${pal}
           <p class="synopsis">${esc(r.summary || "")}</p>
@@ -5011,7 +5077,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
           ${place}${whyLocal}
         </div>
         <div class="card">
-          <h2>🎧 ${r.name ? esc(r.name) + " · " : ""}${T4("플레이리스트 10곡", "10-song playlist", "プレイリスト10曲", "10 首歌单")}</h2>
+          <h2>🎧 ${r.name ? esc(r.name) + " · " : ""}${T4("플레이리스트 10곡", "10-song playlist", "プレイリスト10曲", "10 首歌单")} ${r.by === "ai" ? `<span class="aibadge sm">✨ Gemini</span>` : ""}</h2>
           <ol class="shoplist">${r.songs.map((s, i) => `<li>
             <div class="shoptop"><b>${esc(s.title)}</b><span> – ${esc(s.artist)}</span>${s.checked ? ` <span class="okbadge" title="${T4("음원 서비스에서 실제 곡 확인", "Verified on a music service", "音楽サービスで実在を確認", "已在音乐平台确认")}">✔</span>` : ""}</div>
             <div class="stats"><span class="stat">${esc(s.genre || "")}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[s.energy]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[s.valence]}</span></div>
@@ -5103,8 +5169,15 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.7";
+  const APP_VERSION = "v4.8";
   const CHANGELOG = [
+    ["v4.8", "2026-11-19", "AI 배지·AI 못 쓴 이유·한국어 곡 이중 검색", [
+      "처음 화면 언어 버튼이 위 머리글에 붙어 보이던 것 간격 띄움",
+      "노래 추천·메뉴 추천 결과 맨 위에 파란 'Gemini AI 분석' 배지, 플레이리스트 제목 옆에도 표시",
+      "AI를 못 쓰면 회색 '기본 분석' 배지 + 이유 표시 (무료 사용량 소진, 요청 몰림, 키 없음·오류, 응답 지연, 연결 실패, 동의 안 함)",
+      "한국어 이름으로 검색해서 곡을 못 찾거나 미리듣기가 없으면 Gemini가 Apple Music 등록 영어 이름을 알려 주고 그 이름으로 다시 검색 (예: 세븐틴 소용돌이 → SEVENTEEN To you), 앨범 이미지·미리듣기까지 가져옴",
+      "서버 song-meal-api v3.3: /music/alias 추가, AI 요청 한도 1분 10번",
+    ]],
     ["v4.7", "2026-11-19", "전체 화면 최적화·디자인 다듬기", [
       "PC: 화면을 넓게 써서 메뉴 입력·가입·처음 화면·동의·노래 추천이 스크롤 없이 한 화면에 들어옴",
       "메뉴 추천 입력은 PC에서 2단(곡·시간·날씨 | 위치·음식·조건)",

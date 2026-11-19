@@ -139,7 +139,7 @@ export default {
     // 노래 추천(사장님용): 가게 사진·이름으로 Gemini가 분위기를 분석하고 노래 10곡을 고름. DB 없이 동작
     if (pathname === "/shop/vibe" && request.method === "POST") {
       if (!env.GEMINI_API_KEY) return json({ error: "off" }, 503);
-      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
+      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "limit" }, 429);
       try { return json(await shopVibe(await body(request), env)); }
       catch (e) {
         if (e instanceof HttpError) return json({ error: e.message }, e.status);
@@ -155,11 +155,21 @@ export default {
     // 메뉴 추천: 찾은 곡이 입력과 맞는지 Gemini 교차검증 + 곡 분석
     if (pathname === "/music/check" && request.method === "POST") {
       if (!env.GEMINI_API_KEY) return json({ error: "off" }, 503);
-      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "busy" }, 429);
+      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "limit" }, 429);
       try { return json(await songCheck(await body(request), env)); }
       catch (e) {
         if (e instanceof HttpError) return json({ error: e.message }, e.status);
         console.log("check", e && e.stack); return json({ error: "fail" }, 502);
+      }
+    }
+    // 곡 이름 이중 확인: 한국어로 쓴 곡의 Apple Music·해외 등록 이름(영어·로마자)을 Gemini에게 물어봄 → 브라우저가 그 이름으로 Apple 재검색
+    if (pathname === "/music/alias" && request.method === "POST") {
+      if (!env.GEMINI_API_KEY) return json({ error: "off" }, 503);
+      if (tooManyAI(request.headers.get("CF-Connecting-IP") || "?")) return json({ error: "limit" }, 429);
+      try { return json(await songAlias(await body(request), env)); }
+      catch (e) {
+        if (e instanceof HttpError) return json({ error: e.message }, e.status);
+        console.log("alias", e && e.stack); return json({ error: "fail" }, 502);
       }
     }
     if (!env.DB) return json({ error: "서버에 데이터베이스(DB)가 연결되지 않았어요." }, 500);
@@ -765,7 +775,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "3.2";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "3.3";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -1041,7 +1051,7 @@ function tooManyAI(ip) {
   const t = Date.now(), h = (AI_HITS.get(ip) || []).filter((x) => t - x < 60e3);
   h.push(t); AI_HITS.delete(ip); AI_HITS.set(ip, h);
   if (AI_HITS.size > 2000) AI_HITS.delete(AI_HITS.keys().next().value);
-  return h.length > 6;
+  return h.length > 10;
 }
 const LANG_NAME = { ko: "한국어", en: "English", ja: "日本語", zh: "简体中文" };
 const cut = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
@@ -1169,6 +1179,25 @@ async function shopVerify(b, env) {
 // ---------- 메뉴 추천의 곡 교차검증 + 곡 분석 (Gemini) ----------
 // 곡 검색 결과는 바꾸지 않음. 입력과 찾은 곡이 맞는지 의견을 내고, 아니면 맞을 것 같은 곡을 '제안'만 함(사용자가 눌러야 바뀜)
 const GEMINI_LITE = ["gemini-2.5-flash-lite", "gemini-flash-lite-latest", ...GEMINI_MODELS];
+// 한국어 곡 이름 → 음원 서비스(Apple Music 등)에 등록된 영어·로마자 이름. 곡 검색 로직은 그대로, 브라우저가 이 이름으로 한 번 더 검색
+async function songAlias(b, env) {
+  const q = cut(b.q, 100);
+  if (!q) fail(400, "need");
+  const f = b.found && typeof b.found === "object" ? { artist: cut(b.found.artist, 80), title: cut(b.found.title, 120) } : null;
+  const prompt = [
+    "A user typed a song (often Korean names) to search Apple Music. Apple Music often lists Korean songs under their English/romanized names (e.g. 세븐틴 → SEVENTEEN, 아이유 → IU, 방탄소년단 → BTS; a Korean title may be listed as its official English title).",
+    `The user typed: "${q}"`,
+    f && f.title ? `A first search found: "${f.artist} - ${f.title}" (it may be wrong or lack a preview).` : "A first search found nothing useful.",
+    "Identify the single REAL song the user most likely means. Give its names as typed/Korean (artist, title) and as officially listed on Apple Music / international streaming (artist_en, title_en). alt_titles: other official titles of the same song (Korean, English, romanized), max 3.",
+    "If you are not confident the song exists, set confident to false. Never invent songs.",
+    'Return only JSON: {"confident":true,"artist":"","title":"","artist_en":"","title_en":"","alt_titles":[]}',
+  ].join("\n");
+  const { o, model } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0.1, check: (o) => typeof o.confident === "boolean" });
+  if (!o.confident || !(o.title_en || o.title)) return { model, found: false };
+  return { model, found: true, artist: cut(o.artist, 80), title: cut(o.title, 120), artist_en: cut(o.artist_en, 80), title_en: cut(o.title_en, 120),
+    alt_titles: (Array.isArray(o.alt_titles) ? o.alt_titles : []).map((t) => cut(t, 120)).filter(Boolean).slice(0, 3) };
+}
+
 async function songCheck(b, env) {
   const q = cut(b.q, 100);
   if (!q) fail(400, "need");
