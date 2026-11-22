@@ -51,7 +51,7 @@
     if (n.data !== out) n.data = out;
   }
   function doAttrs(el) {
-    if (skip(el)) return;
+    if (!el || el.closest('[translate="no"], script, style, .notr')) return;   // 글 입력 칸(textarea)의 안내 문구는 번역
     let o = ORIG_A.get(el);
     for (const a of ATTRS) {
       const v = el.getAttribute(a); if (v == null) continue;
@@ -80,7 +80,9 @@
   function walk(root) {
     if (!root) return;
     if (root.nodeType === 3) { doText(root); return; }
-    if (root.nodeType !== 1 || skip(root)) return;
+    if (root.nodeType !== 1) return;
+    if (root.tagName === "TEXTAREA") { doAttrs(root); return; }   // 글 입력 칸: 안내 문구(placeholder)만
+    if (skip(root)) return;
     doAttrs(root);
     if (doHTML(root)) return;
     for (let c = root.firstChild; c; c = c.nextSibling) walk(c);

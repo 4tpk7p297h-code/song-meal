@@ -785,6 +785,9 @@
   .aibadge.sm { padding: 3px 10px; font-size: 12px; vertical-align: middle; font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; }
   .aibadge.off { color: var(--muted); background: var(--chip); box-shadow: none; }
   .aiwhy { flex: 1 1 220px; font-size: 12.5px; line-height: 1.5; padding: 6px 10px; border-radius: 10px; background: rgba(255, 170, 0, .14); color: var(--text); }
+  /* ===== v5.0 모바일 머리글 한 줄·지도 겹침 ===== */
+  @media (max-width: 720px) { .cnav { flex-wrap: nowrap; } }
+  #map, #pickmapdiv { position: relative; z-index: 0; isolation: isolate; }
 </style>
 </head>
 <body>
@@ -913,7 +916,7 @@
 
     <label for="loc">📍 위치</label>
     <div class="locrow">
-      <input type="text" id="loc" placeholder="동네·역·학교 이름 (예: 성수동, 강남역, 서울대)">
+      <input type="text" id="loc" autocomplete="off" placeholder="동네·역·학교 이름 (예: 성수동, 강남역, 서울대)">
       <button type="button" class="ghost" id="here">📍 현재 위치</button>
     </div>
     <div id="geo-ask" class="geoask hidden">
@@ -1293,8 +1296,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=4.9"></script>
-<script src="lang.js?v=4.9"></script>
+<script src="lang-data.js?v=5.0"></script>
+<script src="lang.js?v=5.0"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -2843,7 +2846,7 @@ JJ Lin|林俊傑|임준걸`;
     const hideMap = (t) => { const m = $("map"); if (m) m.style.display = "none"; msg(t); };
     if (!mapsReady()) { hideMap(MAP_FAIL); return finish(); }
     resolveLoc(loc).then((a) => {
-      if (!a) { hideMap(`'${loc}'의 위치를 찾지 못했어요. 동 이름, 도로명 주소, 역·학교 이름으로 입력하면 지도가 표시돼요.`); return finish(); }
+      if (!a) { hideMap(!/[가-힣]/.test(loc) && /[A-Za-z]{3}/.test(loc) ? ABROAD() : `'${loc}'의 위치를 찾지 못했어요. 동 이름, 도로명 주소, 역·학교 이름으로 입력하면 지도가 표시돼요.`); return finish(); }
       M.ll = { lat: a.lat, lng: a.lng };
       M.locName = loc;
       M.center = new naver.maps.LatLng(a.lat, a.lng);
@@ -3324,6 +3327,13 @@ JJ Lin|林俊傑|임준걸`;
     $("lh-map").onclick = () => { box.classList.add("hidden"); openPicker(); };
   }
 
+  // 비트밥스 식당 검색(네이버)은 한국 안에서만 됨 → 한국 밖 좌표·주소는 이유를 바로 알려 줌
+  const inKorea = (lat, lng) => lat >= 33 && lat <= 38.9 && lng >= 124.5 && lng <= 132;
+  const ABROAD = () => T4("지금 위치가 한국 밖으로 잡혔어요. 비트밥스의 지도·식당 검색은 네이버 지도를 써서 한국 안 지역만 찾을 수 있어요. 한국의 동네·역 이름을 직접 입력하거나 지도에서 골라 주세요.",
+    "Your location is outside Korea. BeatBobs uses Naver Maps for maps and restaurant search, so only places in Korea work. Type a Korean neighborhood or station, or pick one on the map.",
+    "現在地が韓国の外になっています。ビートバプスの地図・飲食店検索はNAVERマップを使うため、韓国内の地域しか探せません。韓国の町名・駅名を入力するか、地図で選んでください。",
+    "当前位置在韩国境外。BeatBobs 的地图和餐厅搜索使用 Naver 地图，只能查找韩国境内的地区。请输入韩国的街区或车站名称，或在地图上选择。");
+
   // 위치 권한 없이 지도를 눌러 위치 고르기 (Reverse Geocoding)
   const P = { map: null, marker: null };
   function regionName(r) {
@@ -3338,6 +3348,7 @@ JJ Lin|林俊傑|임준걸`;
       P.map = new naver.maps.Map("pickmapdiv", { center: new naver.maps.LatLng(37.5666, 126.9784), zoom: 12 });
       naver.maps.Event.addListener(P.map, "click", (e) => {
         const pos = e.coord;
+        if (!inKorea(pos.lat(), pos.lng())) { $("pickmsg").textContent = ABROAD(); return; }
         if (P.marker) P.marker.setPosition(pos); else P.marker = new naver.maps.Marker({ position: pos, map: P.map });
         $("pickmsg").textContent = "주소를 찾는 중...";
         naver.maps.Service.reverseGeocode({ coords: pos, orders: naver.maps.Service.OrderType.ADDR }, (status, res) => {
@@ -3365,6 +3376,7 @@ JJ Lin|林俊傑|임준걸`;
     const btn = $("here"); btn.disabled = true; btn.textContent = "찾는 중...";
     const done = () => { btn.disabled = false; btn.textContent = "📍 현재 위치"; };
     navigator.geolocation.getCurrentPosition((p) => {
+      if (!inKorea(p.coords.latitude, p.coords.longitude)) { done(); return err(ABROAD()); }
       naver.maps.Service.reverseGeocode({
         coords: new naver.maps.LatLng(p.coords.latitude, p.coords.longitude),
         orders: naver.maps.Service.OrderType.ADDR,
@@ -3827,6 +3839,7 @@ JJ Lin|林俊傑|임준걸`;
   function drawSongFb() {
     const box = $("songfb"), c = render.ctx;
     if (!box || !c) return;
+    box.setAttribute("aria-label", T4("곡 확인", "Song check", "曲の確認", "歌曲确认"));
     const { v, info } = c;
     if (!CONSENT.abroad || !v.song || SFB.key !== v.song || SFB.closed || $("result").classList.contains("hidden")) { box.classList.add("hidden"); return; }
     // 결과 화면 비율은 그대로 두고, 오른쪽 아래 작은 팝업으로 띄움 (처음엔 결과를 본 뒤 잠깐 있다가)
@@ -4983,9 +4996,9 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     const g = s.genre, c = g.charCodeAt(g.length - 1);
     const ieyo = c >= 0xac00 && c <= 0xd7a3 ? ((c - 0xac00) % 28 ? "이에요" : "예요") : /[aeiouy]$/i.test(g) ? "예요" : "이에요";
     return T4(`${lt ? lt + "과 " : ""}${where} 분위기에 어울리는 ${mood} ${g}${ieyo}.`,
-      `A ${mood} ${s.genre} track that suits a ${where.toLowerCase()}${lt ? " with " + lt : ""}.`,
-      `${lt ? lt + "と" : ""}${where}の雰囲気に合う、${mood}${s.genre}です。`,
-      `${mood}${s.genre}，适合${lt ? lt + "下的" : ""}${where}氛围。`);
+      `A ${mood} ${TK(s.genre)} track that suits a ${where.toLowerCase()}${lt ? " with " + lt : ""}.`,
+      `${lt ? lt + "と" : ""}${where}の雰囲気に合う、${mood}${TK(s.genre)}です。`,
+      `${mood}${TK(s.genre)}，适合${lt ? lt + "下的" : ""}${where}氛围。`);
   }
 
   async function storeInfo(name, loc) {
@@ -5098,7 +5111,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
           <h2>🎧 ${r.name ? esc(r.name) + " · " : ""}${T4("플레이리스트 10곡", "10-song playlist", "プレイリスト10曲", "10 首歌单")} ${r.by === "ai" ? `<span class="aibadge sm">✨ Gemini</span>` : ""}</h2>
           <ol class="shoplist">${r.songs.map((s, i) => `<li>
             <div class="shoptop"><b>${esc(s.title)}</b><span> – ${esc(s.artist)}</span>${s.checked ? ` <span class="okbadge" title="${T4("음원 서비스에서 실제 곡 확인", "Verified on a music service", "音楽サービスで実在を確認", "已在音乐平台确认")}">✔</span>` : ""}</div>
-            <div class="stats"><span class="stat">${esc(s.genre || "")}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[s.energy]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[s.valence]}</span></div>
+            <div class="stats"><span class="stat">${esc(TK(s.genre || ""))}</span><span class="stat">${T4("에너지", "Energy", "エネルギー", "能量")} ${E[s.energy]}</span><span class="stat">${T4("분위기", "Mood", "ムード", "氛围")} ${V[s.valence]}</span></div>
             <p class="shopwhy">${esc(s.reason || "")}</p>
             <details><summary>${T4("곡 분석 보기", "Song analysis", "曲の解説", "歌曲解析")}</summary><div class="sects">
               ${sec(T4("인트로", "Intro", "イントロ", "前奏"), s.intro || TK(INTRO[s.energy]))}
@@ -5187,8 +5200,14 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v4.9";
+  const APP_VERSION = "v5.0";
   const CHANGELOG = [
+    ["v5.0", "2026-11-22", "외국어 번역 전면 점검·해외 위치 안내", [
+      "영어·일본어·중국어로 모든 화면을 자동 점검해 빠진 번역 채움 (곡 고르기 창 '이 곡이에요', 후기 글 안내 문구, 전체 스토리, 에너지 추정 문구, 관리패널 곡 피드백)",
+      "노래 추천의 장르 이름(록·팝·인디 등)과 식당 분류(음식점>한식 등)도 고른 언어로 표시, 가게 이름·주소·닉네임은 원래 이름 그대로",
+      "모바일 위쪽 메뉴가 여러 줄로 쌓이던 것 한 줄(옆으로 밀기)로, 지도가 위쪽 머리글을 덮던 것 고침",
+      "현재 위치·지도 고르기·위치 입력이 한국 밖이면 '한국 안 지역만 찾을 수 있다'고 바로 안내",
+    ]],
     ["v4.9", "2026-11-19", "미리듣기 없는 곡 다시 찾기", [
       "찾은 곡에 미리듣기가 없으면 곡 이름 괄호 속 다른 이름으로 먼저 다시 검색 (예: 세븐틴 (Seventeen) - 소용돌이 (To you) → Seventeen To you), AI 없이도 동작",
       "그래도 없으면 Gemini에게 Apple Music 등록 이름을 물어 다시 검색, AI 기다리는 시간을 늘림 (이름 확인 15초, 곡 분석 18초)",
@@ -5495,7 +5514,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
       if (!g) groups.push(g = { m, list: [] });
       g.list.push(e);
     });
-    const name = { "0": "첫 웹사이트·추천·지도", "1": "Cloudflare 이전·회원·후기·스토리", "2": "곡 검색·로그인·화면 다듬기", "3": "Last.fm 분석·다국어·캐릭터", "4": "노래 추천·AI 교차검증·곡 피드백" };
+    const name = { "0": "첫 웹사이트·추천·지도", "1": "Cloudflare 이전·회원·후기·스토리", "2": "곡 검색·로그인·화면 다듬기", "3": "Last.fm 분석·다국어·캐릭터", "4": "노래 추천·AI 교차검증·곡 피드백", "5": "다국어 점검·해외 위치 안내" };
     const box = $("adm-log");
     box.innerHTML = `<div class="logmaj" role="tablist"></div><div class="logsub" role="tablist"></div><section class="logv" aria-live="polite"></section>`;
     const [maj, sub, view] = box.children;
@@ -5588,17 +5607,17 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
       const start = ADM.flist.length;
       ADM.flist.push(...d.rows); ADM.foff += d.rows.length;
       $("adm-flist").insertAdjacentHTML("beforeend", d.rows.map((r, j) => `
-        <div class="arow" data-i="${start + j}"><div class="atx">
-          <b>"${esc(r.q)}" <small>${dt(r.last)}</small></b>
-          <small>최근 사이트가 보여 준 곡: ${esc(songTxt(r.got) || "못 찾음")}</small>
+        <div class="arow notr" data-i="${start + j}"><div class="atx">
+          <b>"${esc(r.q)}" <small>${TK(dt(r.last))}</small></b>
+          <small>${T4("최근 사이트가 보여 준 곡", "Song the site last showed", "サイトが最近表示した曲", "网站最近显示的歌曲")}: ${esc(songTxt(r.got) || T4("못 찾음", "not found", "見つからず", "未找到"))}</small>
           <span class="abadges"><span>👍 ${r.oks}</span>${r.bads ? `<span class="bad">👎 ${r.bads}</span>` : `<span>👎 0</span>`}
-            ${r.state === 1 ? `<span>✅ 관리자 승인</span>` : r.state === -1 ? `<span class="bad">⛔ 정정 막음</span>` : ""}
-            <span>${r.live ? `지금 적용: ${esc(songTxt(r.live))}${r.live.by === "users" ? ` (이용자 ${r.live.n}명)` : ""}` : "지금 적용: 없음 (원래 검색)"}</span></span>
-          ${r.fixes.length ? `<div class="areports">이용자가 고른 곡<br>${r.fixes.map((f, k) => `${esc(songTxt(f))} · ${f.n}명 <button type="button" class="mini ghost" data-act="ok" data-k="${k}">이 곡으로 승인</button>`).join("<br>")}</div>` : ""}
+            ${r.state === 1 ? `<span>✅ ${T4("관리자 승인", "Admin approved", "管理者承認", "管理员已批准")}</span>` : r.state === -1 ? `<span class="bad">⛔ ${T4("정정 막음", "Corrections blocked", "訂正ブロック", "已封锁更正")}</span>` : ""}
+            <span>${T4("지금 적용", "Applied now", "現在の適用", "当前生效")}: ${r.live ? `${esc(songTxt(r.live))}${r.live.by === "users" ? ` (${T4(`이용자 ${r.live.n}명`, `${r.live.n} users`, `利用者${r.live.n}人`, `${r.live.n} 位用户`)})` : ""}` : T4("없음 (원래 검색)", "none (normal search)", "なし(通常の検索)", "无(原始搜索)")}</span></span>
+          ${r.fixes.length ? `<div class="areports">${T4("이용자가 고른 곡", "Songs users picked", "利用者が選んだ曲", "用户选择的歌曲")}<br>${r.fixes.map((f, k) => `${esc(songTxt(f))} · ${T4(`${f.n}명`, `${f.n}`, `${f.n}人`, `${f.n} 人`)} <button type="button" class="mini ghost" data-act="ok" data-k="${k}">${T4("이 곡으로 승인", "Approve this song", "この曲で承認", "批准这首")}</button>`).join("<br>")}</div>` : ""}
         </div><div class="aacts">
-          ${r.state !== -1 ? `<button type="button" class="mini ghost" data-act="block">정정 막기</button>` : ""}
-          ${r.state ? `<button type="button" class="mini ghost" data-act="auto">자동으로 되돌리기</button>` : ""}
-          <button type="button" class="mini danger" data-act="del">기록 삭제</button>
+          ${r.state !== -1 ? `<button type="button" class="mini ghost" data-act="block">${T4("정정 막기", "Block corrections", "訂正をブロック", "封锁更正")}</button>` : ""}
+          ${r.state ? `<button type="button" class="mini ghost" data-act="auto">${T4("자동으로 되돌리기", "Back to automatic", "自動に戻す", "恢复自动")}</button>` : ""}
+          <button type="button" class="mini danger" data-act="del">${T4("기록 삭제", "Delete record", "記録を削除", "删除记录")}</button>
         </div></div>`).join(""));
       if (!ADM.flist.length) $("adm-flist").innerHTML = `<p class="hint">아직 피드백이 없어요.</p>`;
       $("adm-fmore").classList.toggle("hidden", !d.more);
