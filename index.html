@@ -788,6 +788,8 @@
   /* ===== v5.0 모바일 머리글 한 줄·지도 겹침 ===== */
   @media (max-width: 720px) { .cnav { flex-wrap: nowrap; } }
   #map, #pickmapdiv { position: relative; z-index: 0; isolation: isolate; }
+  /* ===== v5.1 가게 이름·주소 영어 표기 ===== */
+  html[lang="ko"] .env, html:not([lang="ko"]) .kov { display: none; }
 </style>
 </head>
 <body>
@@ -1296,8 +1298,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=5.0"></script>
-<script src="lang.js?v=5.0"></script>
+<script src="lang-data.js?v=5.1"></script>
+<script src="lang.js?v=5.1"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -2983,8 +2985,81 @@ JJ Lin|林俊傑|임준걸`;
     toast(`'${p.name}' 이름을 복사했어요. ${a.name} 검색창에 붙여넣어 주세요.`, 5000);
   }
 
+  // ---------- 가게 이름·주소 영어 표기 (한국어가 아닌 화면) ----------
+  // 이름: 국어의 로마자 표기법(자동 변환), 주소: 네이버 지도가 주는 공식 영문 주소(없으면 자동 변환)
+  const RR_I = ["g", "kk", "n", "d", "tt", "r", "m", "b", "pp", "s", "ss", "", "j", "jj", "ch", "k", "t", "p", "h"];
+  const RR_V = ["a", "ae", "ya", "yae", "eo", "e", "yeo", "ye", "o", "wa", "wae", "oe", "yo", "u", "wo", "we", "wi", "yu", "eu", "ui", "i"];
+  const RR_F = ["", "k", "k", "k", "n", "n", "n", "t", "l", "k", "m", "l", "l", "l", "p", "l", "m", "p", "p", "t", "t", "ng", "t", "t", "k", "t", "p", "t"];
+  const RR_LINK = { 1: "g", 2: "kk", 4: "n", 7: "d", 8: "r", 16: "m", 17: "b", 19: "s", 20: "ss", 22: "j", 23: "ch", 24: "k", 25: "t", 26: "p", 27: "" };
+  function romanize(str) {
+    const cs = [...String(str || "")];
+    const syl = (ch) => { const c = ch.charCodeAt(0) - 0xac00; return c >= 0 && c < 11172 ? [Math.floor(c / 588), Math.floor((c % 588) / 28), c % 28] : null; };
+    let out = "";
+    for (let i = 0; i < cs.length; i++) {
+      const a = syl(cs[i]);
+      if (!a) { out += cs[i]; continue; }
+      const prev = i > 0 ? syl(cs[i - 1]) : null, next = i + 1 < cs.length ? syl(cs[i + 1]) : null;
+      let ini = RR_I[a[0]];
+      if (prev) {
+        const pf = prev[2];
+        if (a[0] === 11 && RR_LINK[pf] != null) ini = RR_LINK[pf];                       // 받침이 넘어감 (연음)
+        else if (a[0] === 5) ini = (pf === 4 || pf === 8) ? "l" : pf ? "n" : "r";          // ㄹ: 신라 silla, 종로 jongno
+      }
+      let fin = RR_F[a[2]];
+      if (next && a[2]) {
+        if (next[0] === 11 && RR_LINK[a[2]] != null) fin = "";                             // 다음 글자로 넘김
+        else if (next[0] === 2 || next[0] === 6 || (next[0] === 5 && a[2] !== 4 && a[2] !== 8)) fin = { k: "ng", t: "n", p: "m" }[fin] || fin;   // 콧소리되기 (백리 baengni)
+        else if (next[0] === 5 && a[2] === 4) fin = "l";                                    // ㄴ+ㄹ → ll
+      }
+      out += ini + RR_V[a[1]] + fin;
+    }
+    return out;
+  }
+  const cap = (w) => w.replace(/^[a-z]/, (c) => c.toUpperCase());
+  function nameEn(name) {
+    if (!/[가-힣]/.test(name || "")) return name || "";
+    return String(name).replace(/([A-Za-z0-9])([가-힣])/g, "$1 $2").replace(/([가-힣])([A-Za-z])/g, "$1 $2").split(/\s+/).map((w) => {
+      if (!/[가-힣]/.test(w)) return w;
+      if (w === "본점") return "Main Branch";
+      const m = /^(.+[가-힣])점$/.exec(w);
+      if (m && m[1].length >= 2) return cap(romanize(m[1])) + " Branch";
+      return cap(romanize(w));
+    }).join(" ");
+  }
+  const ADDR_SUF = [["특별자치도", "-do"], ["특별자치시", "-si"], ["특별시", ""], ["광역시", ""], ["번길", "beon-gil"], ["대로", "-daero"], ["도", "-do"], ["시", "-si"], ["구", "-gu"], ["군", "-gun"], ["읍", "-eup"], ["면", "-myeon"], ["동", "-dong"], ["리", "-ri"], ["로", "-ro"], ["길", "-gil"], ["층", "F"], ["호", ""]];
+  function addrRoman(addr) {
+    return String(addr || "").split(/\s+/).map((w) => {
+      if (!/[가-힣]/.test(w)) return w;
+      const g = /^(.+?)(대로|로|길)(\d+)번길$/.exec(w);   // 권광로175번길 → Gwongwang-ro 175beon-gil
+      if (g) return cap(romanize(g[1])) + { 대로: "-daero", 로: "-ro", 길: "-gil" }[g[2]] + " " + g[3] + "beon-gil";
+      if (/^\d+호$/.test(w)) return "#" + w.slice(0, -1);
+      for (const [k, e] of ADDR_SUF) if (w.endsWith(k) && w.length > k.length) {
+        const stem = w.slice(0, -k.length);
+        return /^\d+$/.test(stem) ? stem + (k === "층" ? "F" : k === "호" ? "" : k === "번길" ? "beon-gil" : e) : cap(romanize(stem)) + e;
+      }
+      return cap(romanize(w));
+    }).join(" ");
+  }
+  const EN_ADDR = {};
+  function fillEnAddr(addr) {
+    if (!addr || EN_ADDR[addr] !== undefined || LG() === "ko" || !mapsReady()) return;
+    EN_ADDR[addr] = null;
+    try {
+      naver.maps.Service.geocode({ query: addr }, (status, r) => {
+        const a = status === naver.maps.Service.Status.OK && r.v2 && r.v2.addresses && r.v2.addresses[0];
+        const en = a && a.englishAddress ? a.englishAddress.replace(/,?\s*Republic of Korea$/, "") : "";
+        if (!en) return;
+        EN_ADDR[addr] = en;
+        document.querySelectorAll("span.enaddr").forEach((el) => { if (el.dataset.ko === addr) el.textContent = en; });
+      });
+    } catch {}
+  }
+  // 한국어 화면엔 원래 이름, 다른 언어 화면엔 영어 표기 (언어를 바꾸면 CSS로 바로 바뀜)
+  const pName = (n) => `<span class="kov notr" translate="no">${esc(n)}</span><span class="env notr" translate="no">${esc(nameEn(n))}</span>`;
+  const pAddr = (a) => { fillEnAddr(a); return `<span class="kov notr" translate="no">${esc(a)}</span><span class="env enaddr notr" translate="no" data-ko="${esc(a)}">${esc(EN_ADDR[a] || addrRoman(a))}</span>`; };
+
   function placeInfo(p, i) {
-    return `<div class="iw"><b>${esc(p.name)}</b><br>${esc(p.category)}<br>${esc(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}
+    return `<div class="iw"><b>${pName(p.name)}</b><br><span>${esc(p.category)}</span><br>${pAddr(p.addr)}${p.tel ? "<br>☎ " + esc(p.tel) : ""}
       <div class="go"><a href="#" onclick="window.__route(${i});return false;">🧭 길찾기</a></div></div>`;
   }
 
@@ -3185,7 +3260,7 @@ JJ Lin|林俊傑|임준걸`;
     });
     if (M.map) { bounds.extend(M.center); M.map.fitBounds(bounds); }
     M.items = items;
-    list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${esc(p.name)}</b><small>${esc(p.category)} · ${esc(p.addr)}</small>
+    list.innerHTML = items.map((p, i) => `<li data-i="${i}"><b>${i + 1}. ${pName(p.name)}</b><small><span>${esc(p.category)}</span> · ${pAddr(p.addr)}</small>
       <div class="stags" data-i="${i}">${soloTag(p)}</div>
       <div class="go"><a href="#" data-route="${i}">🧭 길찾기</a><a class="sub2" href="${esc(placeUrl(p))}" target="_blank" rel="noopener">네이버 지도에서 보기</a></div>
       <div class="go dlv">${Object.keys(DLV.apps).map((k) => `<a class="dl" href="${esc(dlvHref(k))}" data-dlv="${k}" data-i="${i}">🛵 ${DLV.apps[k].label}</a>`).join("")}</div></li>`).join("")
@@ -5090,7 +5165,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
     const whyLocal = "";
     const pal = r.look ? `<div class="palette">${r.look.palette.map((c) => `<i style="background:${c}" title="${c}"></i>`).join("")}</div>` : "";
     const facts = [[T4("조명", "Lighting", "照明", "灯光"), r.lighting], [T4("색감", "Colors", "色合い", "色调"), r.colors], [T4("소재", "Materials", "素材", "材质"), r.materials]].filter((x) => x[1]);
-    const place = r.place ? `<div class="songmeta">🏪 ${esc(r.place.name)} · ${esc(r.place.category)} · ${esc(r.place.addr)}</div>` : "";
+    const place = r.place ? `<div class="songmeta">🏪 ${pName(r.place.name)} · <span>${esc(TK(r.place.category))}</span> · ${pAddr(r.place.addr)}</div>` : "";
     const links = (s) => { const q = encodeURIComponent(`${s.artist} ${s.title}`);
       return `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener" title="YouTube">${LOGO.yt}<span class="lt">YouTube</span></a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="Spotify">${LOGO.sp}<span class="lt">Spotify</span></a><a href="https://music.apple.com/kr/search?term=${q}" target="_blank" rel="noopener" title="Apple Music">${LOGO.am}<span class="lt">Apple Music</span></a>`; };
     const sec = (lab, txt) => `<div class="sect"><span>${lab}</span><span>${esc(txt)}</span></div>`;
@@ -5200,8 +5275,13 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v5.0";
+  const APP_VERSION = "v5.1";
   const CHANGELOG = [
+    ["v5.1", "2026-11-23", "가게 이름·주소 영어 표기", [
+      "영어·일본어·중국어 화면에서 식당 목록·지도 말풍선·사장님 가게 정보의 가게 이름을 로마자 표기로 (예: 명백집 범계점 → Myeongbaekjip Beomgye Branch)",
+      "주소는 네이버 지도가 주는 공식 영문 주소로, 못 받으면 로마자 자동 변환 (예: Simin-daero 175, Dongan-gu, Anyang-si)",
+      "한국어 화면은 원래 이름·주소 그대로, 언어를 바꾸면 바로 바뀜. 길찾기·네이버 지도·배달 앱 검색은 정확도를 위해 한국어 이름을 그대로 씀",
+    ]],
     ["v5.0", "2026-11-22", "외국어 번역 전면 점검·해외 위치 안내", [
       "영어·일본어·중국어로 모든 화면을 자동 점검해 빠진 번역 채움 (곡 고르기 창 '이 곡이에요', 후기 글 안내 문구, 전체 스토리, 에너지 추정 문구, 관리패널 곡 피드백)",
       "노래 추천의 장르 이름(록·팝·인디 등)과 식당 분류(음식점>한식 등)도 고른 언어로 표시, 가게 이름·주소·닉네임은 원래 이름 그대로",
