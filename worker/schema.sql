@@ -82,3 +82,5 @@ CREATE TABLE IF NOT EXISTS song_fb (
 );
 CREATE INDEX IF NOT EXISTS song_fb_q ON song_fb(q, ok);
 CREATE TABLE IF NOT EXISTS song_fix (q TEXT PRIMARY KEY, a TEXT, t TEXT, state INTEGER NOT NULL, updated INTEGER NOT NULL);
+-- 이용자가 고른 곡이 입력과 같은 곡인지 AI 확인 결과 (자동 반영 점수에 씀)
+CREATE TABLE IF NOT EXISTS song_ai (q TEXT NOT NULL, k TEXT NOT NULL, yes INTEGER NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (q, k));

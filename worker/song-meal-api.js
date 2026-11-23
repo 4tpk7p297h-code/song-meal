@@ -298,7 +298,8 @@ async function admin(request, env, me, path, M, url) {
   if (path === "/admin/songfb/delete" && M === "POST") {
     await fbTables(DB);
     const q = songKey((await body(request)).q);
-    await DB.batch([DB.prepare("DELETE FROM song_fb WHERE q = ?").bind(q), DB.prepare("DELETE FROM song_fix WHERE q = ?").bind(q)]);
+    await aiTable(DB);
+    await DB.batch([DB.prepare("DELETE FROM song_fb WHERE q = ?").bind(q), DB.prepare("DELETE FROM song_fix WHERE q = ?").bind(q), DB.prepare("DELETE FROM song_ai WHERE q = ?").bind(q)]);
     return { ok: true };
   }
 
@@ -598,12 +599,14 @@ async function route(request, env) {
     await DB.prepare(`INSERT INTO song_fb (q, who, ok, got, fix_a, fix_t, fix_src, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(q, who) DO UPDATE SET ok = excluded.ok, got = excluded.got, fix_a = excluded.fix_a, fix_t = excluded.fix_t, fix_src = excluded.fix_src, created = excluded.created`)
       .bind(q, who, b.ok ? 1 : 0, got, fx && fx.t ? fx.a : null, fx && fx.t ? fx.t : null, fx && fx.t ? fx.src : null, now()).run();
+    // 이용자가 고른 곡은 AI가 입력과 같은 곡인지 한 번 확인해 둠 (자동 반영 점수에 씀, 같은 입력·곡은 한 번만)
+    if (fx && fx.t) await fixAiCheck(DB, env, q, fx).catch((e) => console.log("fixai", e && e.message));
     return { ok: true };
   }
   if (path === "/song/fix" && M === "GET") {
     const q = songKey(url.searchParams.get("q"));
     if (!q) return { fix: null };
-    try { return { fix: await songFix(DB, q) }; } catch { return { fix: null }; }   // 표가 아직 없으면 정정 없음
+    try { return { fix: await songFix(DB, q) }; } catch (e) { console.log("songfix", e && e.message); return { fix: null }; }   // 표가 아직 없으면 정정 없음
   }
 
   // ---------- 관리자 ----------
@@ -775,7 +778,7 @@ async function route(request, env) {
 //   - Spotify  (선택): Worker → Settings → Variables and Secrets 에 SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET 을 넣으면 켜짐
 //   - Last.fm  (선택): 같은 곳에 LASTFM_API_KEY 를 넣으면 켜짐
 // 이 서비스들에는 검색어(가수·곡 이름)만 전달되고, 사용자의 IP·회원 정보는 전달되지 않아요.
-const MUSIC_VERSION = "3.4";   // /health에 보이는 서버 버전
+const MUSIC_VERSION = "3.5";   // /health에 보이는 서버 버전
 const UA = "SongMeal/2.1 ( https://song-meal.pages.dev )";
 const musicKeys = (env) => ({
   spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET),
@@ -797,18 +800,55 @@ async function fbTables(DB) {
   ]);
   FB_READY = true;
 }
-// 지금 적용할 정정: 관리자가 막았으면 없음, 승인했으면 그 곡, 아니면 서로 다른 2명 이상이 같은 곡으로 고쳤고(정정된 곡에 '맞아요'도 포함) 원래 검색 결과에 '맞아요'보다 많을 때
-const FIX_MIN = 2;
+// 지금 적용할 정정 (관리자 승인 없이 자동): 쌓인 데이터로 점수를 매겨 가장 믿을 만한 곡으로 유도
+//  - 이용자가 같은 곡으로 고친 표 1표 = 1점, AI가 "입력과 같은 곡"이라고 확인하면 +1.5점, "다른 곡"이라고 하면 -1점
+//  - 원래 검색 결과에 '맞아요'가 붙은 표는 그대로 두자는 쪽 점수
+//  - 정정 점수가 2점 이상이고 '맞아요'보다 높으면 적용 (AI 확인이 있으면 1명만 고쳐도 바로, AI가 없으면 2명부터)
+//  - 관리자는 필요할 때만 막기·강제 지정 가능 (승인은 필요 없음)
+const FIX_MIN = 2, AI_YES = 1.5, AI_NO = -1;
 async function songFix(DB, q) {
   const x = await DB.prepare("SELECT a, t, state FROM song_fix WHERE q = ?").bind(q).first();
   if (x && x.state === -1) return null;
   if (x && x.state === 1 && x.t) return { a: x.a, t: x.t, by: "admin" };
-  const top = await DB.prepare(
-    "SELECT fix_a AS a, fix_t AS t, COUNT(*) AS n FROM song_fb WHERE q = ? AND fix_t IS NOT NULL GROUP BY lower(fix_a), lower(fix_t) ORDER BY n DESC LIMIT 1"
-  ).bind(q).first();
-  if (!top || top.n < FIX_MIN) return null;
+  const { results: tops } = await DB.prepare(
+    "SELECT fix_a AS a, fix_t AS t, COUNT(*) AS n FROM song_fb WHERE q = ? AND fix_t IS NOT NULL GROUP BY lower(fix_a), lower(fix_t) ORDER BY n DESC LIMIT 5"
+  ).bind(q).all();
+  if (!tops.length) return null;
+  const ai = await aiVerdicts(DB, q);
+  let best = null;
+  for (const c of tops) {
+    const v = ai[songKey(c.a + " " + c.t)];
+    const score = c.n + (v === 1 ? AI_YES : v === 0 ? AI_NO : 0);
+    if (!best || score > best.score) best = { a: c.a, t: c.t, n: c.n, ai: v === 1, score };
+  }
+  if (best.score < FIX_MIN) return null;
   const oks = (await DB.prepare("SELECT COUNT(*) AS n FROM song_fb WHERE q = ? AND ok = 1 AND fix_t IS NULL").bind(q).first()).n;
-  return top.n > oks ? { a: top.a, t: top.t, n: top.n, by: "users" } : null;
+  return best.score > oks ? { a: best.a, t: best.t, n: best.n, ai: best.ai, by: "auto" } : null;
+}
+// AI 확인 결과 (song_ai: 입력 q, 곡 키 k, 1 같은 곡 / 0 다른 곡)
+let AI_TBL = false;
+async function aiTable(DB) {
+  if (AI_TBL) return;
+  await DB.prepare("CREATE TABLE IF NOT EXISTS song_ai (q TEXT NOT NULL, k TEXT NOT NULL, yes INTEGER NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (q, k))").run();
+  AI_TBL = true;
+}
+async function aiVerdicts(DB, q) {
+  try { await aiTable(DB); const { results } = await DB.prepare("SELECT k, yes FROM song_ai WHERE q = ?").bind(q).all(); return Object.fromEntries(results.map((r) => [r.k, r.yes])); }
+  catch { return {}; }
+}
+async function fixAiCheck(DB, env, q, fx) {
+  if (!env.GEMINI_API_KEY) return;
+  await aiTable(DB);
+  const k = songKey(fx.a + " " + fx.t);
+  if (await DB.prepare("SELECT 1 FROM song_ai WHERE q = ? AND k = ?").bind(q, k).first()) return;
+  const prompt = [
+    "A user searched a music service for a song and then said the right song is a specific one. Judge only whether that song plausibly matches what they typed.",
+    `They typed: "${q}"`, `They chose: "${fx.a} - ${fx.t}"`,
+    "match is true if the chosen song is the song the typed text refers to (Korean/English/romanized names of the same artist or title count as the same). false if it is clearly a different song or unrelated (e.g. spam).",
+    'Return only JSON: {"match":true}',
+  ].join("\n");
+  const { o } = await askGemini(env, [{ text: prompt }], { models: GEMINI_LITE, temperature: 0, fast: true, check: (o) => typeof o.match === "boolean" });
+  await DB.prepare("INSERT OR REPLACE INTO song_ai (q, k, yes, created) VALUES (?, ?, ?, ?)").bind(q, k, o.match ? 1 : 0, now()).run();
 }
 
 const MEMO = new Map();
