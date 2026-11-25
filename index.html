@@ -798,6 +798,7 @@
     --banana: #ffd43b; --pink: #ff6fb5; --mint: #3ddc97; --sky: #4dabf7; --grape: #b197fc;
     --bg: var(--paper); --card: #ffffff; --text: #1c1a1f; --muted: #47434d;
     --line: var(--ink); --accent: #d6336c; --accent-weak: #ffe3f1; --chip: #fff3bf; --field: #fffdf6;
+    --chipA: #fff3bf; --chipB: #d3f9d8; --chipC: #ffdeeb; --chipD: #d0ebff;
     --btnfg: #1c1a1f; --pop: 4px 4px 0 var(--ink); --pop-b: 2px 2px 0 var(--ink); --pop-c: 1.5px 1.5px 0 var(--ink);
     --shadow: var(--pop); --soft: var(--pop); --ring: rgba(214, 51, 108, .3);
   }
@@ -805,11 +806,13 @@
     --ink: #fff3d6; --paper: #1d1630; --dot: rgba(255, 243, 214, .09);
     --bg: var(--paper); --card: #2a2042; --text: #fff8ea; --muted: #ded3ee;
     --line: var(--ink); --accent: #ff8cc6; --accent-weak: #47234a; --chip: #3a2f55; --field: #241b39;
+    --chipA: #3d3520; --chipB: #1f3a2c; --chipC: #45243a; --chipD: #1f3350;
   } }
   :root[data-theme="dark"] {
     --ink: #fff3d6; --paper: #1d1630; --dot: rgba(255, 243, 214, .09);
     --bg: var(--paper); --card: #2a2042; --text: #fff8ea; --muted: #ded3ee;
     --line: var(--ink); --accent: #ff8cc6; --accent-weak: #47234a; --chip: #3a2f55; --field: #241b39;
+    --chipA: #3d3520; --chipB: #1f3a2c; --chipC: #45243a; --chipD: #1f3350;
   }
   body {
     background-color: var(--paper) !important; color: var(--text);
@@ -847,11 +850,14 @@
   .theme button { border: 0 !important; box-shadow: none !important; color: #1c1a1f !important; background: transparent !important; }
   .theme button.on, .theme button[aria-pressed="true"] { background: var(--grape) !important; }
   /* 칩·태그 */
-  .chip, .chips > label, .chips > span, .hubtag, .vtag, #auth .langbar button, #hub .langbar button { border: 2px solid var(--ink) !important; border-radius: 999px !important; box-shadow: var(--pop-c) !important; color: var(--text) !important; }
-  .chips > *:nth-child(4n+1) { background: #fff3bf !important; color: #1c1a1f !important; }
-  .chips > *:nth-child(4n+2) { background: #c3fae8 !important; color: #1c1a1f !important; }
-  .chips > *:nth-child(4n+3) { background: #ffdeeb !important; color: #1c1a1f !important; }
-  .chips > *:nth-child(4n) { background: #d0ebff !important; color: #1c1a1f !important; }
+  .chip, .chips span, .hubtag, .vtag, #auth .langbar button, #hub .langbar button { border: 2px solid var(--ink) !important; border-radius: 999px !important; box-shadow: var(--pop-c) !important; color: var(--text) !important; }
+  .chips > label { border: 0 !important; box-shadow: none !important; background: none !important; }
+  .chips span { color: var(--text) !important; background: var(--field) !important; }
+  .chips > *:nth-child(4n+1) span { background: var(--chipA) !important; }
+  .chips > *:nth-child(4n+2) span { background: var(--chipB) !important; }
+  .chips > *:nth-child(4n+3) span { background: var(--chipC) !important; }
+  .chips > *:nth-child(4n) span { background: var(--chipD) !important; }
+  .chips input:checked + span { background: var(--pink) !important; color: #1c1a1f !important; box-shadow: var(--pop-b) !important; }
   #auth .langbar button.on, #hub .langbar button.on, .langbar button[aria-pressed="true"] { background: var(--mint) !important; color: #1c1a1f !important; }
   /* 입력칸: 공책 칸 */
   input[type="text"], input[type="password"], input[type="search"], input[type="number"], input:not([type]), select, textarea {
@@ -891,6 +897,14 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tile { background: var(--card) !important; } :root:not([data-theme="light"]) .tile, :root:not([data-theme="light"]) .tile * { color: var(--text) !important; } }
   a { text-decoration-style: wavy; text-underline-offset: 3px; }
   #wx-temp { min-width: 84px; padding-left: 10px !important; padding-right: 6px !important; }
+  /* 다크 모드 가독성 보정 (2026-11-26) */
+  #adm-log .vtag, .logv .vtag, h3 .vtag { background: var(--pink) !important; color: #1c1a1f !important; }
+  #adm-log .logmaj button.on, #adm-log .logmaj button.on small { color: #1c1a1f !important; opacity: 1; }
+  :root[data-theme="dark"] .bpm { text-shadow: 2px 2px 0 #6741d9; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bpm { text-shadow: 2px 2px 0 #6741d9; } }
+  button:disabled, button[disabled], #enter:disabled, #su-btn:disabled, #sh-go:disabled, button[type="submit"]:disabled { opacity: 1 !important; background: var(--chip) !important; color: var(--muted) !important; box-shadow: none !important; border-style: dashed !important; transform: none !important; cursor: not-allowed; }
+  :root[data-theme="dark"] .hubcard { box-shadow: 5px 5px 0 var(--ink) !important; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hubcard { box-shadow: 5px 5px 0 var(--ink) !important; } }
   @keyframes sk-wobble { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
   @keyframes sk-hop { 0%, 100% { transform: translateY(0) scale(1, 1); } 40% { transform: translateY(-8px) scale(.97, 1.04); } 60% { transform: translateY(0) scale(1.04, .96); } }
   @media (prefers-reduced-motion: reduce) { .hubmascot, .mascot-hello, .hubicon, header.top .logo { animation: none !important; } button, .hubcard { transition: none !important; } }
@@ -1408,8 +1422,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=5.3"></script>
-<script src="lang.js?v=5.3"></script>
+<script src="lang-data.js?v=5.4"></script>
+<script src="lang.js?v=5.4"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -5386,8 +5400,14 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v5.3";
+  const APP_VERSION = "v5.4";
   const CHANGELOG = [
+    ["v5.4", "2026-11-26", "다크 모드 가독성 보정", [
+      "다크 모드에서 날씨·음식 종류 칩 글자가 배경에 묻혀 안 보이던 문제 수정 (칩마다 어두운 색 바탕 + 밝은 글자, 고르면 분홍 바탕 + 검정 글자)",
+      "칩 테두리가 두 겹으로 보이던 것 한 겹으로 정리",
+      "아직 누를 수 없는 버튼(예: 동의 전 '동의하고 시작하기')은 점선 테두리 + 흐린 글자로 또렷하게 구분",
+      "관리패널 업데이트 내역 버전 표시, BPM 숫자 그림자, 처음 화면 카드 그림자를 다크 모드에 맞게 조정",
+    ]],
     ["v5.3", "2026-11-26", "스티커 낙서장 디자인·장난스러운 문구", [
       "사용자가 고른 '스티커 낙서장' 시안 적용: 노란 띠지 머리글, 굵은 검정 테두리, 살짝 비뚤게 붙인 카드, 둥근 손글씨 글꼴, 통통 뛰는 캐릭터",
       "시안보다 버튼 그림자를 줄이고, 글자색을 검정 계열로 통일해 읽기 쉽게 함 (다크 모드는 밝은 글자 유지)",
