@@ -4274,15 +4274,15 @@
     "🍴 料理の種類 <span class=\"opt\">（複数可・選ばなければ指定なし）</span>",
     "🍴 菜系 <span class=\"opt\">（可多选，不选则不限）</span>"
     ],
-    "🙋 혼밥 <span class=\"opt\">(선택)</span>": [
-    "🙋 Eating alone <span class=\"opt\">(optional)</span>",
-    "🙋 おひとりさま <span class=\"opt\">（任意）</span>",
-    "🙋 一人食 <span class=\"opt\">（可选）</span>"
+    "🙋 혼밥 좀 외롭다… <span class=\"opt\">(선택)</span>": [
+    "🙋 Eating solo… kinda lonely <span class=\"opt\">(optional)</span>",
+    "🙋 ぼっち飯…ちょっと寂しい <span class=\"opt\">（任意）</span>",
+    "🙋 一个人吃饭…有点孤单 <span class=\"opt\">（可选）</span>"
     ],
-    "📝 음식 조건 <span class=\"opt\">(선택)</span>": [
-    "📝 Food preferences <span class=\"opt\">(optional)</span>",
-    "📝 料理の条件 <span class=\"opt\">（任意）</span>",
-    "📝 饮食条件 <span class=\"opt\">（可选）</span>"
+    "📝 이건 좀 애매하긴 해 <span class=\"opt\">(선택)</span>": [
+    "📝 Hmm, not so sure about… <span class=\"opt\">(optional)</span>",
+    "📝 これはちょっと微妙かも <span class=\"opt\">（任意）</span>",
+    "📝 这个嘛…有点纠结 <span class=\"opt\">（可选）</span>"
     ],
     "🎧 노래 <span class=\"opt\">('가수 - 곡명')</span>": [
     "🎧 Song <span class=\"opt\">('Artist - Title')</span>",

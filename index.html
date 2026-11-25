@@ -790,6 +790,116 @@
   #map, #pickmapdiv { position: relative; z-index: 0; isolation: isolate; }
   /* ===== v5.1 가게 이름·주소 영어 표기 ===== */
   html[lang="ko"] .env, html:not([lang="ko"]) .kov { display: none; }
+  /* ===== v5.3 "스티커 낙서장" 테마 (사용자가 고른 시안, 2026-11-26) =====
+     레이아웃·메뉴·탭 구성은 그대로, 색·선·글꼴·움직임만 바꿈.
+     사용자 요청: 버튼 그림자는 시안보다 작게, 글자는 검정 계열로 통일해 가독성 높이기 */
+  :root {
+    --ink: #1c1a1f; --paper: #fff9e8; --dot: rgba(28, 26, 31, .09);
+    --banana: #ffd43b; --pink: #ff6fb5; --mint: #3ddc97; --sky: #4dabf7; --grape: #b197fc;
+    --bg: var(--paper); --card: #ffffff; --text: #1c1a1f; --muted: #47434d;
+    --line: var(--ink); --accent: #d6336c; --accent-weak: #ffe3f1; --chip: #fff3bf; --field: #fffdf6;
+    --btnfg: #1c1a1f; --pop: 4px 4px 0 var(--ink); --pop-b: 2px 2px 0 var(--ink); --pop-c: 1.5px 1.5px 0 var(--ink);
+    --shadow: var(--pop); --soft: var(--pop); --ring: rgba(214, 51, 108, .3);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --ink: #fff3d6; --paper: #1d1630; --dot: rgba(255, 243, 214, .09);
+    --bg: var(--paper); --card: #2a2042; --text: #fff8ea; --muted: #ded3ee;
+    --line: var(--ink); --accent: #ff8cc6; --accent-weak: #47234a; --chip: #3a2f55; --field: #241b39;
+  } }
+  :root[data-theme="dark"] {
+    --ink: #fff3d6; --paper: #1d1630; --dot: rgba(255, 243, 214, .09);
+    --bg: var(--paper); --card: #2a2042; --text: #fff8ea; --muted: #ded3ee;
+    --line: var(--ink); --accent: #ff8cc6; --accent-weak: #47234a; --chip: #3a2f55; --field: #241b39;
+  }
+  body {
+    background-color: var(--paper) !important; color: var(--text);
+    background-image: radial-gradient(var(--dot) 1.4px, transparent 1.6px) !important; background-size: 18px 18px !important;
+  }
+  h1, h2, h3, .hubcard b, button, .chip, .hubtag, summary, th { font-family: "Jua", -apple-system, "Apple SD Gothic Neo", "Hiragino Sans", "Microsoft YaHei", sans-serif !important; font-weight: 400 !important; }
+  .hint, .opt, small { color: var(--muted) !important; }
+  /* 머리글: 노란 띠지 */
+  header.top { background: var(--banana) !important; border-bottom: 3px solid #1c1a1f !important; box-shadow: 0 3px 0 #1c1a1f !important; backdrop-filter: none !important; }
+  :root[data-theme="dark"] header.top { background: #3b2a66 !important; border-bottom-color: var(--ink) !important; box-shadow: 0 3px 0 var(--ink) !important; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) header.top { background: #3b2a66 !important; border-bottom-color: var(--ink) !important; box-shadow: 0 3px 0 var(--ink) !important; } }
+  header.top h1 a { color: #1c1a1f !important; text-shadow: 2px 2px 0 #fff; }
+  :root[data-theme="dark"] header.top h1 a { color: var(--ink) !important; text-shadow: 2px 2px 0 #1c1a1f; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) header.top h1 a { color: var(--ink) !important; text-shadow: 2px 2px 0 #1c1a1f; } }
+  header.top .logo { animation: sk-wobble 2.6s ease-in-out infinite; }
+  /* 카드: 살짝 비뚤게 붙인 스티커 */
+  .card, .agreebox, #songfb, .tile, .stat, .modalbox { border: 3px solid var(--ink) !important; border-radius: 18px !important; box-shadow: var(--pop) !important; }
+  main > .card:nth-of-type(odd) { transform: rotate(-.4deg); }
+  main > .card:nth-of-type(even) { transform: rotate(.4deg); }
+  /* 버튼: 그림자는 작게, 누르면 꾹 */
+  button, .hubgo, a.btn { border: 2.5px solid var(--ink) !important; border-radius: 14px !important; box-shadow: var(--pop-b) !important; color: var(--btnfg);
+    transition: transform .12s cubic-bezier(.3, 1.6, .5, 1), box-shadow .12s !important; }
+  button:hover, .hubgo:hover { transform: translate(-1px, -1px) rotate(-1deg); box-shadow: 2.5px 2.5px 0 var(--ink) !important; }
+  button:active { transform: translate(2px, 2px) !important; box-shadow: 0 0 0 var(--ink) !important; }
+  button { background: var(--pink); color: #1c1a1f; }
+  button[type="submit"], #sh-go, #enter, #su-btn, .primary { background: var(--pink) !important; color: #1c1a1f !important; }
+  .seg button.on, .logmaj button.on, .vtag, .chips input:checked + span { background: var(--pink) !important; color: #1c1a1f !important; border-color: var(--ink) !important; }
+  .dyn i { background: var(--pink) !important; }
+  button.ghost, .mini.ghost { background: var(--card) !important; color: var(--text) !important; }
+  .cnav button { color: #1c1a1f !important; background: #fff !important; }
+  .cnav button:nth-child(1) { background: var(--pink) !important; }
+  .cnav button:nth-child(2) { background: var(--mint) !important; }
+  .cnav button:nth-child(3) { background: var(--sky) !important; }
+  .theme { border: 2.5px solid #1c1a1f !important; box-shadow: var(--pop-c) !important; border-radius: 14px !important; background: #fff !important; }
+  .theme button { border: 0 !important; box-shadow: none !important; color: #1c1a1f !important; background: transparent !important; }
+  .theme button.on, .theme button[aria-pressed="true"] { background: var(--grape) !important; }
+  /* 칩·태그 */
+  .chip, .chips > label, .chips > span, .hubtag, .vtag, #auth .langbar button, #hub .langbar button { border: 2px solid var(--ink) !important; border-radius: 999px !important; box-shadow: var(--pop-c) !important; color: var(--text) !important; }
+  .chips > *:nth-child(4n+1) { background: #fff3bf !important; color: #1c1a1f !important; }
+  .chips > *:nth-child(4n+2) { background: #c3fae8 !important; color: #1c1a1f !important; }
+  .chips > *:nth-child(4n+3) { background: #ffdeeb !important; color: #1c1a1f !important; }
+  .chips > *:nth-child(4n) { background: #d0ebff !important; color: #1c1a1f !important; }
+  #auth .langbar button.on, #hub .langbar button.on, .langbar button[aria-pressed="true"] { background: var(--mint) !important; color: #1c1a1f !important; }
+  /* 입력칸: 공책 칸 */
+  input[type="text"], input[type="password"], input[type="search"], input[type="number"], input:not([type]), select, textarea {
+    border: 2.5px solid var(--ink) !important; border-radius: 12px !important; background: var(--field) !important; color: var(--text) !important; }
+  input:focus, select:focus, textarea:focus { outline: 3px dashed var(--accent) !important; outline-offset: 2px; }
+  input[type="checkbox"], input[type="radio"] { accent-color: #d6336c; }
+  /* 처음 화면: 두 장의 커다란 스티커 */
+  .hubgrid { overflow: visible !important; gap: 22px !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; }
+  .hubcard { border: 3px solid #1c1a1f !important; border-radius: 26px !important; box-shadow: 5px 5px 0 #1c1a1f !important; color: #1c1a1f !important; position: relative; transition: transform .2s cubic-bezier(.3, 1.6, .5, 1) !important; }
+  .hubcard.song { background: var(--sky) !important; transform: rotate(-1.2deg); }
+  .hubcard.menu { background: var(--banana) !important; transform: rotate(1.2deg); }
+  .hubcard:hover { transform: rotate(0) scale(1.02) !important; filter: none !important; }
+  .hubcard::before { content: "♪ ♫"; position: absolute; top: 14px; left: 18px; font: 26px "Jua", sans-serif; color: #fff; text-shadow: 1.5px 1.5px 0 #1c1a1f; transform: rotate(-12deg); }
+  .hubcard.menu::before { content: "냠!"; left: auto; right: 22px; color: #d6336c; transform: rotate(10deg); }
+  html:not([lang="ko"]) .hubcard.menu::before { content: "♪"; }
+  .hubicon { background: #fff !important; border: 3px solid #1c1a1f; box-shadow: var(--pop-c); animation: sk-wobble 3s ease-in-out infinite; }
+  .hubcard b { font-size: 32px !important; color: #1c1a1f !important; text-shadow: 2px 2px 0 #fff; }
+  .hubtag { background: #fff !important; color: #1c1a1f !important; }
+  .hubdesc { color: #1c1a1f !important; opacity: 1 !important; font-weight: 600; }
+  .hubgo { background: var(--pink) !important; color: #1c1a1f !important; box-shadow: var(--pop-b) !important; }
+  .hubcard.song .hubgo { background: var(--grape) !important; }
+  .hubmascot { animation: sk-hop 1.6s cubic-bezier(.3, 1.4, .5, 1) infinite !important; }
+  .hubhead h2 { color: var(--text) !important; text-wrap: balance; }
+  /* 말풍선·마스코트 */
+  .bubble { border: 3px solid #1c1a1f !important; border-radius: 22px 22px 22px 4px !important; box-shadow: var(--pop-c) !important; background: #fff !important; color: #1c1a1f !important; }
+  .mascot-hello { animation: sk-hop 1.8s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+  /* 결과 화면 */
+  .bpm { font-family: "Jua", sans-serif !important; color: var(--text) !important; text-shadow: 2px 2px 0 var(--banana); }
+  .aibadge { border: 2px solid #1c1a1f !important; box-shadow: var(--pop-c) !important; background: linear-gradient(90deg, #74c0fc, #b197fc) !important; color: #1c1a1f !important; }
+  .aibadge.off { background: #e9ecef !important; }
+  .shoplist li { border-bottom: 2.5px dashed var(--ink) !important; padding-bottom: 10px !important; }
+  .tile:nth-child(3n+1) { background: #fff3bf !important; }
+  .tile:nth-child(3n+2) { background: #e6fcf5 !important; }
+  .tile:nth-child(3n) { background: #ffe3f1 !important; }
+  .tile, .tile * { color: #1c1a1f !important; }
+  :root[data-theme="dark"] .tile { background: var(--card) !important; } :root[data-theme="dark"] .tile, :root[data-theme="dark"] .tile * { color: var(--text) !important; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tile { background: var(--card) !important; } :root:not([data-theme="light"]) .tile, :root:not([data-theme="light"]) .tile * { color: var(--text) !important; } }
+  a { text-decoration-style: wavy; text-underline-offset: 3px; }
+  #wx-temp { min-width: 84px; padding-left: 10px !important; padding-right: 6px !important; }
+  @keyframes sk-wobble { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+  @keyframes sk-hop { 0%, 100% { transform: translateY(0) scale(1, 1); } 40% { transform: translateY(-8px) scale(.97, 1.04); } 60% { transform: translateY(0) scale(1.04, .96); } }
+  @media (prefers-reduced-motion: reduce) { .hubmascot, .mascot-hello, .hubicon, header.top .logo { animation: none !important; } button, .hubcard { transition: none !important; } }
+  @media (max-width: 720px) {
+    .hubgrid { gap: 14px !important; }
+    .hubcard { box-shadow: 4px 4px 0 #1c1a1f !important; min-height: 0 !important; }
+    .hubcard b { font-size: 26px !important; }
+    main > .card { transform: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -955,13 +1065,13 @@
       <label><input type="checkbox" value="카페·디저트"><span>🍰 카페·디저트</span></label>
     </div>
 
-    <label>🙋 혼밥 <span class="opt">(선택)</span></label>
+    <label>🙋 혼밥 좀 외롭다… <span class="opt">(선택)</span></label>
     <div class="chips">
       <label><input type="checkbox" id="solo"><span>🙋 혼밥 가능한 곳만 찾기</span></label>
     </div>
     <p class="hint">혼자 먹기 좋은 메뉴를 먼저 추천하고, 네이버 블로그 후기에 '혼밥' 이야기가 나온 식당을 골라 보여 줘요. 인원을 1명으로 하면 자동으로 켜져요.</p>
 
-    <label for="flt">📝 음식 조건 <span class="opt">(선택)</span></label>
+    <label for="flt">📝 이건 좀 애매하긴 해 <span class="opt">(선택)</span></label>
     <input type="text" id="flt" placeholder="예: 매운 음식 제외, 해산물 빼고, 국물 좋아요">
     <p class="hint">"○○ 제외·빼고·싫어"는 빼고, 그 밖의 말은 먼저 추천해요. 쉼표로 여러 개 쓸 수 있어요.</p>
 
@@ -1298,8 +1408,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=5.2"></script>
-<script src="lang.js?v=5.2"></script>
+<script src="lang-data.js?v=5.3"></script>
+<script src="lang.js?v=5.3"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -4900,7 +5010,7 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   // 첫 화면: 왼쪽 노래 추천(사장님) | 오른쪽 메뉴 추천(손님)
   function drawHub() {
     $("hub").innerHTML = `${langBarHTML("hub-lang")}
-      <div class="hubhead"><img src="mascot.png?v=4" alt="" class="hubmascot"><h2>${T4("어떤 추천을 받아 볼까요?", "What would you like us to recommend?", "どちらのおすすめにしますか？", "想要哪种推荐？")}</h2></div>
+      <div class="hubhead"><img src="mascot.png?v=4" alt="" class="hubmascot"><h2>${T4("야르한 선택으로 야르하게 추천 좀 받아 볼까나?", "Let's gooo! Pick one and get a hype-worthy rec?", "テンションMAXで選んで、アゲアゲなおすすめもらっちゃう？", "冲鸭！选一个，来点燃爆的推荐吧？")}</h2></div>
       <div class="hubgrid">
         <button type="button" class="hubcard song" data-go="shop">
           <span class="hubicon">🎵</span>
@@ -5276,8 +5386,14 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v5.2";
+  const APP_VERSION = "v5.3";
   const CHANGELOG = [
+    ["v5.3", "2026-11-26", "스티커 낙서장 디자인·장난스러운 문구", [
+      "사용자가 고른 '스티커 낙서장' 시안 적용: 노란 띠지 머리글, 굵은 검정 테두리, 살짝 비뚤게 붙인 카드, 둥근 손글씨 글꼴, 통통 뛰는 캐릭터",
+      "시안보다 버튼 그림자를 줄이고, 글자색을 검정 계열로 통일해 읽기 쉽게 함 (다크 모드는 밝은 글자 유지)",
+      "문구 변경: '어떤 추천을 받아 볼까요?' → '야르한 선택으로 야르하게 추천 좀 받아 볼까나?', '혼밥' → '혼밥 좀 외롭다…', '음식 조건' → '이건 좀 애매하긴 해'",
+      "바꾼 문구는 영어·일본어·중국어도 현지 말투로 번역 (예: Let's gooo!, ぼっち飯…ちょっと寂しい, 冲鸭！)",
+    ]],
     ["v5.2", "2026-11-23", "곡 정정 자동 반영", [
       "'다른 곡이에요'로 이용자가 고른 곡을 관리자 승인 없이 자동으로 다음 검색에 적용",
       "이용자가 곡을 고르면 AI(Gemini)가 입력과 같은 곡인지 한 번 확인 → AI가 맞다고 하면 1명만 고쳐도 바로, AI가 없거나 아니라고 하면 여러 명이 같은 곡을 골라야 적용",
