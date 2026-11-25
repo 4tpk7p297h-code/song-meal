@@ -1,7 +1,7 @@
 # 비트밥스 (song-meal) 인수인계 문서
 
 > 새 Claude에게: 이 문서와 함께 받은 사이트 파일(index.html 등)을 읽고 이어서 작업해 주세요.
-> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-26 (사이트 v5.4, 업로드 zip 20261126_rev2, Worker song-meal-api v3.5 · naver-search v2.3)
+> 사용자에게는 한국어로 답해 주세요. 마지막 갱신: 2026-11-26 (사이트 v5.5, 업로드 zip 20261126_rev3, Worker song-meal-api v3.5 · naver-search v2.3)
 
 ## 1. 프로젝트 한 줄 요약
 좋아하는 노래를 입력하면 곡 분위기(장르로 추정)에 맞는 오늘의 메뉴 3개와 주변 식당을 네이버 지도로 보여 주는 웹사이트.
@@ -93,6 +93,7 @@ C 코드를 HTML5로 변환해 배포 → Anthropic API 제거, 이름 "음식�
 - v5.2 (Worker v3.5): 사용자 요청 '곡 검색 정정을 관리자 승인 없이 자동 반영'. songFix() 점수제: 정정 1명당 1점, AI(Gemini lite, song_ai 테이블에 입력·곡당 한 번 저장) 같은 곡 +1.5 / 다른 곡 -1, 2점 이상이고 '맞아요' 표보다 높으면 적용. 관리자 state 1(고정)·-1(막기)은 그대로 우선. lookupSong 등 검색·매칭 로직은 손대지 않음.
 - v5.3: 사용자가 고른 '스티커 낙서장' 디자인 적용(index.html <style> 끝 'v5.3 스티커 낙서장' 블록, 시안 원본 /mnt/project-files/song-meal/design/). 사용자 요청으로 버튼 그림자 2px로 작게, 글자 검정 계열(#1c1a1f) 통일, 강조 버튼은 분홍 바탕+검정 글자. 문구 3곳 변경: 처음 화면 제목(야르…), 혼밥 라벨(혼밥 좀 외롭다…), 음식 조건 라벨(이건 좀 애매하긴 해) + en/ja/zh 현지 말투.
 - v5.4: 사용자 제보 '다크 모드에서 칩 글자가 안 보임' → 칩 스티커 스타일을 label이 아닌 span에, 색은 토큰 --chipA~D(라이트 파스텔/다크 어두운 색)+var(--text). 비활성 버튼은 점선+흐린 글자. 다크 모드 점검: 스크래치 shot.js SCHEME=dark, crawl3dk.js(팝업·관리패널).
+- v5.5: 사용자 제보 다크 모드 BPM 글자 번짐 → .bpm 그림자는 숫자(b)에만, 작은 글자엔 그림자 금지.
 - v3.2: Last.fm 분위기 태그는 분석에만 (사용자 지시: 곡 검색·결과 도출 로직은 절대 건드리지 말 것). Worker GET /music/mood?a=가수|별칭&t=곡명|다른표기 → track.getTopTags(태그 3개 이상) 아니면 artist.getTopTags, 30분 메모. 사이트: 곡이 정해진 뒤 lastfmMood() → moodFromTags(MOOD_RE eLow/eHigh/vNeg/vPos, count 비중) → v.energy/v.valence 덮어씀(관련 태그 없으면 장르 추정 유지). 시험: 스크래치패드 mood.mjs(Worker), t33.js(화면)
 - v3.1: 화면 비율 (style 끝 'v3.1' 블록). viewport-fit=cover + safe-area 여백, max-width 360px 좁은 화면(.row 한 줄, 테마 .tl 숨김), 700~959px 또는 960+ 높이 559 이하에서 결과 2칸, 기존 3칸은 min-height 560 이상만, horizontal-viewport-segments: 2(듀얼 스크린) 경첩 피하기. 가입 비밀번호 실시간 안내 #su-pwcheck/#su-pw2check(pwSync), #auth-err 상자+흔들기. 시험: 스크래치패드 t31.js(9개 화면 크기 가로넘침 검사), t32.js
 - v3.0: 사용자 브라우저의 실제 응답(Deezer '싸이 예술이야' → Psy "Fantastic Duo 2 Part.4 '예술이야'", 싸이 (PSY) "It's Art" / Apple 미국 'PSY 예술이야' → It's Art (Live), It's Art, I LUV IT …, Apple 한국은 0곡)으로 재현(스크래치패드 lktest6.mjs). 합치기는 pick 묶음 대신 pool에서 직접: hit 표시 + 서버 확정 곡의 가수 + 라이브·MR 제외 원곡이 Apple·Deezer 2곳에서 sameSong이면 확정. 한 칸·곡명만 입력도 됨. 점검 로그에 검색 결과 맨 위 3곡(top3)

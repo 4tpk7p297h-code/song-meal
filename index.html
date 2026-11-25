@@ -885,7 +885,9 @@
   .bubble { border: 3px solid #1c1a1f !important; border-radius: 22px 22px 22px 4px !important; box-shadow: var(--pop-c) !important; background: #fff !important; color: #1c1a1f !important; }
   .mascot-hello { animation: sk-hop 1.8s cubic-bezier(.3, 1.4, .5, 1) infinite; }
   /* 결과 화면 */
-  .bpm { font-family: "Jua", sans-serif !important; color: var(--text) !important; text-shadow: 2px 2px 0 var(--banana); }
+  .bpm { color: var(--text) !important; text-shadow: none !important; }
+  .bpm b { font-family: "Jua", sans-serif !important; font-weight: 400; text-shadow: 2px 2px 0 var(--banana); }
+  .bpm span { font-weight: 700; color: var(--text) !important; }
   .aibadge { border: 2px solid #1c1a1f !important; box-shadow: var(--pop-c) !important; background: linear-gradient(90deg, #74c0fc, #b197fc) !important; color: #1c1a1f !important; }
   .aibadge.off { background: #e9ecef !important; }
   .shoplist li { border-bottom: 2.5px dashed var(--ink) !important; padding-bottom: 10px !important; }
@@ -900,8 +902,8 @@
   /* 다크 모드 가독성 보정 (2026-11-26) */
   #adm-log .vtag, .logv .vtag, h3 .vtag { background: var(--pink) !important; color: #1c1a1f !important; }
   #adm-log .logmaj button.on, #adm-log .logmaj button.on small { color: #1c1a1f !important; opacity: 1; }
-  :root[data-theme="dark"] .bpm { text-shadow: 2px 2px 0 #6741d9; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bpm { text-shadow: 2px 2px 0 #6741d9; } }
+  :root[data-theme="dark"] .bpm b { text-shadow: 2px 2px 0 #6741d9; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bpm b { text-shadow: 2px 2px 0 #6741d9; } }
   button:disabled, button[disabled], #enter:disabled, #su-btn:disabled, #sh-go:disabled, button[type="submit"]:disabled { opacity: 1 !important; background: var(--chip) !important; color: var(--muted) !important; box-shadow: none !important; border-style: dashed !important; transform: none !important; cursor: not-allowed; }
   :root[data-theme="dark"] .hubcard { box-shadow: 5px 5px 0 var(--ink) !important; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hubcard { box-shadow: 5px 5px 0 var(--ink) !important; } }
@@ -1422,8 +1424,8 @@
   <footer>※ 곡 정보는 Apple Music·Deezer·MusicBrainz 등 여러 음악 정보 서비스를 비교한 결과, 식당 정보는 네이버 검색 결과이며, 분위기 해설은 추정입니다.</footer>
 </main>
 
-<script src="lang-data.js?v=5.4"></script>
-<script src="lang.js?v=5.4"></script>
+<script src="lang-data.js?v=5.5"></script>
+<script src="lang.js?v=5.5"></script>
 <script>
 (() => {
   // ---------- 설정 ----------
@@ -5400,8 +5402,11 @@ Official髭男dism|Pretender|J-pop|2|2|japanese
   });
   applyVol();
 
-  const APP_VERSION = "v5.4";
+  const APP_VERSION = "v5.5";
   const CHANGELOG = [
+    ["v5.5", "2026-11-26", "BPM 표시 가독성", [
+      "BPM 숫자 옆 'BPM · 빠르기' 글자에 붙은 그림자를 없애 다크 모드에서 번져 보이던 문제 수정 (그림자는 큰 숫자에만, 다크 모드는 보라색)",
+    ]],
     ["v5.4", "2026-11-26", "다크 모드 가독성 보정", [
       "다크 모드에서 날씨·음식 종류 칩 글자가 배경에 묻혀 안 보이던 문제 수정 (칩마다 어두운 색 바탕 + 밝은 글자, 고르면 분홍 바탕 + 검정 글자)",
       "칩 테두리가 두 겹으로 보이던 것 한 겹으로 정리",
